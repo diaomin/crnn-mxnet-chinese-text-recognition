@@ -6,46 +6,6 @@ import numpy as np
 import mxnet as mx
 import random
 
-def write_txt_file():
-    root_path = "D:/Data/VOCtrainval_11-May-2012/test/"
-
-    dirs = os.listdir(os.path.join(root_path,"images"))
-    content = []
-    for d in dirs:
-        files = os.listdir(os.path.join(root_path,"images", d))
-        for f in files:
-            content.append(d+"/"+f+" "+d+"\n")
-
-    random.shuffle(content)
-
-    train_f = open(os.path.join(root_path,"train.txt"),"w")
-    test_f = open(os.path.join(root_path, "test.txt"), "w")
-
-    for i,c in enumerate(content):
-        if i < 0.8*len(content):
-            train_f.write(c)
-        else:
-            test_f.write(c)
-    train_f.close()
-    test_f.close()
-
-def write_mx_lst(data_type="train"):
-    txt_file = "D:/BaiduNetdiskDownload/Synthetic_Chinese_String_Dataset/"
-    in_f = open(os.path.join(txt_file, data_type+".txt"), "r")
-    out_f = open(os.path.join(txt_file, data_type+".lst"), "w")
-    lines = in_f.readlines()
-    random.shuffle(lines)
-    for idx, line in enumerate(lines):
-        new_line = str(idx)+"\t"
-        lst = line.strip().split(" ")
-        for i in range(len(lst)-1):
-            new_line = new_line+lst[i+1]+"\t"
-        new_line = new_line+"images/"+lst[0]+"\n"
-        out_f.write(new_line)
-    in_f.close()
-    out_f.close()
-
-
 
 class SimpleBatch(object):
     def __init__(self, data_names, data, label_names=list(), label=list()):
@@ -209,58 +169,3 @@ class ImageIterLstm(mx.io.DataIter):
         #     self.dataset_lst_file.seek(0)
         random.shuffle(self.dataset_lines)
 
-# def get_label(buf):
-#     ret = np.zeros(10)
-#     for i in range(len(buf)):
-#         ret[i] = 1 + int(buf[i])
-#     if len(buf) == 9:
-#         ret[3] = 0
-#     return ret
-
-# class OCRIter(mx.io.DataIter):
-#     """
-#     Iterator class for generating captcha image data
-#     """
-#
-#     def __init__(self, count, batch_size, captcha, name):
-#         """
-#         Parameters
-#         ----------
-#         count: int
-#             Number of batches to produce for one epoch
-#         batch_size: int
-#
-#         captcha MPCaptcha
-#             Captcha image generator. Can be MPCaptcha or any other class providing .shape and .get() interface
-#         name: str
-#         """
-#         super(OCRIter, self).__init__()
-#         self.batch_size = batch_size
-#         self.count = count
-#
-#         self.data_shape = captcha.shape
-#         print(self.data_shape)
-#         self.provide_data = [('data', (batch_size, 1, self.data_shape[0], self.data_shape[1]))]
-#         self.provide_label = [('label', (self.batch_size, 10))]
-#         self.mp_captcha = captcha
-#         self.name = name
-#
-#     def __iter__(self):
-#         for k in range(self.count):
-#             data = []
-#             label = []
-#             for i in range(self.batch_size):
-#                 img, num = self.mp_captcha.get()
-#                 img = np.array(img).reshape((1, self.data_shape[0], self.data_shape[1]))
-#                 data.append(img)
-#                 label.append(get_label(num))
-#             data_all = [mx.nd.array(data)]
-#             label_all = [mx.nd.array(label)]
-#             data_names = ['data']
-#             label_names = ['label']
-#
-#             data_batch = SimpleBatch(data_names, data_all, label_names, label_all)
-#             yield data_batch
-
-if __name__=="__main__":
-    write_mx_lst("test")
