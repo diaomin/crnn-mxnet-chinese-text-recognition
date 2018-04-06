@@ -7,14 +7,19 @@ This is an implementation of CRNN (CNN+LSTM+CTC) for chinese text recognition.
 
 ## Data Preparation
 1. Download the [Synthetic Chinese Dataset](https://pan.baidu.com/s/1dFda6R3)(contributed by https://github.com/senlinuc/caffe_ocr)
-   This dataset contains almost 3.6 million synthetic chinese text images with 5,990 different categories. Each image has a length of 10   
-   characters. 
+   
+   A glance of the dataset 
+   *`almost 3.6 million synthetic chinese text images.
+   *`5,990 different categories in total.
+   *`Each image has a length of 10 characters. 
+   
 2. Create train.txt and text.txt with the format like this:  
 ```
            image_name1 label1_1 label1_2 label1_3...
            image_name2 label2_1 label2_2 label2_3...
 ```
 Optional: downoad the two files [here](https://pan.baidu.com/s/1xQ38TTUrxMytVp1VY6Y4Pg)
+
 ## Training
 1. Modify the path of images and txt files in train.py 
 2. Run
