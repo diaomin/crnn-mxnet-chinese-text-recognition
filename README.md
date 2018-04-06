@@ -14,7 +14,7 @@ This is an implementation of CRNN (CNN+LSTM+CTC) for chinese text recognition.
            image_name1 label1_1 label1_2 label1_3...
            image_name2 label2_1 label2_2 label2_3...
 ```
-Optional: downoad is [here](https://pan.baidu.com/s/1xQ38TTUrxMytVp1VY6Y4Pg)
+Optional: downoad the two files [here](https://pan.baidu.com/s/1xQ38TTUrxMytVp1VY6Y4Pg)
 ## Training
 1. Revide the path of images and txt files in train.py 
 2. Run
