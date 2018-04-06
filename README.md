@@ -6,7 +6,7 @@ This is an implementation of CRNN (CNN+LSTM+CTC) for chinese text recognition.
 2. Then build MXNet from source with warp-ctc config flags enabled.
 
 ## Data Preparation
-1. Download the [Synthetic Chinese Dataset](https://pan.baidu.com/s/1dFda6R3)(contributed by https://github.com/senlinuc/caffe_ocr)
+1. Download the [Synthetic Chinese Dataset](https://pan.baidu.com/s/1dFda6R3)(contributed by https://github.com/senlinuc/caffe_ocr and many thanks)
 
    A glance of the dataset: 
    * almost 3.6 million synthetic chinese text images.
