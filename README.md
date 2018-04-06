@@ -16,7 +16,7 @@ This is an implementation of CRNN (CNN+LSTM+CTC) for chinese text recognition.
 ```
 Optional: downoad the two files [here](https://pan.baidu.com/s/1xQ38TTUrxMytVp1VY6Y4Pg)
 ## Training
-1. Revide the path of images and txt files in train.py 
+1. Revise the path of images and txt files in train.py 
 2. Run
 ```
 $ python train.py 2>&1 | tee log.txt
