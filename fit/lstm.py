@@ -59,7 +59,7 @@ def lstm(net, num_lstm_layer, num_hidden, seq_length):
         hidden = mx.sym.flatten(data=slices_net[seqidx])
         for i in range(num_lstm_layer):
             next_state = _lstm(num_hidden, indata=hidden, prev_state=last_states[2 * i],
-                              param=forward_param[i], seqidx=seqidx, layeridx=0)
+                              param=forward_param[i], seqidx=seqidx, layeridx=i)
             hidden = next_state.h
             last_states[2 * i] = next_state
         forward_hidden.append(hidden)
@@ -70,7 +70,7 @@ def lstm(net, num_lstm_layer, num_hidden, seq_length):
         hidden = mx.sym.flatten(data=slices_net[k])
         for i in range(num_lstm_layer):
             next_state = _lstm(num_hidden, indata=hidden, prev_state=last_states[2 * i + 1],
-                              param=backward_param[i], seqidx=k, layeridx=1)
+                              param=backward_param[i], seqidx=k, layeridx=i)
             hidden = next_state.h
             last_states[2 * i + 1] = next_state
         backward_hidden.insert(0, hidden)
