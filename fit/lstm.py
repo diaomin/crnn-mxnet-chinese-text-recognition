@@ -11,6 +11,26 @@ LSTMModel = namedtuple("LSTMModel", ["rnn_exec", "symbol",
                                      "seq_data", "seq_labels", "seq_outputs",
                                      "param_blocks"])
 
+
+def init_states(batch_size, num_lstm_layer, num_hidden):
+    """
+    Returns name and shape of init states of LSTM network
+
+    Parameters
+    ----------
+    batch_size: list of tuple of str and tuple of int and int
+    num_lstm_layer: int
+    num_hidden: int
+
+    Returns
+    -------
+    list of tuple of str and tuple of int and int
+    """
+    init_c = [('l%d_init_c' % l, (batch_size, num_hidden)) for l in range(num_lstm_layer * 2)]
+    init_h = [('l%d_init_h' % l, (batch_size, num_hidden)) for l in range(num_lstm_layer * 2)]
+    return init_c + init_h
+
+
 def _lstm(num_hidden, indata, prev_state, param, seqidx, layeridx):
     """LSTM Cell symbol"""
     i2h = mx.sym.FullyConnected(data=indata,

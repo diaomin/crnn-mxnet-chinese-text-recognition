@@ -17,8 +17,8 @@ class Hyperparams(object):
         self._loss_type = "ctc"  # ["warpctc"  "ctc"]
 
         self._batch_size = 128
-        self._num_classes = 5990
-        self._img_width = 280
+        self._num_classes = 11
+        self._img_width = 100
         self._img_height = 32
 
         # DenseNet hyper parameters
@@ -29,9 +29,8 @@ class Hyperparams(object):
         # LSTM hyper parameters
         self._num_hidden = 100
         self._num_lstm_layer = 2
-        # self._seq_length = 35
         self._seq_length = self._img_width // 8
-        self._num_label = 10
+        self._num_label = 4
         self._drop_out = 0.5
 
     @property
