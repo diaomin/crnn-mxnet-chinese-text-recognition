@@ -20,7 +20,14 @@ This is an implementation of CRNN (CNN+LSTM+CTC) for chinese text recognition.
 ```
 Optional: downoad the two files [here](https://pan.baidu.com/s/1xQ38TTUrxMytVp1VY6Y4Pg)
 
+3. The mapping relation **from label id to char** can be found in file [label_cn.txt](examples/label_cn.txt) , which is adapted from [label.txt](https://github.com/senlinuc/caffe_ocr/blob/master/examples/ocr/resnet/label.txt).
+
+
+
+
+
 ## Training
+
 1. Modify the path of images and txt files in train.py 
 2. Run
 ```

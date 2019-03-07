@@ -146,7 +146,7 @@ class ImageIterLstm(mx.io.DataIter):
 
             cnt += 1
             img = Image.open(img_path).resize(self.data_shape, Image.BILINEAR).convert('L')
-            img = np.array(img).reshape((1, self.data_shape[1], self.data_shape[0]))
+            img = np.array(img).reshape((1, self.data_shape[1], self.data_shape[0]))  # res: [1, height, width]
             data.append(img)
 
             ret = np.zeros(self.num_label, int)
