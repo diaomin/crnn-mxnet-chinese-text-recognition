@@ -113,7 +113,7 @@ def run_cn_ocr(args):
     # cv2.imwrite('xxx.png', img * 255)
     # import pdb; pdb.set_trace()
     mp_data_test = MPOcrImages(args.data_root, args.test_file, (hp.img_width, hp.img_height), hp.num_label,
-                               num_processes=args.num_proc, max_queue_size=hp.batch_size * 2)
+                               num_processes=max(args.num_proc // 2, 1), max_queue_size=hp.batch_size * 2)
     mp_data_train.start()
     mp_data_test.start()
 
