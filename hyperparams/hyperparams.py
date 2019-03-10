@@ -7,7 +7,7 @@ class Hyperparams(object):
     """
     def __init__(self):
         # Training hyper parameters
-        self._train_epoch_size = 30000
+        self._train_epoch_size = 0
         self._eval_epoch_size = 3000
         self._num_epoch = 20
         self._learning_rate = 0.001
@@ -17,7 +17,7 @@ class Hyperparams(object):
         self._loss_type = "ctc"  # ["warpctc"  "ctc"]
 
         self._batch_size = 128
-        self._num_classes = 5990
+        self._num_classes = 6425  # 5990
         self._img_width = 280
         self._img_height = 32
 

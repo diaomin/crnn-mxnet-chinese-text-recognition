@@ -9,7 +9,7 @@ from data_utils.captcha_generator import MPDigitCaptcha
 
 from hyperparams.hyperparams import Hyperparams
 from hyperparams.hyperparams2 import Hyperparams as Hyperparams2
-from data_utils.data_iter import ImageIterLstm, OCRIter
+from data_utils.data_iter import ImageIterLstm, MPOcrImages, OCRIter
 from symbols.crnn import crnn_no_lstm, crnn_lstm
 from fit.ctc_metrics import CtcMetrics
 from fit.fit import fit
@@ -80,9 +80,11 @@ def run_captcha(args):
     data_names = ['data'] + [x[0] for x in init_states]
 
     data_train = OCRIter(
-        hp.train_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_captcha, name='train')
+        hp.train_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_captcha, num_label=hp.num_label,
+        name='train')
     data_val = OCRIter(
-        hp.eval_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_captcha, name='val')
+        hp.eval_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_captcha, num_label=hp.num_label,
+        name='val')
 
     head = '%(asctime)-15s %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=head)
@@ -99,15 +101,37 @@ def run_cn_ocr(args):
 
     network = crnn_lstm(hp)
 
+    mp_data_train = MPOcrImages(args.data_root, args.train_file, (hp.img_width, hp.img_height), hp.num_label,
+                                num_processes=args.num_proc, max_queue_size=hp.batch_size * 2)
+    # img, num = mp_data_train.get()
+    # print(img.shape)
+    # print(mp_data_train.shape)
+    # import pdb; pdb.set_trace()
+    # import numpy as np
+    # import cv2
+    # img = np.transpose(img, (1, 0))
+    # cv2.imwrite('xxx.png', img * 255)
+    # import pdb; pdb.set_trace()
+    mp_data_test = MPOcrImages(args.data_root, args.test_file, (hp.img_width, hp.img_height), hp.num_label,
+                               num_processes=args.num_proc, max_queue_size=hp.batch_size * 2)
+    mp_data_train.start()
+    mp_data_test.start()
+
     init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
     init_h = [('l%d_init_h' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
     init_states = init_c + init_h
     data_names = ['data'] + [x[0] for x in init_states]
 
-    data_train = ImageIterLstm(
-        args.data_root, args.train_file, hp.batch_size, (hp.img_width, hp.img_height), hp.num_label, init_states, name="train")
-    data_val = ImageIterLstm(
-        args.data_root, args.test_file,  hp.batch_size, (hp.img_width, hp.img_height), hp.num_label, init_states, name="val")
+    data_train = OCRIter(
+        hp.train_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_data_train, num_label=hp.num_label,
+        name='train')
+    data_val = OCRIter(
+        hp.train_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_data_test, num_label=hp.num_label,
+        name='val')
+    # data_train = ImageIterLstm(
+    #     args.data_root, args.train_file, hp.batch_size, (hp.img_width, hp.img_height), hp.num_label, init_states, name="train")
+    # data_val = ImageIterLstm(
+    #     args.data_root, args.test_file,  hp.batch_size, (hp.img_width, hp.img_height), hp.num_label, init_states, name="val")
 
     head = '%(asctime)-15s %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=head)
@@ -115,6 +139,9 @@ def run_cn_ocr(args):
     metrics = CtcMetrics(hp.seq_length)
 
     fit(network=network, data_train=data_train, data_val=data_val, metrics=metrics, args=args, hp=hp, data_names=data_names)
+
+    mp_data_train.reset()
+    mp_data_test.start()
 
 
 if __name__ == '__main__':

@@ -6,6 +6,8 @@ import numpy as np
 import mxnet as mx
 import random
 
+from .multiproc_data import MPData
+
 
 class SimpleBatch(object):
     def __init__(self, data_names, data, label_names=list(), label=list()):
@@ -170,11 +172,84 @@ class ImageIterLstm(mx.io.DataIter):
         random.shuffle(self.dataset_lines)
 
 
+class MPOcrImages(object):
+    """
+    Handles multi-process captcha image generation
+    """
+    def __init__(self, data_root, data_list, data_shape, num_label, num_processes, max_queue_size):
+        """
+
+        Parameters
+        ----------
+        data_shape: [width, height]
+        num_processes: int
+            Number of processes to spawn
+        max_queue_size: int
+            Maximum images in queue before processes wait
+        """
+        self.data_shape = data_shape
+        self.num_label = num_label
+
+        self.data_root = data_root
+        self.dataset_lines = open(data_list).readlines()
+
+        self.mp_data = MPData(num_processes, max_queue_size, self._gen_sample)
+
+    def _gen_sample(self):
+        m_line = random.choice(self.dataset_lines)
+        img_lst = m_line.strip().split(' ')
+        img_path = os.path.join(self.data_root, img_lst[0])
+
+        img = Image.open(img_path).resize(self.data_shape, Image.BILINEAR).convert('L')
+        img = np.array(img)
+        # print(img.shape)
+        img = np.transpose(img, (1, 0))  # res: [1, width, height]
+        # if len(img.shape) == 2:
+        #     img = np.expand_dims(np.transpose(img, (1, 0)), axis=0)  # res: [1, width, height]
+
+        labels = np.zeros(self.num_label, int)
+        for idx in range(1, len(img_lst)):
+            labels[idx - 1] = int(img_lst[idx])
+
+        return img, labels
+
+    @property
+    def size(self):
+        return len(self.dataset_lines)
+
+    @property
+    def shape(self):
+        return self.data_shape
+
+    def start(self):
+        """
+        Starts the processes
+        """
+        self.mp_data.start()
+
+    def get(self):
+        """
+        Get an image from the queue
+
+        Returns
+        -------
+        np.ndarray
+            A captcha image, normalized to [0, 1]
+        """
+        return self.mp_data.get()
+
+    def reset(self):
+        """
+        Resets the generator by stopping all processes
+        """
+        self.mp_data.reset()
+
+
 class OCRIter(mx.io.DataIter):
     """
     Iterator class for generating captcha image data
     """
-    def __init__(self, count, batch_size, lstm_init_states, captcha, name):
+    def __init__(self, count, batch_size, lstm_init_states, captcha, num_label, name):
         """
         Parameters
         ----------
@@ -189,12 +264,12 @@ class OCRIter(mx.io.DataIter):
         """
         super(OCRIter, self).__init__()
         self.batch_size = batch_size
-        self.count = count
+        self.count = count if count > 0 else captcha.size
         self.init_states = lstm_init_states
         self.init_state_arrays = [mx.nd.zeros(x[1]) for x in lstm_init_states]
         data_shape = captcha.shape
         self.provide_data = [('data', (batch_size, 1, data_shape[1], data_shape[0]))] + lstm_init_states
-        self.provide_label = [('label', (self.batch_size, 4))]
+        self.provide_label = [('label', (self.batch_size, num_label))]
         self.mp_captcha = captcha
         self.name = name
 
@@ -204,12 +279,12 @@ class OCRIter(mx.io.DataIter):
             data = []
             label = []
             for i in range(self.batch_size):
-                img, num = self.mp_captcha.get()
+                img, labels = self.mp_captcha.get()
                 # print(img.shape)
                 img = np.expand_dims(np.transpose(img, (1, 0)), axis=0)  # size: [1, channel, height, width]
                 # import pdb; pdb.set_trace()
                 data.append(img)
-                label.append(self._get_label(num))
+                label.append(labels)
             data_all = [mx.nd.array(data)] + self.init_state_arrays
             label_all = [mx.nd.array(label)]
             data_names = ['data'] + init_state_names
@@ -217,12 +292,3 @@ class OCRIter(mx.io.DataIter):
 
             data_batch = SimpleBatch(data_names, data_all, label_names, label_all)
             yield data_batch
-
-    @classmethod
-    def _get_label(cls, buf):
-        ret = np.zeros(4)
-        for i in range(len(buf)):
-            ret[i] = 1 + int(buf[i])
-        if len(buf) == 3:
-            ret[3] = 0
-        return ret
