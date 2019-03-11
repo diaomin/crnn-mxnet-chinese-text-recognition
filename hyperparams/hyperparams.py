@@ -7,7 +7,7 @@ class Hyperparams(object):
     """
     def __init__(self):
         # Training hyper parameters
-        self._train_epoch_size = 0
+        self._train_epoch_size = 2560000
         self._eval_epoch_size = 3000
         self._num_epoch = 20
         self._learning_rate = 0.001

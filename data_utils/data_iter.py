@@ -264,7 +264,7 @@ class OCRIter(mx.io.DataIter):
         """
         super(OCRIter, self).__init__()
         self.batch_size = batch_size
-        self.count = count if count > 0 else captcha.size
+        self.count = count if count > 0 else captcha.size // batch_size
         self.init_states = lstm_init_states
         self.init_state_arrays = [mx.nd.zeros(x[1]) for x in lstm_init_states]
         data_shape = captcha.shape
