@@ -1,5 +1,6 @@
-# crnn-mxnet-chinese-text-recognition
-This is an implementation of CRNN (CNN+LSTM+CTC) for chinese text recognition.
+# cnocr
+A python package for Chinese OCR with the available trained model.
+So it can be used directly after installed.
 
 ## Building MXNet with warp-ctc
 1. In order to use `mxnet.symbol.WarpCTC` layer, you need to first build Baidu's [warp-ctc](https://github.com/baidu-research/warp-ctc) library from source 
