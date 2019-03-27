@@ -63,7 +63,7 @@ def read_charset(charset_fp):
     with open(charset_fp) as fp:
         for line in fp:
             alphabet.append(line.rstrip('\n'))
-    print('Alphabet size: %d' % len(alphabet))
+    # print('Alphabet size: %d' % len(alphabet))
     inv_alph_dict = {_char: idx for idx, _char in enumerate(alphabet)}
     # inv_alph_dict[' '] = inv_alph_dict['<space>']  # 对应空格
     return alphabet, inv_alph_dict

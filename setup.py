@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import os
 from setuptools import find_packages, setup
-from setuptools.command.build_py import build_py
-from subprocess import check_call
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 required = [
@@ -12,10 +11,15 @@ required = [
     'gluoncv>=0.3.0,<0.4.0',
 ]
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
     name='cnocr',
-    version='0.1',
+    version='0.1.1',
     description="Package for Chinese OCR, which can be used after installed without training yourself OCR model",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author='breezedeus',
     author_email='breezedeus@163.com',
     license='Apache 2.0',

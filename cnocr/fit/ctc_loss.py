@@ -24,10 +24,10 @@ def add_ctc_loss(pred, seq_len, num_label, loss_type):
     """ Adds CTC loss on top of pred symbol and returns the resulting symbol """
     label = mx.sym.Variable('label')
     if loss_type == 'warpctc':
-        print("Using WarpCTC Loss")
+        # print("Using WarpCTC Loss")
         sm = _add_warp_ctc_loss(pred, seq_len, num_label, label)
     else:
-        print("Using MXNet CTC Loss")
+        # print("Using MXNet CTC Loss")
         assert loss_type == 'ctc'
         sm = _add_mxnet_ctc_loss(pred, seq_len, label)
     return sm

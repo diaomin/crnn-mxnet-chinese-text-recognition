@@ -14,7 +14,7 @@ Much thanks to the author.
 
 Some changes are:
 
-* use raw mxnet.ctc instead of warp-ctc. No more complicated installation.
+* use raw MXNet CTC Loss instead of WarpCTC Loss. No more complicated installation.
 * public pre-trained model for anyone. No more a-few-days training.
 * add online `predict` function and script. Easy to use.
 
@@ -24,7 +24,7 @@ Some changes are:
 pip install cnocr
 ```
 
-> Please use Python3 (3.4+, maybe). Python2 is not tested.
+> Please use Python3 (3.4, 3.5, 3.6 should work). Python2 is not tested.
 
 
 ## Usage
