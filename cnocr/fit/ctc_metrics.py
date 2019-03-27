@@ -37,15 +37,22 @@ class CtcMetrics(object):
         -------
         list of int
         """
-        ret = []
+        ret = []  # each element consists of [label_id, start_idx, end_idx]
         p1 = [0] + p
         for i, _ in enumerate(p):
             c1 = p1[i]
             c2 = p1[i+1]
+            if c2 == 0 and c1 != 0 and len(ret) > 0:
+                ret[-1][-1] = i
             if c2 == 0 or c2 == c1:
                 continue
-            ret.append(c2)
-        return ret
+            ret.append([c2, i, -1])
+        if ret[-1][-1] < 0:
+            ret[-1][-1] = len(p)
+
+        label_ids = [ele[0] for ele in ret]
+        start_end_idx = [(ele[1], ele[2]) for ele in ret]
+        return label_ids, start_end_idx
 
     @staticmethod
     def _remove_blank(l):

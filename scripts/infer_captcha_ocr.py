@@ -1,3 +1,4 @@
+# coding: utf-8
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -18,15 +19,15 @@
 
 from __future__ import print_function
 
+import mxnet as mx
+import numpy as np
+# from PIL import Image
 import argparse
 
 from cnocr.fit.ctc_metrics import CtcMetrics
-# from PIL import Image
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.hyperparams.hyperparams2 import Hyperparams as Hyperparams2
 from cnocr.fit.lstm import init_states
-import mxnet as mx
-import numpy as np
 from cnocr.data_utils.data_iter import SimpleBatch
 from cnocr.symbols.crnn import crnn_lstm
 

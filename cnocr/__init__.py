@@ -1,0 +1,1 @@
+from .cn_ocr import CnOcr

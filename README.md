@@ -1,48 +1,64 @@
 # cnocr
-A python package for Chinese OCR with the available trained model.
+A python package for Chinese OCR with available trained models.
 So it can be used directly after installed.
 
-## Building MXNet with warp-ctc
-1. In order to use `mxnet.symbol.WarpCTC` layer, you need to first build Baidu's [warp-ctc](https://github.com/baidu-research/warp-ctc) library from source 
-2. Then build MXNet from source with warp-ctc config flags enabled.
+The accuracy of the current crnn model is about `98.7%`.
 
-## Data Preparation
-1. Download the [Synthetic Chinese Dataset](https://pan.baidu.com/s/1dFda6R3)(contributed by https://github.com/senlinuc/caffe_ocr and many thanks)
+## Changes
 
-   A glance of the dataset: 
-   * almost 3.6 million synthetic chinese text images.
-   * 5,990 different categories in total.
-   * each image has a length of 10 characters. 
-   
-2. Create train.txt and text.txt with the format like this:  
+Most of the codes are adapted from [crnn-mxnet-chinese-text-recognition](https://github.com/diaomin/crnn-mxnet-chinese-text-recognition).
+Much thanks to the author.
+
+Some changes are:
+
+* use raw mxnet.ctc instead of warp-ctc. No more complicated installation.
+* public pre-trained model for anyone. No more a-few-days training.
+* add online `predict` function and script. Easy to use.
+
+
+## Installation
+```bash
+pip install cnocr
 ```
-           image_name1 label1_1 label1_2 label1_3...
-           image_name2 label2_1 label2_2 label2_3...
+
+## Usage
+
+### Predict
+```python
+from cnocr import CnOcr
+ocr = CnOcr()
+res = ocr.ocr_for_single_line('examples/rand_cn1.png')
+print("Predicted Chars:", res)
 ```
-Optional: downoad the two files [here](https://pan.baidu.com/s/1xQ38TTUrxMytVp1VY6Y4Pg)
 
-3. The mapping relation **from label id to char** can be found in file [label_cn.txt](examples/label_cn.txt) , which is adapted from [label.txt](https://github.com/senlinuc/caffe_ocr/blob/master/examples/ocr/resnet/label.txt).
+When you run the previous codes, the model files will be downloaded automatically from 
+[Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip) to `~/.cnocr`. 
+The zip file will be extracted and you can find the resulting model files in '~/.cnocr/models' by default.
+In case the automatic download can't perform well, you can download the zip file manually 
+from [Baidu NetDisk](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q) with extraction code `pg26`,
+and put the zip file to `~/.cnocr`. The code will do else.
 
 
-
-
-
-## Training
-
-1. Modify the path of images and txt files in train.py 
-2. Run
+Try the predict command for [examples/rand_cn1.png](./examples/rand_cn1.png):
+```bash
+python scripts/cnocr_predict.py --file examples/rand_cn1.png
 ```
-$ python train.py 2>&1 | tee log.txt
+You will get:
+```bash
+Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼', '蠢', '驼', '耳', '胬', '挝', '涯', '狗', '蒽', '子', '犷']
 ```
-3. After almost 19 epoches, you can get 99.0502% validation accuracy.
+
+
+### (No NECESSARY) Train 
+You can use the package without any train. But if you really really want to train your own models,
+follow this:
+```bash
+python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
 ```
-2018-04-01 03:35:35,136 Epoch[18] Batch [25450]	Speed: 53.10 samples/sec	accuracy=0.988125
-2018-04-01 03:37:37,482 Epoch[18] Batch [25500]	Speed: 52.31 samples/sec	accuracy=0.986719
-2018-04-01 03:39:38,613 Epoch[18] Batch [25550]	Speed: 52.84 samples/sec	accuracy=0.989531
-2018-04-01 03:41:40,470 Epoch[18] Batch [25600]	Speed: 52.52 samples/sec	accuracy=0.987969
-2018-04-01 03:42:27,544 Epoch[18] Train-accuracy=0.988672
-2018-04-01 03:42:27,544 Epoch[18] Time cost=80796.510
-2018-04-01 03:42:27,610 Saved checkpoint to "./check_points/model-0019.params"
-2018-04-01 05:34:43,096 Epoch[18] Validation-accuracy=0.990502
-```
-Hare is a [pre-trained model](https://pan.baidu.com/s/1iwOVZJxF-P14LemziisLwA) you can download directly.
+
+## Future Work
+* Support space recognition
+* Bugfixes
+* Add Tests
+* Maybe use no symbol to rewrite the model
+* Try other models such as DenseNet, ResNet

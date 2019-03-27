@@ -24,6 +24,7 @@ import mxnet as mx
 from ..fit.ctc_loss import add_ctc_loss
 from ..fit.lstm import lstm
 
+
 def crnn_no_lstm(hp):
 
     # input
