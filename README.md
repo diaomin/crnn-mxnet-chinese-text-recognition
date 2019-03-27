@@ -39,7 +39,7 @@ print("Predicted Chars:", res)
 
 When you run the previous codes, the model files will be downloaded automatically from 
 [Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip) to `~/.cnocr`. 
-The zip file will be extracted and you can find the resulting model files in '~/.cnocr/models' by default.
+The zip file will be extracted and you can find the resulting model files in `~/.cnocr/models` by default.
 In case the automatic download can't perform well, you can download the zip file manually 
 from [Baidu NetDisk](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q) with extraction code `pg26`,
 and put the zip file to `~/.cnocr`. The code will do else.
