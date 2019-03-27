@@ -24,6 +24,9 @@ Some changes are:
 pip install cnocr
 ```
 
+> Please use Python3 (3.4+, maybe). Python2 is not tested.
+
+
 ## Usage
 
 ### Predict
