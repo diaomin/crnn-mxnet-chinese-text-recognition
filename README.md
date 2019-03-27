@@ -42,6 +42,7 @@ from [Baidu NetDisk](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q) with extra
 and put the zip file to `~/.cnocr`. The code will do else.
 
 Try the predict command for [examples/rand_cn1.png](./examples/rand_cn1.png):
+
 ![examples/rand_cn1.png](./examples/rand_cn1.png)
 
 ```bash
