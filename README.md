@@ -4,6 +4,9 @@ So it can be used directly after installed.
 
 The accuracy of the current crnn model is about `98.7%`.
 
+The project originates from our own ([爱因互动 Ein+](https://einplus.cn)) internal needs.
+Thanks for the internal supports.
+
 ## Changes
 
 Most of the codes are adapted from [crnn-mxnet-chinese-text-recognition](https://github.com/diaomin/crnn-mxnet-chinese-text-recognition).
@@ -38,8 +41,9 @@ In case the automatic download can't perform well, you can download the zip file
 from [Baidu NetDisk](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q) with extraction code `pg26`,
 and put the zip file to `~/.cnocr`. The code will do else.
 
-
 Try the predict command for [examples/rand_cn1.png](./examples/rand_cn1.png):
+![examples/rand_cn1.png](./examples/rand_cn1.png)
+
 ```bash
 python scripts/cnocr_predict.py --file examples/rand_cn1.png
 ```
@@ -48,10 +52,11 @@ You will get:
 Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼', '蠢', '驼', '耳', '胬', '挝', '涯', '狗', '蒽', '子', '犷']
 ```
 
+### (No NECESSARY) Train
 
-### (No NECESSARY) Train 
 You can use the package without any train. But if you really really want to train your own models,
 follow this:
+
 ```bash
 python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
 ```
