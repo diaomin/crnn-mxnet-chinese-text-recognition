@@ -1,3 +1,5 @@
+中文版说明请见[中文README](./README_cn.md)。
+
 # cnocr
 A python package for Chinese OCR with available trained models.
 So it can be used directly after installed.
