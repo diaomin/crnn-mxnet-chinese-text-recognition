@@ -35,7 +35,7 @@ pip install cnocr
 
 以图片文件 [examples/rand_cn1.png](./examples/rand_cn1.png)为例，文件内容如下：
 
-![examples/rand_cn1.png](/Users/king/Documents/WhatIHaveDone/Test/cnocr/examples/rand_cn1.png)
+![examples/rand_cn1.png](./examples/rand_cn1.png)
 
 
 
