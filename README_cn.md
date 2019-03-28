@@ -13,9 +13,7 @@
 但源项目使用起来不够方便，所以我在此基础上做了一些封装和重构。主要变化如下：
 
 * 不再使用需要额外安装的MXNet WarpCTC Loss，改用原生的 MXNet CTC Loss。所以安装极简！
-
 * 自带训练好的中文OCR识别模型。不再需要额外训练！
-
 * 增加了预测（或推断）接口。所以使用方便！
 
 
@@ -38,7 +36,6 @@ pip install cnocr
 ![examples/rand_cn1.png](./examples/rand_cn1.png)
 
 
-
 #### 代码引用
 
 ```python
@@ -48,26 +45,17 @@ res = ocr.ocr_for_single_line('examples/rand_cn1.png')
 print("Predicted Chars:", res)
 ```
 
-
-
-首次使用cnocr时，系统会自动从[Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip) 下载zip格式的模型压缩文件，并存于 `~/.cnocr`目录。
-
+首次使用cnocr时，系统会自动从[Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip)下载zip格式的模型压缩文件，并存于 `~/.cnocr`目录。
 下载后的zip文件代码会自动对其解压，然后把解压后的模型相关文件放于`~/.cnocr/models`目录。
-
-如果系统不能自动从[Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip) 成功下载zip文件，则需要手动下载此zip文件并把它放于 `~/.cnocr`目录。
-
-另一个下载地址是[百度云盘](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q) (提取码为`pg26`)。
-
+如果系统不能自动从[Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip)成功下载zip文件，则需要手动下载此zip文件并把它放于 `~/.cnocr`目录。
+另一个下载地址是[百度云盘](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q)(提取码为`pg26`)。
 放置好zip文件后，后面的事代码就会自动执行了。
-
-
 
 上面预测代码段的返回结果如下：
 
 ```bash
 Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼', '蠢', '驼', '耳', '胬', '挝', '涯', '狗', '蒽', '子', '犷']
 ```
-
 
 
 #### 脚本引用
@@ -77,11 +65,12 @@ Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼',
 ```bash
 python scripts/cnocr_predict.py --file examples/rand_cn1.png
 ```
+
 返回结果和前面相同：
+
 ```bash
 Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼', '蠢', '驼', '耳', '胬', '挝', '涯', '狗', '蒽', '子', '犷']
 ```
-
 
 
 ### 训练自己的模型
@@ -91,7 +80,6 @@ cnocr安装后即可直接使用，但如果你**非要**训练自己的模型�
 ```bash
 python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
 ```
-
 
 
 ## 未来工作
