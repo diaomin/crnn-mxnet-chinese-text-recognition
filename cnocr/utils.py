@@ -60,7 +60,7 @@ def get_model_file(root=data_dir()):
 def read_charset(charset_fp):
     alphabet = []
     # 第0个元素是预留id，在CTC中用来分割字符。它不对应有意义的字符
-    with open(charset_fp) as fp:
+    with open(charset_fp,encoding='utf-8') as fp:
         for line in fp:
             alphabet.append(line.rstrip('\n'))
     # print('Alphabet size: %d' % len(alphabet))
