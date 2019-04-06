@@ -47,6 +47,9 @@ class CtcMetrics(object):
             if c2 == 0 or c2 == c1:
                 continue
             ret.append([c2, i, -1])
+            
+        if len(ret) == 0:
+            return [0], [(0, 0)]
         if ret[-1][-1] < 0:
             ret[-1][-1] = len(p)
 
