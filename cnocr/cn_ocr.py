@@ -1,7 +1,25 @@
+# coding: utf-8
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
 import os
 from copy import deepcopy
 import mxnet as mx
 import numpy as np
+from PIL import Image
 
 from cnocr.consts import MODEL_EPOCE
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
@@ -10,12 +28,13 @@ from cnocr.fit.ctc_metrics import CtcMetrics
 from cnocr.data_utils.data_iter import SimpleBatch
 from cnocr.symbols.crnn import crnn_lstm
 from cnocr.utils import data_dir, get_model_file, read_charset
+from cnocr.line_split import line_split
 
 
 def read_ocr_img(path):
     """
     :param path: image file path
-    :return: gray image, with dim [height, width, 1]
+    :return: gray image, with dim [height, width, 1], with values range from 0 to 255
     """
     # img = Image.open(path).resize((hp.img_width, hp.img_height), Image.BILINEAR)
     # img = img.convert('L')
@@ -110,10 +129,34 @@ class CnOcr(object):
         mod = load_module(prefix, MODEL_EPOCE, sample.data_names, sample.provide_data, network=network)
         return mod
 
+    def ocr(self, img_fp):
+        """
+        :param img_fp: image file path; or color image mx.nd.NDArray or np.ndarray,
+            with shape (height, width, 3), and the channels should be RGB formatted.
+        :return: List(List(Letter)), such as:
+            [['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]
+        """
+        if isinstance(img_fp, str) and os.path.isfile(img_fp):
+            img = mx.image.imread(img_fp, 1).asnumpy()
+        elif isinstance(img_fp, mx.nd.NDArray) or isinstance(img_fp, np.ndarray):
+            img = img_fp
+        else:
+            raise TypeError('Inappropriate argument type.')
+        if min(img.shape[0], img.shape[1]) < 2:
+            return ''
+        line_imgs = line_split(img, blank=True)
+        line_chars_list = []
+        for line_idx, (line_img, _) in enumerate(line_imgs):
+            line_img = np.array(Image.fromarray(line_img).convert('L'))
+            line_chars = self.ocr_for_single_line(line_img)
+            line_chars_list.append(line_chars)
+        return line_chars_list
+
     def ocr_for_single_line(self, img_fp):
         """
         Recognize characters from an image with characters with only one line
-        :param img_fp: image file path; or gray image mx.nd.NDArray; or gray image np.ndarray
+        :param img_fp: image file path; or gray image mx.nd.NDArray; or gray image np.ndarray,
+        with shape [height, width] or [height, width, 1].
         :return: charector list, such as ['你', '好']
         """
         hp = deepcopy(self._hp)
