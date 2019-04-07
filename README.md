@@ -71,9 +71,11 @@ res = ocr.ocr_for_single_line('examples/rand_cn1.png')
 print("Predicted Chars:", res)
 ```
 
+With file [examples/multi-line_cn1.png](./examples/multi-line_cn1.png)：
 
+![examples/rand_cn1.png](./examples/rand_cn1.png)
 
-You will get:
+you will get:
 
 ```python
 Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼', '蠢', '驼', '耳', '胬', '挝', '涯', '狗', '蒽', '子', '犷']
