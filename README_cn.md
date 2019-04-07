@@ -74,7 +74,7 @@ print("Predicted Chars:", res)
 
 对图片文件 [examples/multi-line_cn1.png](./examples/multi-line_cn1.png)：
 
-![examples/rand_cn1.png](/Users/king/Documents/WhatIHaveDone/Test/cnocr/examples/rand_cn1.png)
+![examples/rand_cn1.png](./examples/rand_cn1.png)
 
 的预测结果如下：
 
