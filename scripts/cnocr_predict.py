@@ -19,18 +19,27 @@
 
 from __future__ import print_function
 
+import sys
+import os
 import argparse
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr import CnOcr
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--file", help="Path to the CAPTCHA image file")
+    parser.add_argument("-f", "--file", help="Path to the image file")
+    parser.add_argument("-s", "--single-line", default=False,
+                        help="Whether the image only includes one-line characters")
     args = parser.parse_args()
 
     ocr = CnOcr()
-    res = ocr.ocr_for_single_line(args.file)
+    if args.single_line:
+        res = ocr.ocr_for_single_line(args.file)
+    else:
+        res = ocr.ocr(args.file)
     print("Predicted Chars:", res)
 
 
