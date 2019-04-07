@@ -107,7 +107,7 @@ python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
 
 ## 未来工作
 
-* [x] support multi-line-characters recognition
+* [x] 支持图片包含多行文字
 * 支持`空格`识别
 * 修bugs（目前代码还比较凌乱。。）
 * 完善测试用例
