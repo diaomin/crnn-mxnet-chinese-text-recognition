@@ -16,7 +16,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='cnocr',
-    version='0.1.1',
+    version='0.2.0',
     description="Package for Chinese OCR, which can be used after installed without training yourself OCR model",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -24,11 +24,10 @@ setup(
     author_email='breezedeus@163.com',
     license='Apache 2.0',
     url='https://github.com/breezedeus/cnocr',
-    platforms=["Mac", "Linux"],
+    platforms=["Mac", "Linux", "Windows"],
     packages=find_packages(),
-    # entry_points={'console_scripts': ['chitchatbot=chitchatbot.cli:main'],
-    #               'plus.ein.botlet': ['chitchatbot=chitchatbot:ChitchatBot'],
-    #               'plus.ein.botlet.parser': ['chitchatbot=chitchatbot:Spec']},
+    # entry_points={'cnocr_predict': ['chitchatbot=chitchatbot.cli:main'],
+    #               'cnocr_train': ['chitchatbot=chitchatbot:Spec']},
     include_package_data=True,
     install_requires=required,
     zip_safe=False,
