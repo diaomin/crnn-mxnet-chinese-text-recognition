@@ -6,6 +6,7 @@ import numpy as np
 import mxnet as mx
 import random
 
+from ..utils import normalize_img_array
 from .multiproc_data import MPData
 
 
@@ -192,11 +193,16 @@ class MPOcrImages(object):
 
         self.data_root = data_root
         self.dataset_lines = open(data_list).readlines()
+        self.total_size = len(self.dataset_lines)
+        self.cur_proc_idxs = list(range(num_processes))
+        self.num_proc = num_processes
 
         self.mp_data = MPData(num_processes, max_queue_size, self._gen_sample)
 
-    def _gen_sample(self):
-        m_line = random.choice(self.dataset_lines)
+    def _gen_sample(self, proc_id):
+        # m_line = random.choice(self.dataset_lines)
+        cur_idx = self.cur_proc_idxs[proc_id]
+        m_line = self.dataset_lines[cur_idx]
         img_lst = m_line.strip().split(' ')
         img_path = os.path.join(self.data_root, img_lst[0])
 
@@ -204,12 +210,17 @@ class MPOcrImages(object):
         img = np.array(img)
         # print(img.shape)
         img = np.transpose(img, (1, 0))  # res: [1, width, height]
+        img = normalize_img_array(img)
         # if len(img.shape) == 2:
         #     img = np.expand_dims(np.transpose(img, (1, 0)), axis=0)  # res: [1, width, height]
 
         labels = np.zeros(self.num_label, int)
         for idx in range(1, len(img_lst)):
             labels[idx - 1] = int(img_lst[idx])
+
+        self.cur_proc_idxs[proc_id] += self.num_proc
+        if self.cur_proc_idxs[proc_id] >= self.total_size:
+            self.cur_proc_idxs[proc_id] -= self.total_size
 
         return img, labels
 
@@ -249,7 +260,7 @@ class OCRIter(mx.io.DataIter):
     """
     Iterator class for generating captcha image data
     """
-    def __init__(self, count, batch_size, lstm_init_states, captcha, num_label, name):
+    def __init__(self, count, batch_size, captcha, num_label, name):
         """
         Parameters
         ----------
@@ -265,16 +276,17 @@ class OCRIter(mx.io.DataIter):
         super(OCRIter, self).__init__()
         self.batch_size = batch_size
         self.count = count if count > 0 else captcha.size // batch_size
-        self.init_states = lstm_init_states
-        self.init_state_arrays = [mx.nd.zeros(x[1]) for x in lstm_init_states]
+        # self.init_states = lstm_init_states
+        # self.init_state_arrays = [mx.nd.zeros(x[1]) for x in lstm_init_states]
         data_shape = captcha.shape
-        self.provide_data = [('data', (batch_size, 1, data_shape[1], data_shape[0]))] + lstm_init_states
+        # self.provide_data = [('data', (batch_size, 1, data_shape[1], data_shape[0]))] + lstm_init_states
+        self.provide_data = [('data', (batch_size, 1, data_shape[1], data_shape[0]))]
         self.provide_label = [('label', (self.batch_size, num_label))]
         self.mp_captcha = captcha
         self.name = name
 
     def __iter__(self):
-        init_state_names = [x[0] for x in self.init_states]
+        # init_state_names = [x[0] for x in self.init_states]
         for k in range(self.count):
             data = []
             label = []
@@ -285,9 +297,11 @@ class OCRIter(mx.io.DataIter):
                 # import pdb; pdb.set_trace()
                 data.append(img)
                 label.append(labels)
-            data_all = [mx.nd.array(data)] + self.init_state_arrays
+            # data_all = [mx.nd.array(data)] + self.init_state_arrays
+            data_all = [mx.nd.array(data)]
             label_all = [mx.nd.array(label)]
-            data_names = ['data'] + init_state_names
+            # data_names = ['data'] + init_state_names
+            data_names = ['data']
             label_names = ['label']
 
             data_batch = SimpleBatch(data_names, data_all, label_names, label_all)
