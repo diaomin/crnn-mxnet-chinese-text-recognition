@@ -75,7 +75,7 @@ def get_model_file(root=data_dir()):
 
 
 def read_charset(charset_fp):
-    alphabet = []
+    alphabet = [None]
     # 第0个元素是预留id，在CTC中用来分割字符。它不对应有意义的字符
     with open(charset_fp, encoding='utf-8') as fp:
         for line in fp:
@@ -85,3 +85,7 @@ def read_charset(charset_fp):
     # inv_alph_dict[' '] = inv_alph_dict['<space>']  # 对应空格
     return alphabet, inv_alph_dict
 
+
+def normalize_img_array(img):
+    """ rescale to [-1.0, 1.0] """
+    return (img / 255.0 - 0.5) * 2

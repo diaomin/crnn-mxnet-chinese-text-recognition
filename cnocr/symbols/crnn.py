@@ -22,7 +22,7 @@ Proceedings of the IEEE (1998)
 """
 import mxnet as mx
 from ..fit.ctc_loss import add_ctc_loss
-from ..fit.lstm import lstm
+from ..fit.lstm import lstm2
 
 
 def crnn_no_lstm(hp):
@@ -120,18 +120,18 @@ def crnn_lstm(hp):
     if hp.dropout > 0:
         net = mx.symbol.Dropout(data=net, p=hp.dropout)
 
-    hidden_concat = lstm(net, num_lstm_layer=hp.num_lstm_layer, num_hidden=hp.num_hidden, seq_length=hp.seq_length)
+    hidden_concat = lstm2(net, num_lstm_layer=hp.num_lstm_layer, num_hidden=hp.num_hidden)
     # import pdb; pdb.set_trace()
 
     # mx.sym.transpose(net, [])
-    pred = mx.sym.FullyConnected(data=hidden_concat, num_hidden=hp.num_classes, name='pred_fc') # (bz x 25) x num_classes
+    pred = mx.sym.FullyConnected(data=hidden_concat, num_hidden=hp.num_classes, name='pred_fc') # (bz x 35) x num_classes
 
     if hp.loss_type:
         # Training mode, add loss
         return add_ctc_loss(pred, hp.seq_length, hp.num_label, hp.loss_type)
-    else:
-        # Inference mode, add softmax
-        return mx.sym.softmax(data=pred, name='softmax')
+    # else:
+    #     # Inference mode, add softmax
+    #     return mx.sym.softmax(data=pred, name='softmax')
 
 
 from ..hyperparams.cn_hyperparams import CnHyperparams as Hyperparams

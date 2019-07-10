@@ -54,6 +54,20 @@ def _lstm(num_hidden, indata, prev_state, param, seqidx, layeridx):
     next_h = out_gate * mx.sym.Activation(next_c, act_type="tanh")
     return LSTMState(c=next_c, h=next_h)
 
+
+def lstm2(net, num_lstm_layer, num_hidden):
+    from mxnet.gluon.rnn.rnn_layer import LSTM
+    net = mx.symbol.squeeze(net, axis=2)  # res: bz x f x 35
+    net = mx.symbol.transpose(net, axes=(2, 0, 1))
+
+    lstm = LSTM(num_hidden, num_lstm_layer, bidirectional=True)
+    output = lstm(net)  # res: `(sequence_length, batch_size, 2*num_hidden)`
+    return mx.symbol.reshape(output, shape=(-3, -2))  # res: (bz * 35, c)
+    # - **out**: output tensor with shape `(sequence_length, batch_size, num_hidden)`
+    # when `layout` is "TNC". If `bidirectional` is True, output shape will instead
+    # be `(sequence_length, batch_size, 2*num_hidden)`
+
+
 def lstm(net, num_lstm_layer, num_hidden, seq_length):
     last_states = []
     forward_param = []

@@ -23,7 +23,6 @@ import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from cnocr.data_utils.captcha_generator import MPDigitCaptcha
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.hyperparams.hyperparams2 import Hyperparams as Hyperparams2
 from cnocr.data_utils.data_iter import ImageIterLstm, MPOcrImages, OCRIter
@@ -71,6 +70,8 @@ def get_fonts(path):
 
 
 def run_captcha(args):
+    from cnocr.data_utils.captcha_generator import MPDigitCaptcha
+
     hp = Hyperparams2()
 
     network = crnn_lstm(hp)
@@ -92,16 +93,17 @@ def run_captcha(args):
     # cv2.imwrite('captcha1.png', img * 255)
     # import pdb; pdb.set_trace()
 
-    init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
-    init_h = [('l%d_init_h' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
-    init_states = init_c + init_h
-    data_names = ['data'] + [x[0] for x in init_states]
+    # init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
+    # init_h = [('l%d_init_h' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
+    # init_states = init_c + init_h
+    # data_names = ['data'] + [x[0] for x in init_states]
+    data_names = ['data']
 
     data_train = OCRIter(
-        hp.train_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_captcha, num_label=hp.num_label,
+        hp.train_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_captcha, num_label=hp.num_label,
         name='train')
     data_val = OCRIter(
-        hp.eval_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_captcha, num_label=hp.num_label,
+        hp.eval_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_captcha, num_label=hp.num_label,
         name='val')
 
     head = '%(asctime)-15s %(message)s'
@@ -135,16 +137,17 @@ def run_cn_ocr(args):
     mp_data_train.start()
     mp_data_test.start()
 
-    init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
-    init_h = [('l%d_init_h' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
-    init_states = init_c + init_h
-    data_names = ['data'] + [x[0] for x in init_states]
+    # init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
+    # init_h = [('l%d_init_h' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
+    # init_states = init_c + init_h
+    # data_names = ['data'] + [x[0] for x in init_states]
+    data_names = ['data']
 
     data_train = OCRIter(
-        hp.train_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_data_train, num_label=hp.num_label,
+        hp.train_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_data_train, num_label=hp.num_label,
         name='train')
     data_val = OCRIter(
-        hp.eval_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_data_test, num_label=hp.num_label,
+        hp.eval_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_data_test, num_label=hp.num_label,
         name='val')
     # data_train = ImageIterLstm(
     #     args.data_root, args.train_file, hp.batch_size, (hp.img_width, hp.img_height), hp.num_label, init_states, name="train")

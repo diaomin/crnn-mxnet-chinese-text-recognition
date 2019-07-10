@@ -27,7 +27,7 @@ from cnocr.fit.lstm import init_states
 from cnocr.fit.ctc_metrics import CtcMetrics
 from cnocr.data_utils.data_iter import SimpleBatch
 from cnocr.symbols.crnn import crnn_lstm
-from cnocr.utils import data_dir, get_model_file, read_charset
+from cnocr.utils import data_dir, get_model_file, read_charset, normalize_img_array
 from cnocr.line_split import line_split
 
 
@@ -102,6 +102,8 @@ class CnOcr(object):
         self._alphabet, _ = read_charset(os.path.join(self._model_dir, 'label_cn.txt'))
 
         self._hp = Hyperparams()
+        self._hp._loss_type = None  # infer mode
+
         self._mods = {}
 
     def _assert_and_prepare_model_files(self, root):
@@ -167,12 +169,13 @@ class CnOcr(object):
         else:
             raise TypeError('Inappropriate argument type.')
         img = rescale_img(img, hp)
+        img = normalize_img_array(img)
 
-        init_state_names, init_state_arrays = lstm_init_states(batch_size=1, hp=hp)
+        # init_state_names, init_state_arrays = lstm_init_states(batch_size=1, hp=hp)
 
         sample = SimpleBatch(
-            data_names=['data'] + init_state_names,
-            data=[mx.nd.array([img])] + init_state_arrays)
+            data_names=['data'],
+            data=[mx.nd.array([img])])
 
         mod = self._get_module(hp, sample)
 

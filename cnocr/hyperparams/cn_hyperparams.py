@@ -17,7 +17,7 @@ class CnHyperparams(object):
         self._loss_type = "ctc"  # ["warpctc"  "ctc"]
 
         self._batch_size = 128
-        self._num_classes = 6425  # 应该是6426的。。 5990
+        self._num_classes = 6426  # 应该是6426的。。 5990
         self._img_width = 280
         self._img_height = 32
 
