@@ -122,7 +122,7 @@ def run_cn_ocr(args):
     network = crnn_lstm(hp)
 
     mp_data_train = MPOcrImages(args.data_root, args.train_file, (hp.img_width, hp.img_height), hp.num_label,
-                                num_processes=args.num_proc, max_queue_size=hp.batch_size * 2)
+                                num_processes=args.num_proc, max_queue_size=hp.batch_size * 100)
     # img, num = mp_data_train.get()
     # print(img.shape)
     # print(mp_data_train.shape)
@@ -133,7 +133,7 @@ def run_cn_ocr(args):
     # cv2.imwrite('captcha1.png', img * 255)
     # import pdb; pdb.set_trace()
     mp_data_test = MPOcrImages(args.data_root, args.test_file, (hp.img_width, hp.img_height), hp.num_label,
-                               num_processes=max(args.num_proc // 2, 1), max_queue_size=hp.batch_size * 2)
+                               num_processes=max(args.num_proc // 2, 1), max_queue_size=hp.batch_size * 10)
     mp_data_train.start()
     mp_data_test.start()
 
