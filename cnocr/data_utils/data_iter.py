@@ -211,6 +211,7 @@ class MPOcrImages(object):
         # print(img.shape)
         img = np.transpose(img, (1, 0))  # res: [1, width, height]
         img = normalize_img_array(img)
+        # print(np.mean(img), np.std(img))
         # if len(img.shape) == 2:
         #     img = np.expand_dims(np.transpose(img, (1, 0)), axis=0)  # res: [1, width, height]
 
