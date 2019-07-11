@@ -133,7 +133,7 @@ def main():
     mod.forward(sample)
     prob = mod.get_outputs()[0].asnumpy()
 
-    prediction = CtcMetrics.ctc_label(np.argmax(prob, axis=-1).tolist())
+    prediction, start_end_idx = CtcMetrics.ctc_label(np.argmax(prob, axis=-1).tolist())
 
     if args.charset_file:
         alphabet, _ = read_charset(args.charset_file)

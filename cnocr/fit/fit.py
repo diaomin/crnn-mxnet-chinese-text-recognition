@@ -34,6 +34,27 @@ def fit(network, data_train, data_val, metrics, args, hp, data_names=None):
             label_names=['label'],
             context=contexts)
 
+    # from mxnet import nd
+    # import numpy as np
+    # data = nd.random.uniform(shape=(128, 1, 32, 100))
+    # label = np.random.randint(1, 11, size=(128, 4))
+    # module.bind(data_shapes=[('data', (128, 1, 32, 100))], label_shapes=[('label', (128, 4))])
+    # # e = module.bind()
+    # # f = e.forward(is_train=False)
+    # module.init_params(mx.init.Xavier(factor_type="in", magnitude=2.34))
+    # from ..data_utils.data_iter import SimpleBatch
+    # data_all = [data]
+    # label_all = [mx.nd.array(label)]
+    # # print(label_all[0])
+    # # data_names = ['data'] + init_state_names
+    # data_names = ['data']
+    # label_names = ['label']
+    #
+    # data_batch = SimpleBatch(data_names, data_all, label_names, label_all)
+    # module.forward(data_batch)
+    # f = module.get_outputs()
+    # import pdb; pdb.set_trace()
+
     module.fit(train_data=data_train,
                eval_data=data_val,
                begin_epoch=args.load_epoch if args.load_epoch else 0,

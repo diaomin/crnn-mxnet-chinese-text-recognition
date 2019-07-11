@@ -9,7 +9,8 @@ def _add_warp_ctc_loss(pred, seq_len, num_label, label):
 
 def _add_mxnet_ctc_loss(pred, seq_len, label):
     """ Adds Symbol.WapCTC on top of pred symbol and returns the resulting symbol """
-    pred_ctc = mx.sym.Reshape(data=pred, shape=(-4, seq_len, -1, 0))
+    pred_ctc = mx.sym.Reshape(data=pred, shape=(-4, seq_len, -1, 0))  # res: (seq_len, batch_size, num_classes)
+    # print('pred_ctc', pred_ctc.infer_shape()[1])
 
     loss = mx.sym.contrib.ctc_loss(data=pred_ctc, label=label)
     ctc_loss = mx.sym.MakeLoss(loss)
@@ -23,6 +24,7 @@ def _add_mxnet_ctc_loss(pred, seq_len, label):
 def add_ctc_loss(pred, seq_len, num_label, loss_type):
     """ Adds CTC loss on top of pred symbol and returns the resulting symbol """
     label = mx.sym.Variable('label')
+    # label = mx.sym.Variable('label', shape=(128, 4))
     if loss_type == 'warpctc':
         # print("Using WarpCTC Loss")
         sm = _add_warp_ctc_loss(pred, seq_len, num_label, label)

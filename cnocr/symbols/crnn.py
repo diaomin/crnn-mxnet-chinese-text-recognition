@@ -99,7 +99,7 @@ def crnn_lstm(hp):
         layer = mx.sym.LeakyReLU(data=layer, name='leakyrelu-%d-1x1' % i)
         return layer
 
-    net = convRelu(0, data) # bz x f x 32 x 280
+    net = convRelu(0, data)  # bz x f x 32 x 280
     # print('0', net.infer_shape()[1])
     max = mx.sym.Pooling(data=net, name='pool-0_m', pool_type='max', kernel=(2, 2), stride=(2, 2))
     avg = mx.sym.Pooling(data=net, name='pool-0_a', pool_type='avg', kernel=(2, 2), stride=(2, 2))
@@ -125,6 +125,7 @@ def crnn_lstm(hp):
 
     # mx.sym.transpose(net, [])
     pred = mx.sym.FullyConnected(data=hidden_concat, num_hidden=hp.num_classes, name='pred_fc') # (bz x 35) x num_classes
+    # print('pred', pred.infer_shape()[1])
 
     if hp.loss_type:
         # Training mode, add loss

@@ -86,11 +86,13 @@ def run_captcha(args):
         num_digit_min=3, num_digit_max=4, num_processes=args.num_proc, max_queue_size=hp.batch_size * 2)
     mp_captcha.start()
     # img, num = mp_captcha.get()
-    # print(img.shape)
+    # print(img.shape, num)
     # import numpy as np
     # import cv2
     # img = np.transpose(img, (1, 0))
     # cv2.imwrite('captcha1.png', img * 255)
+    # import sys
+    # sys.exit(0)
     # import pdb; pdb.set_trace()
 
     # init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
@@ -162,7 +164,7 @@ def run_cn_ocr(args):
     fit(network=network, data_train=data_train, data_val=data_val, metrics=metrics, args=args, hp=hp, data_names=data_names)
 
     mp_data_train.reset()
-    mp_data_test.start()
+    mp_data_test.reset()
 
 
 if __name__ == '__main__':
