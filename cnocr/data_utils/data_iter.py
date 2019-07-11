@@ -139,7 +139,7 @@ class ImageIterLstm(mx.io.DataIter):
         self.name = name
 
     def __iter__(self):
-        init_state_names = [x[0] for x in self.init_states]
+        # init_state_names = [x[0] for x in self.init_states]
         data = []
         label = []
         cnt = 0
@@ -158,9 +158,9 @@ class ImageIterLstm(mx.io.DataIter):
 
             label.append(ret)
             if cnt % self.batch_size == 0:
-                data_all = [mx.nd.array(data)] + self.init_state_arrays
+                data_all = [mx.nd.array(data)]
                 label_all = [mx.nd.array(label)]
-                data_names = ['data'] + init_state_names
+                data_names = ['data']
                 label_names = ['label']
                 data = []
                 label = []
@@ -294,12 +294,15 @@ class OCRIter(mx.io.DataIter):
                 img, labels = self.mp_captcha.get()
                 # print(img.shape)
                 img = np.expand_dims(np.transpose(img, (1, 0)), axis=0)  # size: [1, height, width]
-                # import pdb; pdb.set_trace()
+                # print(img.shape)
                 data.append(img)
+                # print('labels', type(labels), labels)
                 label.append(labels)
             # data_all = [mx.nd.array(data)] + self.init_state_arrays
             data_all = [mx.nd.array(data)]
+            # print(data_all[0].shape)
             label_all = [mx.nd.array(label)]
+            # print(label_all[0])
             # data_names = ['data'] + init_state_names
             data_names = ['data']
             label_names = ['label']
