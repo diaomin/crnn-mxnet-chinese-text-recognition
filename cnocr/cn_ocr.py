@@ -137,7 +137,7 @@ class CnOcr(object):
         """
         :param img_fp: image file path; or color image mx.nd.NDArray or np.ndarray,
             with shape (height, width, 3), and the channels should be RGB formatted.
-        :return: List(List(Letter)), such as:
+        :return: List(List(Char)), such as:
             [['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]
         """
         if isinstance(img_fp, str) and os.path.isfile(img_fp):

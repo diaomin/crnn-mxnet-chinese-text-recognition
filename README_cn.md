@@ -1,3 +1,7 @@
+# Update 2019.07.13: 发布 cnocr V1.0.0
+
+`cnocr`发布了预测效率更高的新版本v1.0.0。新版本的模型跟以前版本的模型不兼容，所以如果大家是升级的话，需要重新下载最新的模型文件。具体说明见下面(流程和原来相同)。
+
 # cnocr
 
 **cnocr**是用来做中文OCR的**Python 3**包。cnocr自带了训练好的识别模型，所以安装后即可直接使用。
@@ -45,6 +49,8 @@ print("Predicted Chars:", res)
 另一个下载地址是[百度云盘](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q)(提取码为`pg26`)。
 放置好zip文件后，后面的事代码就会自动执行了。
 
+
+
 上面使用的图片文件 [examples/multi-line_cn1.png](./examples/multi-line_cn1.png)内容如下：
 
 ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png)
@@ -56,6 +62,13 @@ print("Predicted Chars:", res)
 ```python
 Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的', '区', '别', '，', '因', '为'], ['每', '一', '个', '手', '机', '号', '码', '和', '邮', '件', '地', '址', '背', '后'], ['都', '会', '对', '应', '着', '一', '个', '账', '户', '一', '一', '这', '个', '账'], ['户', '可', '以', '是', '信', '用', '卡', '账', '户', '、', '借', '记', '卡', '账'], ['户', '，', '也', '包', '括', '邮', '局', '汇', '款', '、', '手', '机', '代'], ['收', '、', '电', '话', '代', '收', '、', '预', '付', '费', '卡', '和', '点', '卡'], ['等', '多', '种', '形', '式', '。']]
 ```
+
+
+
+函数`Cnocr.ocr(img_fp)`说明：
+
+- 输入参数 `img_fp`: 可以是需要识别的图片文件路径（如上例）；或者是已经从图片文件中读入的数组，类型可以为`mx.nd.NDArray` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是`(height, width, 3)`，第三个维度是channel，它应该是`RGB`格式的。
+- 返回值：为一个嵌套的`list`，类似这样`[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`。
 
 
 
@@ -72,7 +85,7 @@ print("Predicted Chars:", res)
 
 
 
-对图片文件 [examples/multi-line_cn1.png](./examples/multi-line_cn1.png)：
+对图片文件 [examples/rand_cn1.png](./examples/rand_cn1.png)：
 
 ![examples/rand_cn1.png](./examples/rand_cn1.png)
 
@@ -81,6 +94,30 @@ print("Predicted Chars:", res)
 ```bash
 Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼', '蠢', '驼', '耳', '胬', '挝', '涯', '狗', '蒽', '子', '犷']
 ```
+
+
+
+函数`Cnocr.ocr_for_single_line(img_fp)`说明：
+
+- 输入参数 `img_fp`: 可以是需要识别的单行文字图片文件路径（如上例）；或者是已经从图片文件中读入的数组，类型可以为`mx.nd.NDArray` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是`(height, width)`或`(height, width, channel)`。如果没有channel，表示传入的就是灰度图片。第三个维度channel可以是`1`（灰度图片）或者`3`（彩色图片）。如果是彩色图片，它应该是`RGB`格式的。
+- 返回值：为一个`list`，类似这样`['你', '好']`。
+
+
+
+函数`Cnocr.ocr(img_fp)`和`Cnocr.ocr_for_single_line(img_fp)`内部其实都是调用的函数`Cnocr.ocr_for_single_lines(img_list)`。
+
+
+
+函数`Cnocr.ocr_for_single_lines(img_list)`说明：
+
+- 输入参数` img_list`: 为一个`list`；其中每个元素是已经从图片文件中读入的数组，类型可以为`mx.nd.NDArray` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是`(height, width)`或`(height, width, channel)`。如果没有channel，表示传入的就是灰度图片。第三个维度channel可以是`1`（灰度图片）或者`3`（彩色图片）。如果是彩色图片，它应该是`RGB`格式的。
+- 返回值：为一个嵌套的`list`，类似这样`[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`。
+
+所以可以利用此函数进行批量预测。
+
+
+
+更详细的使用方法，可参考[tests/test_cnocr.py](./tests/test_cnocr.py)中提供的测试用例。
 
 
 
@@ -105,12 +142,17 @@ python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
 ```
 
 
+
+或者参考脚本[scripts/run_cnocr_train.sh](./scripts/run_cnocr_train.sh)中的命令。
+
+
+
 ## 未来工作
 
 * [x] 支持图片包含多行文字
-* 支持`空格`识别
-* 修bugs（目前代码还比较凌乱。。）
-* 完善测试用例
-* 考虑使用MxNet的命令式编程重写代码，提升灵活性
+* [x] 完善测试用例 (`Doing`)
+* [x] 修bugs（目前代码还比较凌乱。。） (`Doing`)
+* [x] 支持`空格`识别
+* [x] crnn模型支持可变长预测，提升灵活性 (`Done`)
 * 尝试新模型，如 DenseNet、ResNet，进一步提升识别准确率
 
