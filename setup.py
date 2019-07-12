@@ -7,7 +7,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 required = [
     'numpy>=1.14.0,<1.15.0',
     'pillow>=5.3.0',
-    'mxnet>=1.3.1,<1.4.0',
+    'mxnet>=1.4.1,<1.5.0',
     'gluoncv>=0.3.0,<0.4.0',
 ]
 
@@ -16,7 +16,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='cnocr',
-    version='0.2.0',
+    version='1.0.0',
     description="Package for Chinese OCR, which can be used after installed without training yourself OCR model",
     long_description=long_description,
     long_description_content_type="text/markdown",
