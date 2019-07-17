@@ -18,8 +18,9 @@
 import os
 import platform
 import zipfile
-
+import numpy as np
 from mxnet.gluon.utils import download
+
 from .consts import MODEL_BASE_URL
 
 
@@ -88,4 +89,5 @@ def read_charset(charset_fp):
 
 def normalize_img_array(img):
     """ rescale to [-1.0, 1.0] """
-    return (img / 255.0 - 0.5) * 2
+    # return (img / 255.0 - 0.5) * 2
+    return (img - np.mean(img)) / (np.std(img) + 1e-6)
