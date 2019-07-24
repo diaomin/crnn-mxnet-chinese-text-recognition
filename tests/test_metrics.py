@@ -17,6 +17,7 @@ from cnocr.fit.ctc_metrics import CtcMetrics
     ('012100022003', '12123'),
     ('0121000220030', '12123'),
     ('0000', ''),
+    ('0300120200220030', '312223'),
 ])
 def test_ctc_metrics(input, expected):
     input = list(map(int, list(input)))
