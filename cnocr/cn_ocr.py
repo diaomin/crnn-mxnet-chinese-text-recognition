@@ -20,6 +20,7 @@ import mxnet as mx
 import numpy as np
 from PIL import Image
 
+from cnocr.__version__ import __version__
 from cnocr.consts import MODEL_EPOCE
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.fit.lstm import init_states
@@ -92,7 +93,7 @@ def load_module(prefix, epoch, data_names, data_shapes, network=None):
 
 
 class CnOcr(object):
-    MODEL_FILE_PREFIX = 'model'
+    MODEL_FILE_PREFIX = 'model-v{}'.format(__version__)
 
     def __init__(self, root=data_dir(), model_epoch=MODEL_EPOCE):
         self._model_dir = os.path.join(root, 'models')
@@ -252,6 +253,8 @@ class CnOcr(object):
         :return:
         """
         class_ids = np.argmax(line_prob, axis=-1)
+        # idxs = list(zip(range(len(class_ids)), class_ids))
+        # probs = [line_prob[e[0], e[1]] for e in idxs]
 
         if img_width < max_img_width:
             comp_ratio = self._hp.seq_len_cmpr_ratio
@@ -259,7 +262,32 @@ class CnOcr(object):
             if end_idx < len(class_ids):
                 class_ids[end_idx:] = 0
         prediction, start_end_idx = CtcMetrics.ctc_label(class_ids.tolist())
+        print(start_end_idx)
         alphabet = self._alphabet
         res = [alphabet[p] for p in prediction]
 
+        # res = self._insert_space_char(res, start_end_idx)
         return res
+
+    def _insert_space_char(self, pred_chars, start_end_idx, min_interval=None):
+        if len(pred_chars) < 2:
+            return pred_chars
+        assert len(pred_chars) == len(start_end_idx)
+
+        if min_interval is None:
+            # 自动计算最小区间值
+            intervals = {start_end_idx[idx][0] - start_end_idx[idx-1][1] for idx in range(1, len(start_end_idx))}
+            if len(intervals) >= 3:
+                intervals = sorted(list(intervals))
+                if intervals[0] < 1:  # 排除间距为0的情况
+                    intervals = intervals[1:]
+                min_interval = intervals[2]
+            else:
+                min_interval = start_end_idx[-1][1]  # no space will be inserted
+
+        res_chars = [pred_chars[0]]
+        for idx in range(1, len(pred_chars)):
+            if start_end_idx[idx][0] - start_end_idx[idx-1][1] >= min_interval:
+                res_chars.append(' ')
+            res_chars.append(pred_chars[idx])
+        return res_chars

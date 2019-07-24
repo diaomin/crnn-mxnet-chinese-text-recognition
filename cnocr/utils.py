@@ -21,7 +21,7 @@ import zipfile
 import numpy as np
 from mxnet.gluon.utils import download
 
-from .consts import MODEL_BASE_URL
+from .consts import MODEL_BASE_URL, ZIP_FILE_NAME
 
 
 def data_dir_default():
@@ -60,12 +60,11 @@ def get_model_file(root=data_dir()):
     file_path
         Path to the requested pretrained model file.
     """
-    file_name = 'cnocr-models.zip'
     root = os.path.expanduser(root)
 
     os.makedirs(root, exist_ok=True)
 
-    zip_file_path = os.path.join(root, file_name)
+    zip_file_path = os.path.join(root, ZIP_FILE_NAME)
     if not os.path.exists(zip_file_path):
         download(MODEL_BASE_URL, path=zip_file_path, overwrite=True)
     with zipfile.ZipFile(zip_file_path) as zf:
