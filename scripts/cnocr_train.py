@@ -23,6 +23,8 @@ import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from cnocr.__version__ import __version__
+from cnocr.utils import data_dir
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.hyperparams.hyperparams2 import Hyperparams as Hyperparams2
 from cnocr.data_utils.data_iter import ImageIterLstm, MPOcrImages, OCRIter
@@ -34,6 +36,7 @@ from cnocr.fit.fit import fit
 def parse_args():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
+    default_model_prefix = os.path.join(data_dir(), 'models', 'model-v{}'.format(__version__))
 
     parser.add_argument("--dataset",
                         help="use which kind of dataset, captcha or cn_ocr",
@@ -50,8 +53,9 @@ def parse_args():
                         type=int, default=2)
     parser.add_argument("--gpu", help="Number of GPUs for training [Default 0]", type=int)
     parser.add_argument('--load_epoch', type=int,
-                       help='load the model on an epoch using the model-load-prefix')
-    parser.add_argument("--prefix", help="Checkpoint prefix [Default 'ocr']", default='./models/model')
+                        help='load the model on an epoch using the model-load-prefix [Default: no trained model will be loaded]')
+    parser.add_argument("--prefix", help="Checkpoint prefix [Default '{}']".format(default_model_prefix),
+                        default=default_model_prefix)
     parser.add_argument("--loss", help="'ctc' or 'warpctc' loss [Default 'ctc']", default='ctc')
     parser.add_argument("--num_proc", help="Number CAPTCHA generating processes [Default 4]", type=int, default=4)
     parser.add_argument("--font_path", help="Path to ttf font file or directory containing ttf files")

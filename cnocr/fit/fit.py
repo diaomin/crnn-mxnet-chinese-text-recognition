@@ -3,17 +3,15 @@ import os
 import mxnet as mx
 
 
-def _load_model(args, rank=0):
+def _load_model(args):
     if 'load_epoch' not in args or args.load_epoch is None:
-        return (None, None, None)
+        return None, None, None
     assert args.prefix is not None
     model_prefix = args.prefix
-    if rank > 0 and os.path.exists("%s-%d-symbol.json" % (model_prefix, rank)):
-        model_prefix += "-%d" % (rank)
     sym, arg_params, aux_params = mx.model.load_checkpoint(
         model_prefix, args.load_epoch)
-    logging.info('Loaded model %s_%04d.params', model_prefix, args.load_epoch)
-    return (sym, arg_params, aux_params)
+    logging.info('Loaded model %s-%04d.params', model_prefix, args.load_epoch)
+    return sym, arg_params, aux_params
 
 
 def fit(network, data_train, data_val, metrics, args, hp, data_names=None):
@@ -29,8 +27,8 @@ def fit(network, data_train, data_val, metrics, args, hp, data_names=None):
         os.makedirs(os.path.dirname(args.prefix))
 
     module = mx.mod.Module(
-            symbol = network,
-            data_names= ["data"] if data_names is None else data_names,
+            symbol=network,
+            data_names=["data"] if data_names is None else data_names,
             label_names=['label'],
             context=contexts)
 
@@ -55,10 +53,12 @@ def fit(network, data_train, data_val, metrics, args, hp, data_names=None):
     # f = module.get_outputs()
     # import pdb; pdb.set_trace()
 
+    begin_epoch = args.load_epoch if args.load_epoch else 0
+    num_epoch = hp.num_epoch + begin_epoch
     module.fit(train_data=data_train,
                eval_data=data_val,
-               begin_epoch=args.load_epoch if args.load_epoch else 0,
-               num_epoch=hp.num_epoch,
+               begin_epoch=begin_epoch,
+               num_epoch=num_epoch,
                # use metrics.accuracy or metrics.accuracy_lcs
                eval_metric=mx.metric.np(metrics.accuracy, allow_extra_outputs=True),
                optimizer='AdaDelta',
