@@ -1,6 +1,23 @@
 中文版说明请见[中文README](./README_cn.md)。
 
+
+
+# Update 2019.07.24: release cnocr V1.0.0
+
+`cnocr` `v1.0.0` is released, which is more efficient for prediction. **The new version of the model is not compatible with the previous version.** So if upgrading, please download the latest model file again. See below for the details (same as before).
+
+
+
+Main changes are：
+
+-  **The new crnn model supports prediction for variable-width image files, so is more efficient for prediction.**
+-  Fix bugs，such as `train accuracy` always `0`.
+-  Depended package `mxnet` is upgraded from `1.3.1`  to `1.4.1`.
+
+
+
 # cnocr
+
 A python package for Chinese OCR with available trained models.
 So it can be used directly after installed.
 
@@ -30,7 +47,39 @@ pip install cnocr
 
 ## Usage
 
+The first time cnocr is used, the model files will be downloaded automatically from 
+[Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip) to `~/.cnocr`. 
+The zip file will be extracted and you can find the resulting model files in `~/.cnocr/models` by default.
+In case the automatic download can't perform well, you can download the zip file manually 
+from [Baidu NetDisk](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q) with extraction code `pg26`,
+and put the zip file to `~/.cnocr`. The code will do else.
+
+
+
+
+
 ### Predict
+
+Three functions are provided for prediction.
+
+
+
+#### 1. `Cnocr.ocr(img_fp)`
+
+The function `cnocr.ocr (img_fp)` can recognize texts in an image containing multiple lines of text (or single lines).
+
+
+
+**Function Description**
+
+- input parameter `img_fp`: image file path; or color image `mx.nd.NDArray` or `np.ndarray`, with shape `(height, width, 3)`, and the channels should be RGB formatted.
+- return: `List(List(Char))`,  such as:  `[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`.
+  
+
+
+
+**Usage Case**
+
 
 ```python
 from cnocr import CnOcr
@@ -39,30 +88,48 @@ res = ocr.ocr('examples/multi-line_cn1.png')
 print("Predicted Chars:", res)
 ```
 
-When you run the previous codes, the model files will be downloaded automatically from 
-[Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip) to `~/.cnocr`. 
-The zip file will be extracted and you can find the resulting model files in `~/.cnocr/models` by default.
-In case the automatic download can't perform well, you can download the zip file manually 
-from [Baidu NetDisk](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q) with extraction code `pg26`,
-and put the zip file to `~/.cnocr`. The code will do else.
+or:
 
-Try the predict command for [examples/multi-line_cn1.png](./examples/multi-line_cn1.png):
+```python
+import mxnet as mx
+from cnocr import CnOcr
+ocr = CnOcr()
+img_fp = 'examples/multi-line_cn1.png'
+img = mx.image.imread(img_fp, 1)
+res = ocr.ocr(img)
+print("Predicted Chars:", res)
+```
+
+The previous codes can recognize texts in the image file [examples/multi-line_cn1.png](./examples/multi-line_cn1.png):
 
 ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png)
 
+The OCR results shoule be:
+
 ```bash
-python scripts/cnocr_predict.py --file examples/multi-line_cn1.png
+Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的', '区', '别', '，', '因', '为'],
+                  ['每', '一', '个', '手', '机', '号', '码', '和', '邮', '件', '地', '址', '背', '后'],
+                  ['都', '会', '对', '应', '着', '一', '个', '账', '户', '一', '―', '这', '个', '账'],
+                  ['户', '可', '以', '是', '信', '用', '卡', '账', '户', '、', '借', '记', '卡', '账'],
+                  ['户', '，', '也', '包', '括', '邮', '局', '汇', '款', '、', '手', '机', '代'],
+                  ['收', '、', '电', '话', '代', '收', '、', '预', '付', '费', '卡', '和', '点', '卡'],
+                  ['等', '多', '种', '形', '式', '。']]
 ```
-You will get:
-```python
-Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的', '区', '别', '，', '因', '为'], ['每', '一', '个', '手', '机', '号', '码', '和', '邮', '件', '地', '址', '背', '后'], ['都', '会', '对', '应', '着', '一', '个', '账', '户', '一', '一', '这', '个', '账'], ['户', '可', '以', '是', '信', '用', '卡', '账', '户', '、', '借', '记', '卡', '账'], ['户', '，', '也', '包', '括', '邮', '局', '汇', '款', '、', '手', '机', '代'], ['收', '、', '电', '话', '代', '收', '、', '预', '付', '费', '卡', '和', '点', '卡'], ['等', '多', '种', '形', '式', '。']]
-```
+
+#### 2. `Cnocr.ocr_for_single_line(img_fp)`
+
+If you know that the image you're predicting contains only one line of text, function `Cnocr.ocr_for_single_line(img_fp)` can be used instead。Compared with `Cnocr.ocr()`, the result of `Cnocr.ocr_for_single_line()` is more reliable because the process of splitting lines is not required. 
 
 
 
-### Predict for Single-line-characters Image
+**Function Description**
 
-If you know your image includes only one single line characters, you can use function `Cnocr.ocr_for_single_line()` instead of  `Cnocr.ocr()`.  `Cnocr.ocr_for_single_line()` should be more efficient.
+- input parameter `img_fp`: image file path; or color image `mx.nd.NDArray` or `np.ndarray`, with shape `[height, width]` or `[height, width, channel]`.  The optional channel should be `1` (gray image) or `3` (color image).
+- return: `List(Char)`,  such as:  `['你', '好']`.
+
+
+
+**Usage Case**：
 
 ```python
 from cnocr import CnOcr
@@ -71,31 +138,85 @@ res = ocr.ocr_for_single_line('examples/rand_cn1.png')
 print("Predicted Chars:", res)
 ```
 
-With file [examples/multi-line_cn1.png](./examples/multi-line_cn1.png)：
+or:
+
+```python
+import mxnet as mx
+from cnocr import CnOcr
+ocr = CnOcr()
+img_fp = 'examples/rand_cn1.png'
+img = mx.image.imread(img_fp, 1)
+res = ocr.ocr_for_single_line(img)
+print("Predicted Chars:", res)
+```
+
+
+The previous codes can recognize texts in the image file  [examples/rand_cn1.png](./examples/rand_cn1.png)：
 
 ![examples/rand_cn1.png](./examples/rand_cn1.png)
 
-you will get:
+The OCR results shoule be:
+
+```bash
+Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '臭', '姚', '歼', '蠢', '驼', '耳', '裔', '挝', '涯', '狗', '蒽', '子', '犷'] 
+```
+
+#### 3. `Cnocr.ocr_for_single_lines(img_list)`
+
+Function `Cnocr.ocr_for_single_lines(img_list)` can predict a number of single-line-text image arrays batchly. Actually `Cnocr.ocr(img_fp)` and `Cnocr.ocr_for_single_line(img_fp)` both invoke `Cnocr.ocr_for_single_lines(img_list)` internally.
+
+
+
+**Function Description**
+
+- input parameter `img_list`: list of images, in which each element should be a line image array,  with type `mx.nd.NDArray` or `np.ndarray`.  Each element should be a tensor with values ranging from `0` to` 255`, and with shape `[height, width]` or `[height, width, channel]`.  The optional channel should be `1` (gray image) or `3` (color image).
+- return: `List(List(Char))`,  such as:  `[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`.
+
+
+
+Usage Case**：
 
 ```python
-Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼', '蠢', '驼', '耳', '胬', '挝', '涯', '狗', '蒽', '子', '犷']
+import mxnet as mx
+from cnocr import CnOcr
+ocr = CnOcr()
+img_fp = 'examples/multi-line_cn1.png'
+img = mx.image.imread(img_fp, 1).asnumpy()
+line_imgs = line_split(img, blank=True)
+line_img_list = [line_img for line_img, _ in line_imgs]
+res = ocr.ocr_for_single_lines(line_img_list)
+print("Predicted Chars:", res)
+```
+
+More usage cases can be found at [tests/test_cnocr.py](./tests/test_cnocr.py).
+
+
+### Using  the Script
+
+```bash
+python scripts/cnocr_predict.py --file examples/multi-line_cn1.png
 ```
 
 
 
 ### (No NECESSARY) Train
 
-You can use the package without any train. But if you really really want to train your own models,
-follow this:
+You can use the package without any train. But if you really really want to train your own models, follow this:
 
 ```bash
 python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
 ```
 
+
+
+or, refering to  [scripts/run_cnocr_train.sh](./scripts/run_cnocr_train.sh).
+
+
+
 ## Future Work
-* [x] support multi-line-characters recognition
-* Support space recognition
-* Bugfixes
-* Add Tests
-* Maybe use no symbol to rewrite the model
-* Try other models such as DenseNet, ResNet
+* [x] support multi-line-characters recognition (`Done`)
+* [x] crnn model supports prediction for variable-width image files (`Done`)
+* [x] Add Unit Tests  (`Doing`)
+* [x]  Bugfixes  (`Doing`)
+* [ ] Support space recognition (Tried, but not successful for now )
+* [ ] Try other models such as DenseNet, ResNet
