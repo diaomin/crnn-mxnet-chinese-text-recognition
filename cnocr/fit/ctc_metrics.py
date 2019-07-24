@@ -42,7 +42,7 @@ class CtcMetrics(object):
         for i, _ in enumerate(p):
             c1 = p1[i]
             c2 = p1[i+1]
-            if c2 == 0 and c1 != 0 and len(ret) > 0:
+            if (c2 == 0 or c2 != c1) and c1 != 0 and len(ret) > 0:
                 ret[-1][-1] = i
             if c2 == 0 or c2 == c1:
                 continue
