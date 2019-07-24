@@ -245,7 +245,7 @@ class CnOcr(object):
 
     def _gen_line_pred_chars(self, line_prob, img_width, max_img_width):
         """
-
+        Get the predicted characters.
         :param line_prob: with shape of [seq_length, num_classes]
         :param img_width:
         :param max_img_width:
@@ -261,4 +261,5 @@ class CnOcr(object):
         prediction, start_end_idx = CtcMetrics.ctc_label(class_ids.tolist())
         alphabet = self._alphabet
         res = [alphabet[p] for p in prediction]
+
         return res

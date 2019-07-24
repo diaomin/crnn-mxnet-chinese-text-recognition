@@ -63,25 +63,25 @@ def test_ocr_for_single_line(img_fp, expected):
     pred = ocr.ocr_for_single_line(img_fp)
     print('\n')
     print("Predicted Chars:", pred)
-    # assert expected[0] == pred
+    assert expected[0] == pred
     img = mx.image.imread(img_fp, 1)
     pred = ocr.ocr_for_single_line(img)
     print("Predicted Chars:", pred)
-    # assert expected[0]== pred
+    assert expected[0]== pred
     img = mx.image.imread(img_fp, 1).asnumpy()
     pred = ocr.ocr_for_single_line(img)
     print("Predicted Chars:", pred)
-    # assert expected[0] == pred
+    assert expected[0] == pred
     img = np.array(Image.fromarray(img).convert('L'))
     assert len(img.shape) == 2
     pred = ocr.ocr_for_single_line(img)
     print("Predicted Chars:", pred)
-    # assert expected[0] == pred
+    assert expected[0] == pred
     img = np.expand_dims(img, axis=2)
     assert len(img.shape) == 3 and img.shape[2] == 1
     pred = ocr.ocr_for_single_line(img)
     print("Predicted Chars:", pred)
-    # assert expected[0] == pred
+    assert expected[0] == pred
 
 
 @pytest.mark.parametrize('img_fp, expected', MULTIPLE_LINE_CASES)
@@ -95,8 +95,8 @@ def test_ocr_for_single_lines(img_fp, expected):
     pred = ocr.ocr_for_single_lines(line_img_list)
     print('\n')
     print("Predicted Chars:", pred)
-    # assert expected == pred
+    assert expected == pred
     line_img_list = [nd.array(line_img) for line_img in line_img_list]
     pred = ocr.ocr_for_single_lines(line_img_list)
     print("Predicted Chars:", pred)
-    # assert expected == pred
+    assert expected == pred
