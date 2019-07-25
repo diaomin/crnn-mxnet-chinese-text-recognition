@@ -1,4 +1,4 @@
-# Update 2019.07.24: 发布 cnocr V1.0.0
+# Update 2019.07.25: 发布 cnocr V1.0.0
 
 `cnocr`发布了预测效率更高的新版本v1.0.0。**新版本的模型跟以前版本的模型不兼容**。所以如果大家是升级的话，需要重新下载最新的模型文件。具体说明见下面（流程和原来相同）。
 
@@ -7,6 +7,7 @@
 主要改动如下：
 
 -  **crnn模型支持可变长预测，提升预测效率**
+-  支持利用特定数据对现有模型进行精调（继续训练）
 -  修复bugs，如训练时`accuracy`一直为`0`
 -  依赖的 `mxnet` 版本从`1.3.1`更新至 `1.4.1`
 
@@ -14,7 +15,7 @@
 
 **cnocr**是用来做中文OCR的**Python 3**包。cnocr自带了训练好的识别模型，所以安装后即可直接使用。
 
-目前使用的识别模型是**crnn**，识别准确度约为 `98.7%`。
+目前使用的识别模型是**crnn**，识别准确度约为 `98.8%`。
 
 本项目起源于我们自己 ([爱因互动 Ein+](https://einplus.cn)) 内部的项目需求，所以非常感谢公司的支持。
 
@@ -40,11 +41,11 @@ pip install cnocr
 
 ## 使用方法
 
-首次使用cnocr时，系统会自动从[Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip)下载zip格式的模型压缩文件，并存于 `~/.cnocr`目录。
+首次使用cnocr时，系统会自动从[Dropbox](https://www.dropbox.com/s/7w8l3mk4pvkt34w/cnocr-models-v1.0.0.zip?dl=0)下载zip格式的模型压缩文件，并存于 `~/.cnocr`目录。
 下载后的zip文件代码会自动对其解压，然后把解压后的模型相关文件放于`~/.cnocr/models`目录。
 
-如果系统不能自动从[Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip)成功下载zip文件，则需要手动下载此zip文件并把它放于 `~/.cnocr`目录。
-另一个下载地址是[百度云盘](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q)(提取码为`pg26`)。
+如果系统不能自动从[Dropbox](https://www.dropbox.com/s/7w8l3mk4pvkt34w/cnocr-models-v1.0.0.zip?dl=0)成功下载zip文件，则需要手动下载此zip文件并把它放于 `~/.cnocr`目录。
+另一个下载地址是[百度云盘](https://pan.baidu.com/s/1DWV3H2UWmzOU6d48UbTYVw)(提取码为`ss81`)。
 放置好zip文件后，后面的事代码就会自动执行了。
 
 
@@ -211,7 +212,15 @@ python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
 
 
 
-或者参考脚本[scripts/run_cnocr_train.sh](./scripts/run_cnocr_train.sh)中的命令。
+现在也支持从已有模型利用特定数据精调模型，请参考下面命令：
+
+```bash
+python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr --load_epoch 20
+```
+
+
+
+更多可参考脚本[scripts/run_cnocr_train.sh](./scripts/run_cnocr_train.sh)中的命令。
 
 
 

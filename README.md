@@ -2,7 +2,7 @@
 
 
 
-# Update 2019.07.24: release cnocr V1.0.0
+# Update 2019.07.25: release cnocr V1.0.0
 
 `cnocr` `v1.0.0` is released, which is more efficient for prediction. **The new version of the model is not compatible with the previous version.** So if upgrading, please download the latest model file again. See below for the details (same as before).
 
@@ -11,6 +11,7 @@
 Main changes are：
 
 -  **The new crnn model supports prediction for variable-width image files, so is more efficient for prediction.**
+-  Support fine-tuning the existing model with specific data.
 -  Fix bugs，such as `train accuracy` always `0`.
 -  Depended package `mxnet` is upgraded from `1.3.1`  to `1.4.1`.
 
@@ -21,7 +22,7 @@ Main changes are：
 A python package for Chinese OCR with available trained models.
 So it can be used directly after installed.
 
-The accuracy of the current crnn model is about `98.7%`.
+The accuracy of the current crnn model is about `98.8%`.
 
 The project originates from our own ([爱因互动 Ein+](https://einplus.cn)) internal needs.
 Thanks for the internal supports.
@@ -48,13 +49,11 @@ pip install cnocr
 ## Usage
 
 The first time cnocr is used, the model files will be downloaded automatically from 
-[Dropbox](https://www.dropbox.com/s/5n09nxf4x95jprk/cnocr-models-v0.1.0.zip) to `~/.cnocr`. 
+[Dropbox](https://www.dropbox.com/s/7w8l3mk4pvkt34w/cnocr-models-v1.0.0.zip?dl=0) to `~/.cnocr`. 
+
 The zip file will be extracted and you can find the resulting model files in `~/.cnocr/models` by default.
 In case the automatic download can't perform well, you can download the zip file manually 
-from [Baidu NetDisk](https://pan.baidu.com/s/1s91985r0YBGbk_1cqgHa1Q) with extraction code `pg26`,
-and put the zip file to `~/.cnocr`. The code will do else.
-
-
+from [Baidu NetDisk](https://pan.baidu.com/s/1DWV3H2UWmzOU6d48UbTYVw) with extraction code `ss81`, and put the zip file to `~/.cnocr`. The code will do else.
 
 
 
@@ -209,11 +208,20 @@ python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
 
 
 
-or, refering to  [scripts/run_cnocr_train.sh](./scripts/run_cnocr_train.sh).
+Fine-tuning the model with specific data from existing models is also supported. Please refer to the following command:
+
+```bash
+python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr --load_epoch 20
+```
+
+
+
+More references can be found at  [scripts/run_cnocr_train.sh](./scripts/run_cnocr_train.sh).
 
 
 
 ## Future Work
+
 * [x] support multi-line-characters recognition (`Done`)
 * [x] crnn model supports prediction for variable-width image files (`Done`)
 * [x] Add Unit Tests  (`Doing`)
