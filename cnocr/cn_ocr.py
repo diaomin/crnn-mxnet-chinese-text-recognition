@@ -16,18 +16,18 @@
 # specific language governing permissions and limitations
 # under the License.
 import os
-from copy import deepcopy
 import mxnet as mx
 import numpy as np
 from PIL import Image
 
+from cnocr.__version__ import __version__
 from cnocr.consts import MODEL_EPOCE
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.fit.lstm import init_states
 from cnocr.fit.ctc_metrics import CtcMetrics
 from cnocr.data_utils.data_iter import SimpleBatch
 from cnocr.symbols.crnn import crnn_lstm
-from cnocr.utils import data_dir, get_model_file, read_charset
+from cnocr.utils import data_dir, get_model_file, read_charset, normalize_img_array
 from cnocr.line_split import line_split
 
 
@@ -93,7 +93,7 @@ def load_module(prefix, epoch, data_names, data_shapes, network=None):
 
 
 class CnOcr(object):
-    MODEL_FILE_PREFIX = 'model'
+    MODEL_FILE_PREFIX = 'model-v{}'.format(__version__)
 
     def __init__(self, root=data_dir(), model_epoch=MODEL_EPOCE):
         self._model_dir = os.path.join(root, 'models')
@@ -102,7 +102,9 @@ class CnOcr(object):
         self._alphabet, _ = read_charset(os.path.join(self._model_dir, 'label_cn.txt'))
 
         self._hp = Hyperparams()
-        self._mods = {}
+        self._hp._loss_type = None  # infer mode
+
+        self._mod = self._get_module(self._hp)
 
     def _assert_and_prepare_model_files(self, root):
         model_dir = self._model_dir
@@ -123,65 +125,169 @@ class CnOcr(object):
             os.removedirs(model_dir)
         get_model_file(root)
 
-    def _get_module(self, hp, sample):
+    def _get_module(self, hp):
         network = crnn_lstm(hp)
         prefix = os.path.join(self._model_dir, self.MODEL_FILE_PREFIX)
-        mod = load_module(prefix, MODEL_EPOCE, sample.data_names, sample.provide_data, network=network)
+        # import pdb; pdb.set_trace()
+        data_names = ['data']
+        data_shapes = [(data_names[0], (hp.batch_size, 1, hp.img_height, hp.img_width))]
+        mod = load_module(prefix, self._model_epoch, data_names, data_shapes, network=network)
         return mod
 
     def ocr(self, img_fp):
         """
         :param img_fp: image file path; or color image mx.nd.NDArray or np.ndarray,
             with shape (height, width, 3), and the channels should be RGB formatted.
-        :return: List(List(Letter)), such as:
+        :return: List(List(Char)), such as:
             [['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]
         """
         if isinstance(img_fp, str) and os.path.isfile(img_fp):
             img = mx.image.imread(img_fp, 1).asnumpy()
-        elif isinstance(img_fp, mx.nd.NDArray) or isinstance(img_fp, np.ndarray):
+        elif isinstance(img_fp, mx.nd.NDArray):
+            img = img_fp.asnumpy()
+        elif isinstance(img_fp, np.ndarray):
             img = img_fp
         else:
             raise TypeError('Inappropriate argument type.')
         if min(img.shape[0], img.shape[1]) < 2:
             return ''
         line_imgs = line_split(img, blank=True)
-        line_chars_list = []
-        for line_idx, (line_img, _) in enumerate(line_imgs):
-            line_img = np.array(Image.fromarray(line_img).convert('L'))
-            line_chars = self.ocr_for_single_line(line_img)
-            line_chars_list.append(line_chars)
+        line_img_list = [line_img for line_img, _ in line_imgs]
+        line_chars_list = self.ocr_for_single_lines(line_img_list)
         return line_chars_list
 
     def ocr_for_single_line(self, img_fp):
         """
-        Recognize characters from an image with characters with only one line
-        :param img_fp: image file path; or gray image mx.nd.NDArray; or gray image np.ndarray,
-        with shape [height, width] or [height, width, 1].
-        :return: charector list, such as ['你', '好']
+        Recognize characters from an image with only one-line characters.
+        :param img_fp: image file path; or image mx.nd.NDArray or np.ndarray,
+            with shape [height, width] or [height, width, channel].
+            The optional channel should be 1 (gray image) or 3 (color image).
+        :return: character list, such as ['你', '好']
         """
-        hp = deepcopy(self._hp)
         if isinstance(img_fp, str) and os.path.isfile(img_fp):
             img = read_ocr_img(img_fp)
         elif isinstance(img_fp, mx.nd.NDArray) or isinstance(img_fp, np.ndarray):
             img = img_fp
         else:
             raise TypeError('Inappropriate argument type.')
-        img = rescale_img(img, hp)
+        res = self.ocr_for_single_lines([img])
+        return res[0]
 
-        init_state_names, init_state_arrays = lstm_init_states(batch_size=1, hp=hp)
+    def ocr_for_single_lines(self, img_list):
+        """
+        Batch recognize characters from a list of one-line-characters images.
+        :param img_list: list of images, in which each element should be a line image array,
+            with type mx.nd.NDArray or np.ndarray.
+            Each element should be a tensor with values ranging from 0 to 255,
+            and with shape [height, width] or [height, width, channel].
+            The optional channel should be 1 (gray image) or 3 (color image).
+        :return: list of list of chars, such as
+            [['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]
+        """
+        if len(img_list) == 0:
+            return []
+        img_list = [self._preprocess_img_array(img) for img in img_list]
 
+        batch_size = len(img_list)
+        img_list, img_widths = self._pad_arrays(img_list)
+
+        # import pdb; pdb.set_trace()
         sample = SimpleBatch(
-            data_names=['data'] + init_state_names,
-            data=[mx.nd.array([img])] + init_state_arrays)
+            data_names=['data'],
+            data=[mx.nd.array(img_list)])
 
-        mod = self._get_module(hp, sample)
+        prob = self._predict(sample)
+        prob = np.reshape(prob, (-1, batch_size, prob.shape[1]))  # [seq_len, batch_size, num_classes]
 
+        max_width = max(img_widths)
+        res = []
+        for i in range(batch_size):
+            res.append(self._gen_line_pred_chars(prob[:, i, :], img_widths[i], max_width))
+        return res
+
+    def _preprocess_img_array(self, img):
+        """
+        :param img: image array with type mx.nd.NDArray or np.ndarray,
+        with shape [height, width] or [height, width, channel].
+        channel shoule be 1 (gray image) or 3 (color image).
+
+        :return: np.ndarray, with shape (1, height, width)
+        """
+        if len(img.shape) == 3 and img.shape[2] == 3:
+            if isinstance(img, mx.nd.NDArray):
+                img = img.asnumpy()
+            if img.dtype != np.dtype('uint8'):
+                img = img.astype('uint8')
+            # color to gray
+            img = np.array(Image.fromarray(img).convert('L'))
+        img = rescale_img(img, self._hp)
+        return normalize_img_array(img)
+
+    def _pad_arrays(self, img_list):
+        """Padding to make sure all the elements have the same width."""
+        img_widths = [img.shape[2] for img in img_list]
+        if len(img_list) <= 1:
+            return img_list, img_widths
+        max_width = max(img_widths)
+        pad_width = [(0, 0), (0, 0), (0, 0)]
+        padded_img_list = []
+        for img in img_list:
+            if img.shape[2] < max_width:
+                pad_width[2] = (0, max_width - img.shape[2])
+                img = np.pad(img, pad_width, 'constant', constant_values=0.0)
+            padded_img_list.append(img)
+        return padded_img_list, img_widths
+
+    def _predict(self, sample):
+        mod = self._mod
         mod.forward(sample)
         prob = mod.get_outputs()[0].asnumpy()
+        return prob
 
-        prediction, start_end_idx = CtcMetrics.ctc_label(np.argmax(prob, axis=-1).tolist())
+    def _gen_line_pred_chars(self, line_prob, img_width, max_img_width):
+        """
+        Get the predicted characters.
+        :param line_prob: with shape of [seq_length, num_classes]
+        :param img_width:
+        :param max_img_width:
+        :return:
+        """
+        class_ids = np.argmax(line_prob, axis=-1)
+        # idxs = list(zip(range(len(class_ids)), class_ids))
+        # probs = [line_prob[e[0], e[1]] for e in idxs]
+
+        if img_width < max_img_width:
+            comp_ratio = self._hp.seq_len_cmpr_ratio
+            end_idx = img_width // comp_ratio
+            if end_idx < len(class_ids):
+                class_ids[end_idx:] = 0
+        prediction, start_end_idx = CtcMetrics.ctc_label(class_ids.tolist())
         # print(start_end_idx)
-
         alphabet = self._alphabet
         res = [alphabet[p] for p in prediction]
+
+        # res = self._insert_space_char(res, start_end_idx)
         return res
+
+    def _insert_space_char(self, pred_chars, start_end_idx, min_interval=None):
+        if len(pred_chars) < 2:
+            return pred_chars
+        assert len(pred_chars) == len(start_end_idx)
+
+        if min_interval is None:
+            # 自动计算最小区间值
+            intervals = {start_end_idx[idx][0] - start_end_idx[idx-1][1] for idx in range(1, len(start_end_idx))}
+            if len(intervals) >= 3:
+                intervals = sorted(list(intervals))
+                if intervals[0] < 1:  # 排除间距为0的情况
+                    intervals = intervals[1:]
+                min_interval = intervals[2]
+            else:
+                min_interval = start_end_idx[-1][1]  # no space will be inserted
+
+        res_chars = [pred_chars[0]]
+        for idx in range(1, len(pred_chars)):
+            if start_end_idx[idx][0] - start_end_idx[idx-1][1] >= min_interval:
+                res_chars.append(' ')
+            res_chars.append(pred_chars[idx])
+        return res_chars

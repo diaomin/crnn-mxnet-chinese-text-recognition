@@ -42,14 +42,14 @@ class CtcMetrics(object):
         for i, _ in enumerate(p):
             c1 = p1[i]
             c2 = p1[i+1]
-            if c2 == 0 and c1 != 0 and len(ret) > 0:
+            if (c2 == 0 or c2 != c1) and c1 != 0 and len(ret) > 0:
                 ret[-1][-1] = i
             if c2 == 0 or c2 == c1:
                 continue
             ret.append([c2, i, -1])
             
         if len(ret) == 0:
-            return [0], [(0, 0)]
+            return [], []
         if ret[-1][-1] < 0:
             ret[-1][-1] = len(p)
 
@@ -93,7 +93,8 @@ class CtcMetrics(object):
             p = []
             for k in range(self.seq_len):
                 p.append(np.argmax(pred[k * batch_size + i]))
-            p = self.ctc_label(p)
+            p, _ = self.ctc_label(p)
+            # print('real: {}, pred: {}'.format(l, p))
             if len(p) == len(l):
                 match = True
                 for k, _ in enumerate(p):
@@ -116,7 +117,7 @@ class CtcMetrics(object):
             p = []
             for k in range(self.seq_len):
                 p.append(np.argmax(pred[k * batch_size + i]))
-            p = self.ctc_label(p)
+            p, _ = self.ctc_label(p)
             hit += self._lcs(p, l) * 1.0 / len(l)
             total += 1.0
         assert total == batch_size

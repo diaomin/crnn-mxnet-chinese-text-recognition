@@ -2,6 +2,7 @@ from __future__ import print_function
 
 from collections import namedtuple
 import mxnet as mx
+from mxnet.gluon.rnn.rnn_layer import LSTM
 
 LSTMState = namedtuple("LSTMState", ["c", "h"])
 LSTMParam = namedtuple("LSTMParam", ["i2h_weight", "i2h_bias",
@@ -53,6 +54,22 @@ def _lstm(num_hidden, indata, prev_state, param, seqidx, layeridx):
     next_c = (forget_gate * prev_state.c) + (in_gate * in_transform)
     next_h = out_gate * mx.sym.Activation(next_c, act_type="tanh")
     return LSTMState(c=next_c, h=next_h)
+
+
+def lstm2(net, num_lstm_layer, num_hidden):
+    net = mx.symbol.squeeze(net, axis=2)  # res: bz x f x 35
+    net = mx.symbol.transpose(net, axes=(2, 0, 1))
+    # print('6', net.infer_shape()[1])
+
+    lstm = LSTM(num_hidden, num_lstm_layer, bidirectional=True)
+    # import pdb; pdb.set_trace()
+    output = lstm(net)  # res: `(sequence_length, batch_size, 2*num_hidden)`
+    # print('7', output.infer_shape()[1])
+    return mx.symbol.reshape(output, shape=(-3, -2))  # res: (bz * 35, c)
+    # - **out**: output tensor with shape `(sequence_length, batch_size, num_hidden)`
+    # when `layout` is "TNC". If `bidirectional` is True, output shape will instead
+    # be `(sequence_length, batch_size, 2*num_hidden)`
+
 
 def lstm(net, num_lstm_layer, num_hidden, seq_length):
     last_states = []

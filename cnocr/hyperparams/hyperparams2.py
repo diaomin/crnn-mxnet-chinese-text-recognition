@@ -29,7 +29,8 @@ class Hyperparams(object):
         # LSTM hyper parameters
         self._num_hidden = 100
         self._num_lstm_layer = 2
-        self._seq_length = self._img_width // 8
+        self.seq_len_cmpr_ratio = 8  # 模型对于图片宽度压缩的比例（模型中的卷积层造成的）
+        self._seq_length = self._img_width // self.seq_len_cmpr_ratio
         self._num_label = 4
         self._drop_out = 0.5
 

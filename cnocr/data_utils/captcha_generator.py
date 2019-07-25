@@ -67,6 +67,7 @@ class CaptchaGen(object):
         img = cv2.resize(img, (self.h, self.w))
         img = img.transpose(1, 0)
         img = np.multiply(img, 1 / 255.0)
+        # print(np.mean(img), np.std(img))
         return img
 
 
@@ -113,7 +114,7 @@ class DigitCaptcha(object):
         np.ndarray
             A captcha image, normalized to [0, 1]
         """
-        return self._gen_sample()
+        return self._gen_sample(0)
 
     @staticmethod
     def get_rand(num_digit_min, num_digit_max):
@@ -130,7 +131,7 @@ class DigitCaptcha(object):
             buf += str(random.randint(0, 9))
         return buf
 
-    def _gen_sample(self):
+    def _gen_sample(self, _):
         """
         Generate a random captcha image sample
         Returns
@@ -139,7 +140,10 @@ class DigitCaptcha(object):
             Tuple of image (numpy ndarray) and character string of digits used to generate the image
         """
         num_str = self.get_rand(self.num_digit_min, self.num_digit_max)
-        return self.captcha.image(num_str), num_str
+        num_array = np.zeros(self.num_digit_max)
+        num = list(map(lambda x: int(x) + 1, list(num_str)))
+        num_array[:len(num)] = num
+        return self.captcha.image(num_str), num_array
 
 
 class MPDigitCaptcha(DigitCaptcha):

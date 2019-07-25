@@ -17,7 +17,7 @@ class CnHyperparams(object):
         self._loss_type = "ctc"  # ["warpctc"  "ctc"]
 
         self._batch_size = 128
-        self._num_classes = 6425  # 应该是6426的。。 5990
+        self._num_classes = 6426  # 应该是6426的。。 5990
         self._img_width = 280
         self._img_height = 32
 
@@ -30,7 +30,8 @@ class CnHyperparams(object):
         self._num_hidden = 100
         self._num_lstm_layer = 2
         # self._seq_length = 35
-        self._seq_length = self._img_width // 8
+        self.seq_len_cmpr_ratio = 8  # 模型对于图片宽度压缩的比例（模型中的卷积层造成的）
+        self._seq_length = self._img_width // self.seq_len_cmpr_ratio
         self._num_label = 10
         self._drop_out = 0.5
 

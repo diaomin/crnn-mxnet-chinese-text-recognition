@@ -23,7 +23,8 @@ import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from cnocr.data_utils.captcha_generator import MPDigitCaptcha
+from cnocr.__version__ import __version__
+from cnocr.utils import data_dir
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.hyperparams.hyperparams2 import Hyperparams as Hyperparams2
 from cnocr.data_utils.data_iter import ImageIterLstm, MPOcrImages, OCRIter
@@ -35,6 +36,7 @@ from cnocr.fit.fit import fit
 def parse_args():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
+    default_model_prefix = os.path.join(data_dir(), 'models', 'model-v{}'.format(__version__))
 
     parser.add_argument("--dataset",
                         help="use which kind of dataset, captcha or cn_ocr",
@@ -51,8 +53,9 @@ def parse_args():
                         type=int, default=2)
     parser.add_argument("--gpu", help="Number of GPUs for training [Default 0]", type=int)
     parser.add_argument('--load_epoch', type=int,
-                       help='load the model on an epoch using the model-load-prefix')
-    parser.add_argument("--prefix", help="Checkpoint prefix [Default 'ocr']", default='./models/model')
+                        help='load the model on an epoch using the model-load-prefix [Default: no trained model will be loaded]')
+    parser.add_argument("--prefix", help="Checkpoint prefix [Default '{}']".format(default_model_prefix),
+                        default=default_model_prefix)
     parser.add_argument("--loss", help="'ctc' or 'warpctc' loss [Default 'ctc']", default='ctc')
     parser.add_argument("--num_proc", help="Number CAPTCHA generating processes [Default 4]", type=int, default=4)
     parser.add_argument("--font_path", help="Path to ttf font file or directory containing ttf files")
@@ -71,6 +74,8 @@ def get_fonts(path):
 
 
 def run_captcha(args):
+    from cnocr.data_utils.captcha_generator import MPDigitCaptcha
+
     hp = Hyperparams2()
 
     network = crnn_lstm(hp)
@@ -85,23 +90,26 @@ def run_captcha(args):
         num_digit_min=3, num_digit_max=4, num_processes=args.num_proc, max_queue_size=hp.batch_size * 2)
     mp_captcha.start()
     # img, num = mp_captcha.get()
-    # print(img.shape)
+    # print(img.shape, num)
     # import numpy as np
     # import cv2
     # img = np.transpose(img, (1, 0))
     # cv2.imwrite('captcha1.png', img * 255)
+    # import sys
+    # sys.exit(0)
     # import pdb; pdb.set_trace()
 
-    init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
-    init_h = [('l%d_init_h' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
-    init_states = init_c + init_h
-    data_names = ['data'] + [x[0] for x in init_states]
+    # init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
+    # init_h = [('l%d_init_h' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
+    # init_states = init_c + init_h
+    # data_names = ['data'] + [x[0] for x in init_states]
+    data_names = ['data']
 
     data_train = OCRIter(
-        hp.train_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_captcha, num_label=hp.num_label,
+        hp.train_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_captcha, num_label=hp.num_label,
         name='train')
     data_val = OCRIter(
-        hp.eval_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_captcha, num_label=hp.num_label,
+        hp.eval_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_captcha, num_label=hp.num_label,
         name='val')
 
     head = '%(asctime)-15s %(message)s'
@@ -120,7 +128,7 @@ def run_cn_ocr(args):
     network = crnn_lstm(hp)
 
     mp_data_train = MPOcrImages(args.data_root, args.train_file, (hp.img_width, hp.img_height), hp.num_label,
-                                num_processes=args.num_proc, max_queue_size=hp.batch_size * 2)
+                                num_processes=args.num_proc, max_queue_size=hp.batch_size * 100)
     # img, num = mp_data_train.get()
     # print(img.shape)
     # print(mp_data_train.shape)
@@ -131,20 +139,21 @@ def run_cn_ocr(args):
     # cv2.imwrite('captcha1.png', img * 255)
     # import pdb; pdb.set_trace()
     mp_data_test = MPOcrImages(args.data_root, args.test_file, (hp.img_width, hp.img_height), hp.num_label,
-                               num_processes=max(args.num_proc // 2, 1), max_queue_size=hp.batch_size * 2)
+                               num_processes=max(args.num_proc // 2, 1), max_queue_size=hp.batch_size * 10)
     mp_data_train.start()
     mp_data_test.start()
 
-    init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
-    init_h = [('l%d_init_h' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
-    init_states = init_c + init_h
-    data_names = ['data'] + [x[0] for x in init_states]
+    # init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
+    # init_h = [('l%d_init_h' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
+    # init_states = init_c + init_h
+    # data_names = ['data'] + [x[0] for x in init_states]
+    data_names = ['data']
 
     data_train = OCRIter(
-        hp.train_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_data_train, num_label=hp.num_label,
+        hp.train_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_data_train, num_label=hp.num_label,
         name='train')
     data_val = OCRIter(
-        hp.eval_epoch_size // hp.batch_size, hp.batch_size, init_states, captcha=mp_data_test, num_label=hp.num_label,
+        hp.eval_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_data_test, num_label=hp.num_label,
         name='val')
     # data_train = ImageIterLstm(
     #     args.data_root, args.train_file, hp.batch_size, (hp.img_width, hp.img_height), hp.num_label, init_states, name="train")
@@ -159,7 +168,7 @@ def run_cn_ocr(args):
     fit(network=network, data_train=data_train, data_val=data_val, metrics=metrics, args=args, hp=hp, data_names=data_names)
 
     mp_data_train.reset()
-    mp_data_test.start()
+    mp_data_test.reset()
 
 
 if __name__ == '__main__':

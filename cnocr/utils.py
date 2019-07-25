@@ -18,9 +18,10 @@
 import os
 import platform
 import zipfile
-
+import numpy as np
 from mxnet.gluon.utils import download
-from .consts import MODEL_BASE_URL
+
+from .consts import MODEL_BASE_URL, ZIP_FILE_NAME
 
 
 def data_dir_default():
@@ -59,12 +60,11 @@ def get_model_file(root=data_dir()):
     file_path
         Path to the requested pretrained model file.
     """
-    file_name = 'cnocr-models.zip'
     root = os.path.expanduser(root)
 
     os.makedirs(root, exist_ok=True)
 
-    zip_file_path = os.path.join(root, file_name)
+    zip_file_path = os.path.join(root, ZIP_FILE_NAME)
     if not os.path.exists(zip_file_path):
         download(MODEL_BASE_URL, path=zip_file_path, overwrite=True)
     with zipfile.ZipFile(zip_file_path) as zf:
@@ -75,7 +75,7 @@ def get_model_file(root=data_dir()):
 
 
 def read_charset(charset_fp):
-    alphabet = []
+    alphabet = [None]
     # 第0个元素是预留id，在CTC中用来分割字符。它不对应有意义的字符
     with open(charset_fp, encoding='utf-8') as fp:
         for line in fp:
@@ -85,3 +85,8 @@ def read_charset(charset_fp):
     # inv_alph_dict[' '] = inv_alph_dict['<space>']  # 对应空格
     return alphabet, inv_alph_dict
 
+
+def normalize_img_array(img):
+    """ rescale to [-1.0, 1.0] """
+    # return (img / 255.0 - 0.5) * 2
+    return (img - np.mean(img)) / (np.std(img) + 1e-6)

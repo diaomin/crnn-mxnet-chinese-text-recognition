@@ -67,8 +67,7 @@ class MPData(object):
         """
         self._init_proc()
 
-    @staticmethod
-    def _proc_loop(proc_id, alive, queue, fn):
+    def _proc_loop(self, proc_id, alive, queue, fn):
         """
         Thread loop for generating data
 
@@ -86,7 +85,7 @@ class MPData(object):
         print("proc {} started".format(proc_id))
         try:
             while alive.value:
-                data = fn()
+                data = fn(proc_id)
                 put_success = False
                 while alive.value and not put_success:
                     try:

@@ -36,8 +36,11 @@ def read_captcha_img(path, hp):
     """ Reads image specified by path into numpy.ndarray"""
     import cv2
     tgt_h, tgt_w = hp.img_height, hp.img_width
-    img = cv2.resize(cv2.imread(path, 0), (tgt_h, tgt_w)).astype(np.float32) / 255
-    img = np.expand_dims(img.transpose(1, 0), 0)  # res: [1, height, width]
+    img = cv2.imread(path, 0)
+    # import pdb; pdb.set_trace()
+    # img = img.astype(np.float32) / 255.0
+    img = cv2.resize(img, (tgt_w, tgt_h)).astype(np.float32) / 255.0
+    img = np.expand_dims(img, 0)  # res: [1, height, width]
     return img
 
 
@@ -107,10 +110,10 @@ def read_charset(charset_fp):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", help="use which kind of dataset, captcha or cn_ocr",
-                        choices=['captcha', 'cn_ocr'], type=str, default='cn_ocr')
+                        choices=['captcha', 'cn_ocr'], type=str, default='captcha')
     parser.add_argument("--file", help="Path to the CAPTCHA image file")
     parser.add_argument("--prefix", help="Checkpoint prefix [Default 'ocr']", default='./models/model')
-    parser.add_argument("--epoch", help="Checkpoint epoch [Default 100]", type=int, default=100)
+    parser.add_argument("--epoch", help="Checkpoint epoch [Default 100]", type=int, default=20)
     parser.add_argument('--charset_file', type=str, help='存储了每个字对应哪个id的关系.')
     args = parser.parse_args()
     if args.dataset == 'cn_ocr':
@@ -120,12 +123,10 @@ def main():
         hp = Hyperparams2()
         img = read_captcha_img(args.file, hp)
 
-    init_state_names, init_state_arrays = lstm_init_states(batch_size=1, hp=hp)
+    # init_state_names, init_state_arrays = lstm_init_states(batch_size=1, hp=hp)
     # import pdb; pdb.set_trace()
 
-    sample = SimpleBatch(
-        data_names=['data'] + init_state_names,
-        data=[mx.nd.array([img])] + init_state_arrays)
+    sample = SimpleBatch(data_names=['data'], data=[mx.nd.array([img])])
 
     network = crnn_lstm(hp)
     mod = load_module(args.prefix, args.epoch, sample.data_names, sample.provide_data, network=network)
@@ -133,7 +134,7 @@ def main():
     mod.forward(sample)
     prob = mod.get_outputs()[0].asnumpy()
 
-    prediction = CtcMetrics.ctc_label(np.argmax(prob, axis=-1).tolist())
+    prediction, start_end_idx = CtcMetrics.ctc_label(np.argmax(prob, axis=-1).tolist())
 
     if args.charset_file:
         alphabet, _ = read_charset(args.charset_file)
