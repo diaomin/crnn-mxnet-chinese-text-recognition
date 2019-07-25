@@ -56,9 +56,9 @@ pip install cnocr
 
 
 
-#### 1. 函数`Cnocr.ocr(img_fp)`
+#### 1. 函数`CnOcr.ocr(img_fp)`
 
-函数`Cnocr.ocr(img_fp)`可以对包含多行文字（或单行）的图片进行文字识别。
+函数`CnOcr.ocr(img_fp)`可以对包含多行文字（或单行）的图片进行文字识别。
 
 
 
@@ -112,9 +112,9 @@ Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的'
 
 
 
-#### 2. 函数`Cnocr.ocr_for_single_line(img_fp)`
+#### 2. 函数`CnOcr.ocr_for_single_line(img_fp)`
 
-如果明确知道要预测的图片中只包含了单行文字，可以使用函数`Cnocr.ocr_for_single_line(img_fp)`进行识别。和 `Cnocr.ocr()`相比，`Cnocr.ocr_for_single_line()`结果可靠性更强，因为它不需要做额外的分行处理。
+如果明确知道要预测的图片中只包含了单行文字，可以使用函数`CnOcr.ocr_for_single_line(img_fp)`进行识别。和 `CnOcr.ocr()`相比，`CnOcr.ocr_for_single_line()`结果可靠性更强，因为它不需要做额外的分行处理。
 
 **函数说明**：
 
@@ -157,9 +157,9 @@ Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '臭', '姚', '歼',
 
 
 
-#### 3. 函数`Cnocr.ocr_for_single_lines(img_list)`
+#### 3. 函数`CnOcr.ocr_for_single_lines(img_list)`
 
-函数`Cnocr.ocr_for_single_lines(img_list)`可以**对多个单行文字图片进行批量预测**。函数`Cnocr.ocr(img_fp)`和`Cnocr.ocr_for_single_line(img_fp)`内部其实都是调用的函数`Cnocr.ocr_for_single_lines(img_list)`。
+函数`CnOcr.ocr_for_single_lines(img_list)`可以**对多个单行文字图片进行批量预测**。函数`CnOcr.ocr(img_fp)`和`CnOcr.ocr_for_single_line(img_fp)`内部其实都是调用的函数`CnOcr.ocr_for_single_lines(img_list)`。
 
 
 

@@ -63,9 +63,9 @@ Three functions are provided for prediction.
 
 
 
-#### 1. `Cnocr.ocr(img_fp)`
+#### 1. `CnOcr.ocr(img_fp)`
 
-The function `cnocr.ocr (img_fp)` can recognize texts in an image containing multiple lines of text (or single lines).
+The function `cnOcr.ocr (img_fp)` can recognize texts in an image containing multiple lines of text (or single lines).
 
 
 
@@ -115,9 +115,9 @@ Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的'
                   ['等', '多', '种', '形', '式', '。']]
 ```
 
-#### 2. `Cnocr.ocr_for_single_line(img_fp)`
+#### 2. `CnOcr.ocr_for_single_line(img_fp)`
 
-If you know that the image you're predicting contains only one line of text, function `Cnocr.ocr_for_single_line(img_fp)` can be used instead。Compared with `Cnocr.ocr()`, the result of `Cnocr.ocr_for_single_line()` is more reliable because the process of splitting lines is not required. 
+If you know that the image you're predicting contains only one line of text, function `CnOcr.ocr_for_single_line(img_fp)` can be used instead。Compared with `CnOcr.ocr()`, the result of `CnOcr.ocr_for_single_line()` is more reliable because the process of splitting lines is not required. 
 
 
 
@@ -160,9 +160,9 @@ The OCR results shoule be:
 Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '臭', '姚', '歼', '蠢', '驼', '耳', '裔', '挝', '涯', '狗', '蒽', '子', '犷'] 
 ```
 
-#### 3. `Cnocr.ocr_for_single_lines(img_list)`
+#### 3. `CnOcr.ocr_for_single_lines(img_list)`
 
-Function `Cnocr.ocr_for_single_lines(img_list)` can predict a number of single-line-text image arrays batchly. Actually `Cnocr.ocr(img_fp)` and `Cnocr.ocr_for_single_line(img_fp)` both invoke `Cnocr.ocr_for_single_lines(img_list)` internally.
+Function `CnOcr.ocr_for_single_lines(img_list)` can predict a number of single-line-text image arrays batchly. Actually `CnOcr.ocr(img_fp)` and `CnOcr.ocr_for_single_line(img_fp)` both invoke `CnOcr.ocr_for_single_lines(img_list)` internally.
 
 
 
