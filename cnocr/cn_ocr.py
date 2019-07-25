@@ -262,7 +262,7 @@ class CnOcr(object):
             if end_idx < len(class_ids):
                 class_ids[end_idx:] = 0
         prediction, start_end_idx = CtcMetrics.ctc_label(class_ids.tolist())
-        print(start_end_idx)
+        # print(start_end_idx)
         alphabet = self._alphabet
         res = [alphabet[p] for p in prediction]
 
