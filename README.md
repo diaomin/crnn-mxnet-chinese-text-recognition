@@ -77,7 +77,7 @@ The function `cnOcr.ocr (img_fp)` can recognize texts in an image containing mul
 
 
 
-**Usage Case**
+**Use Case**
 
 
 ```python
@@ -128,7 +128,7 @@ If you know that the image you're predicting contains only one line of text, fun
 
 
 
-**Usage Case**：
+**Use Case**：
 
 ```python
 from cnocr import CnOcr
@@ -187,7 +187,7 @@ res = ocr.ocr_for_single_lines(line_img_list)
 print("Predicted Chars:", res)
 ```
 
-More usage cases can be found at [tests/test_cnocr.py](./tests/test_cnocr.py).
+More use cases can be found at [tests/test_cnocr.py](./tests/test_cnocr.py).
 
 
 ### Using  the Script
