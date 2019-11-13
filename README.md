@@ -173,7 +173,7 @@ Function `CnOcr.ocr_for_single_lines(img_list)` can predict a number of single-l
 
 
 
-Usage Case**：
+**Use Case**：
 
 ```python
 import mxnet as mx
