@@ -21,13 +21,16 @@ import argparse
 import logging
 import os
 import sys
+import mxnet as mx
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr.__version__ import __version__
 from cnocr.utils import data_dir
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.hyperparams.hyperparams2 import Hyperparams as Hyperparams2
-from cnocr.data_utils.data_iter import ImageIterLstm, MPOcrImages, OCRIter
+from cnocr.data_utils.data_iter import ImageIterLstm, MPOcrImages, OCRIter, GrayImageIter
+from cnocr.data_utils.aug import FgBgFlipAug
 from cnocr.symbols.crnn import crnn_no_lstm, crnn_lstm
 from cnocr.fit.ctc_metrics import CtcMetrics
 from cnocr.fit.fit import fit
@@ -123,52 +126,74 @@ def run_captcha(args):
 
 
 def run_cn_ocr(args):
-    hp = Hyperparams()
-
-    network = crnn_lstm(hp)
-
-    mp_data_train = MPOcrImages(args.data_root, args.train_file, (hp.img_width, hp.img_height), hp.num_label,
-                                num_processes=args.num_proc, max_queue_size=hp.batch_size * 100)
-    # img, num = mp_data_train.get()
-    # print(img.shape)
-    # print(mp_data_train.shape)
-    # import pdb; pdb.set_trace()
-    # import numpy as np
-    # import cv2
-    # img = np.transpose(img, (1, 0))
-    # cv2.imwrite('captcha1.png', img * 255)
-    # import pdb; pdb.set_trace()
-    mp_data_test = MPOcrImages(args.data_root, args.test_file, (hp.img_width, hp.img_height), hp.num_label,
-                               num_processes=max(args.num_proc // 2, 1), max_queue_size=hp.batch_size * 10)
-    mp_data_train.start()
-    mp_data_test.start()
-
-    # init_c = [('l%d_init_c' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
-    # init_h = [('l%d_init_h' % l, (hp.batch_size, hp.num_hidden)) for l in range(hp.num_lstm_layer * 2)]
-    # init_states = init_c + init_h
-    # data_names = ['data'] + [x[0] for x in init_states]
-    data_names = ['data']
-
-    data_train = OCRIter(
-        hp.train_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_data_train, num_label=hp.num_label,
-        name='train')
-    data_val = OCRIter(
-        hp.eval_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_data_test, num_label=hp.num_label,
-        name='val')
-    # data_train = ImageIterLstm(
-    #     args.data_root, args.train_file, hp.batch_size, (hp.img_width, hp.img_height), hp.num_label, init_states, name="train")
-    # data_val = ImageIterLstm(
-    #     args.data_root, args.test_file,  hp.batch_size, (hp.img_width, hp.img_height), hp.num_label, init_states, name="val")
-
     head = '%(asctime)-15s %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=head)
 
+    hp = Hyperparams()
+
+    network = crnn_lstm(hp)
     metrics = CtcMetrics(hp.seq_length)
 
+    # mp_data_train = MPOcrImages(args.data_root, args.train_file, (hp.img_width, hp.img_height), hp.num_label,
+    #                             num_processes=args.num_proc, max_queue_size=hp.batch_size * 100)
+    # mp_data_test = MPOcrImages(args.data_root, args.test_file, (hp.img_width, hp.img_height), hp.num_label,
+    #                            num_processes=max(args.num_proc // 2, 1), max_queue_size=hp.batch_size * 10)
+    # mp_data_train.start()
+    # mp_data_test.start()
+
+    # data_train = OCRIter(
+    #     hp.train_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_data_train, num_label=hp.num_label,
+    #     name='train')
+    # data_val = OCRIter(
+    #     hp.eval_epoch_size // hp.batch_size, hp.batch_size, captcha=mp_data_test, num_label=hp.num_label,
+    #     name='val')
+    data_train, data_val = _gen_iters(hp, args.train_file, args.test_file)
+    data_names = ['data']
     fit(network=network, data_train=data_train, data_val=data_val, metrics=metrics, args=args, hp=hp, data_names=data_names)
 
-    mp_data_train.reset()
-    mp_data_test.reset()
+    # mp_data_train.reset()
+    # mp_data_test.reset()
+
+
+def _gen_iters(hp, train_fp_prefix, val_fp_prefix):
+    height, width = hp.img_height, hp.img_width
+    augs = mx.image.CreateAugmenter(
+        data_shape=(3, height, width),
+        resize=0,
+        rand_crop=False,
+        rand_resize=False,
+        rand_mirror=False,
+        mean=None,
+        std=None,
+        brightness=0.05,
+        contrast=0.1,
+        saturation=0.3,
+        hue=0.1,
+        pca_noise=0.3,
+        inter_method=2,
+    )
+    augs.append(FgBgFlipAug(p=0.2))
+    train_iter = GrayImageIter(
+        batch_size=hp.batch_size,
+        data_shape=(3, height, width),
+        label_width=hp.num_label,
+        dtype='int32',
+        shuffle=True,
+        path_imgrec=str(train_fp_prefix) + ".rec",
+        path_imgidx=str(train_fp_prefix) + ".idx",
+        aug_list=augs,
+    )
+
+    val_iter = GrayImageIter(
+        batch_size=hp.batch_size,
+        data_shape=(3, height, width),
+        label_width=hp.num_label,
+        dtype='int32',
+        path_imgrec=str(val_fp_prefix) + ".rec",
+        path_imgidx=str(val_fp_prefix) + ".idx",
+    )
+
+    return train_iter, val_iter
 
 
 if __name__ == '__main__':

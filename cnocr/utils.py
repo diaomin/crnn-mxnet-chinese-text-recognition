@@ -86,7 +86,8 @@ def read_charset(charset_fp):
     return alphabet, inv_alph_dict
 
 
-def normalize_img_array(img):
+def normalize_img_array(img, dtype='float32'):
     """ rescale to [-1.0, 1.0] """
-    # return (img / 255.0 - 0.5) * 2
-    return (img - np.mean(img)) / (np.std(img) + 1e-6)
+    img = img.astype(dtype)
+    return (img - np.mean(img, dtype=dtype)) / 255.0
+    # return (img - np.median(img)) / (np.std(img, dtype=dtype) + 1e-6)  # 转完以后有些情况会变得不可识别

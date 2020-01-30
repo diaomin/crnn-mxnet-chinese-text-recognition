@@ -12,7 +12,10 @@ sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 
 from cnocr import CnOcr
 from cnocr.line_split import line_split
+from cnocr.data_utils.aug import GrayAug
 
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+example_dir = os.path.join(root_dir, 'examples')
 CNOCR = CnOcr()
 
 SINGLE_LINE_CASES = [
@@ -100,3 +103,12 @@ def test_ocr_for_single_lines(img_fp, expected):
     pred = ocr.ocr_for_single_lines(line_img_list)
     print("Predicted Chars:", pred)
     assert expected == pred
+
+
+@pytest.mark.parametrize('img_fp, expected', SINGLE_LINE_CASES)
+def test_gray_aug(img_fp, expected):
+    img_fp = os.path.join(example_dir, img_fp)
+    img = mx.image.imread(img_fp, 1)
+    aug = GrayAug()
+    res_img = aug(img)
+    print(res_img.shape, res_img.dtype)

@@ -3,8 +3,12 @@ from __future__ import print_function
 import os
 from PIL import Image
 import numpy as np
+from mxnet import nd
 import mxnet as mx
 import random
+
+from mxnet.image import ImageIter
+from mxnet.io import io
 
 from ..utils import normalize_img_array
 from .multiproc_data import MPData
@@ -209,7 +213,7 @@ class MPOcrImages(object):
         img = Image.open(img_path).resize(self.data_shape, Image.BILINEAR).convert('L')
         img = np.array(img)
         # print(img.shape)
-        img = np.transpose(img, (1, 0))  # res: [1, width, height]
+        img = np.transpose(img, (1, 0))  # res: [width, height]
         img = normalize_img_array(img)
         # print(np.mean(img), np.std(img))
         # if len(img.shape) == 2:
@@ -310,3 +314,49 @@ class OCRIter(mx.io.DataIter):
 
             data_batch = SimpleBatch(data_names, data_all, label_names, label_all)
             yield data_batch
+
+
+class GrayImageIter(ImageIter):
+    def __init__(self, batch_size, data_shape, **kwargs):
+        assert 'data_name' not in kwargs and 'label_name' not in kwargs
+        super(GrayImageIter, self).__init__(batch_size, data_shape, data_name='data', label_name='label', **kwargs)
+        self.provide_data = [('data', (batch_size, 1) + data_shape[1:])]
+
+    def next(self):
+        """
+
+        :return: io.DataBatch, which attribute `data` is nd.NDArray,
+            with shape [batch_size, 1, height, width] and dtype 'uint8'.
+        """
+        data_batch = super().next()
+        data = data_batch.data[0]
+        new_data = self._post_process(data)
+
+        # data_names = ['data']
+        # label_names = ['label']
+        # return SimpleBatch(data_names, [new_data], label_names, data_batch.label)
+        return io.DataBatch([new_data], data_batch.label, pad=data_batch.pad)
+
+    @classmethod
+    def _post_process(cls, data):
+        """
+
+        :param data: nd.NDArray with shape [batch_size, channel, height, width]. channel should be 3.
+        :return: nd.NDArray with shape [batch_size, 1, height, width] and dtype 'uint8'.
+        :param data:
+        :return:
+        """
+        data_shape = list(data.shape)
+        data_shape[1] = 1  # [batch_size, 1, height, width]
+        new_data = nd.zeros(tuple(data_shape), dtype='float32')
+
+        batch_size = data.shape[0]
+        for i in range(batch_size):
+            img = data[i]  # shape: [channel, height, width]
+            if img.dtype != np.uint8:
+                img = img.astype('uint8')
+            # color to gray
+            img = np.array(Image.fromarray(img.transpose((1, 2, 0)).asnumpy()).convert('L'))
+            img = normalize_img_array(img, dtype='float32')
+            new_data[i] = nd.expand_dims(nd.array(img), 0)  # res shape: [1, height, width]
+        return new_data
