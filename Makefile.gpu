@@ -1,12 +1,14 @@
+DATA_ROOT_DIR = /data2
 gen-lst:
-	python scripts/im2rec.py --list --chunks 1 --train-idx-fp data/sample-data/train.txt --test-idx-fp data/sample-data/test.txt --prefix data/lst/sample-data
+	python scripts/im2rec.py --list --chunks 1 --train-idx-fp $(DATA_ROOT_DIR)/train.txt --test-idx-fp $(DATA_ROOT_DIR)/test.txt --prefix $(DATA_ROOT_DIR)/lst/cnocr
 
 gen-rec:
-	python scripts/im2rec.py --pack-label --color 1 --num-thread 1 --prefix data/lst --root data/sample-data
+	python scripts/im2rec.py --pack-label --color 1 --num-thread 1 --prefix $(DATA_ROOT_DIR)/lst --root $(DATA_ROOT_DIR)/images
 
 train:
-	python scripts/cnocr_train.py --gpu 1 --num_proc 8 --loss ctc --dataset cn_ocr --data_root /jfs/jinlong/data/ocr/outer/images \
-	    --train_file /jfs/jinlong/data/ocr/outer/train.txt --test_file /jfs/jinlong/data/ocr/outer/test.txt
+	nohup python scripts/cnocr_train.py --gpu 1 --num_proc 8 --loss ctc --dataset cn_ocr --train_file $(DATA_ROOT_DIR)/lst/cnocr_train --test_file $(DATA_ROOT_DIR)/lst/cnocr_test 2>&1 &
+	#python scripts/cnocr_train.py --gpu 1 --num_proc 8 --loss ctc --dataset cn_ocr --data_root /jfs/jinlong/data/ocr/outer/images \
+	#    --train_file /jfs/jinlong/data/ocr/outer/train.txt --test_file /jfs/jinlong/data/ocr/outer/test.txt
 
 predict:
 	python scripts/cnocr_predict.py --file examples/rand_cn1.png
