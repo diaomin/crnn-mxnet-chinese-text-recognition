@@ -227,7 +227,6 @@ def image_encode(args, i, item, q_out):
 
     try:
         img = cv2.imread(fullpath, args.color)
-        print(img.shape)
     except:
         traceback.print_exc()
         print('imread error trying to load file: %s ' % fullpath)

@@ -264,7 +264,7 @@ class CnOcr(object):
         prediction, start_end_idx = CtcMetrics.ctc_label(class_ids.tolist())
         # print(start_end_idx)
         alphabet = self._alphabet
-        res = [alphabet[p] for p in prediction]
+        res = [alphabet[p] if alphabet[p] != '<space>' else ' ' for p in prediction]
 
         # res = self._insert_space_char(res, start_end_idx)
         return res
