@@ -1,6 +1,7 @@
 import logging
 import os
 import mxnet as mx
+from mxnet.lr_scheduler import PolyScheduler
 
 
 def _load_model(args):
@@ -53,6 +54,13 @@ def fit(network, data_train, data_val, metrics, args, hp, data_names=None):
     # f = module.get_outputs()
     # import pdb; pdb.set_trace()
 
+    lr_scheduler = PolyScheduler(base_lr=hp.learning_rate, final_lr=hp.learning_rate * 0.01, max_update=10, pwr=2)
+
+    optimizer_params = {#'learning_rate': hp.learning_rate,
+                        'lr_scheduler': lr_scheduler,
+                        # 'momentum': hp.momentum,
+                        # 'wd': 0.00001,
+                        }
     begin_epoch = args.load_epoch if args.load_epoch else 0
     num_epoch = hp.num_epoch + begin_epoch
     module.fit(train_data=data_train,
@@ -62,10 +70,7 @@ def fit(network, data_train, data_val, metrics, args, hp, data_names=None):
                # use metrics.accuracy or metrics.accuracy_lcs
                eval_metric=mx.metric.np(metrics.accuracy, allow_extra_outputs=True),
                optimizer='AdaDelta',
-               optimizer_params={'learning_rate': hp.learning_rate,
-                                 # 'momentum': hp.momentum,
-                                 'wd': 0.00001,
-                                 },
+               optimizer_params=optimizer_params,
                initializer=mx.init.Xavier(factor_type="in", magnitude=2.34),
                arg_params=arg_params,
                aux_params=aux_params,
