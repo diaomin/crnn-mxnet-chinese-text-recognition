@@ -329,13 +329,12 @@ class GrayImageIter(ImageIter):
             with shape [batch_size, 1, height, width] and dtype 'uint8'.
         """
         data_batch = super().next()
-        data = data_batch.data[0]
-        new_data = self._post_process(data)
+        new_data = [self._post_process(sub_data) for sub_data in data_batch.data]
 
         # data_names = ['data']
         # label_names = ['label']
         # return SimpleBatch(data_names, [new_data], label_names, data_batch.label)
-        return io.DataBatch([new_data], data_batch.label, pad=data_batch.pad)
+        return io.DataBatch(new_data, data_batch.label, pad=data_batch.pad)
 
     @classmethod
     def _post_process(cls, data):
