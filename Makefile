@@ -7,9 +7,12 @@ gen-rec:
 train:
 	python scripts/cnocr_train.py --cpu 2 --loss ctc --dataset cn_ocr --train_file data/lst/sample-data_train --test_file data/lst/sample-data_test
 
+evaluate:
+	python scripts/cnocr_evaluate.py -v -i data/sample-data/test.txt --image-prefix-dir data/sample-data --batch-size 128 -o evaluate.out
+
 predict:
 	python scripts/cnocr_predict.py --file examples/rand_cn1.png
 
 
 
-.PHONY: gen-lst gen-rec train predict
+.PHONY: gen-lst gen-rec train evaluate predict
