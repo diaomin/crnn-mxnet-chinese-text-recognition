@@ -137,6 +137,8 @@ def make_list_new(args):
                 eles = line.strip().split(' ')
                 fname = eles[0]
                 labels = eles[1:]
+                if len(labels) < args.num_label:
+                    labels.extend(['0'] * (args.num_label - len(labels)))
                 res_list.append((str(begin_idx + idx), '\t'.join(labels), fname))
         return res_list
 
@@ -355,6 +357,7 @@ def parse_args():
         help='original index file for test data.',
         default=def_data_dir / 'test.txt',
     )
+    cgroup.add_argument('--num-label', type=int, default=20, help='每个样本的字符数量；不足会使用0做padding')
     # cgroup.add_argument('--train-ratio', type=float, default=1.0,
     #                     help='Ratio of images to use for training.')
     # cgroup.add_argument('--test-ratio', type=float, default=0,
