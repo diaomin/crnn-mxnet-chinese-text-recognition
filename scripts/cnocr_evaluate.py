@@ -56,7 +56,7 @@ def evaluate():
     )
     args = parser.parse_args()
 
-    ocr = CnOcr(model_epoch=2)
+    ocr = CnOcr(model_epoch=20)
     alphabet = ocr._alphabet
 
     fn_labels_list = read_input_file(args.input_fp)
@@ -105,17 +105,19 @@ def read_input_file(in_fp):
 
 def compare_preds_to_reals(batch_preds, batch_reals, batch_img_fns, alphabet):
     for preds, reals, img_fn in zip(batch_preds, batch_reals, batch_img_fns):
-        reals = [alphabet[int(_id)] for _id in reals]
+        reals = [alphabet[int(_id)] for _id in reals if _id != '0']  # '0' is padding id
         if preds == reals:
             continue
-        preds, reals = set(preds), set(reals)
+        preds_set, reals_set = set(preds), set(reals)
 
-        miss_words = reals.difference(preds)
-        redundant_words = preds.difference(reals)
-        yield '%s; miss words: %s; redundant words: %s' % (
+        miss_words = reals_set.difference(preds_set)
+        redundant_words = preds_set.difference(reals_set)
+        yield '%s; real words: %s; pred words: %s; miss words: %s; redundant words: %s' % (
             img_fn,
-            ', '.join(miss_words),
-            ', '.join(redundant_words),
+            ''.join(reals),
+            ''.join(preds),
+            ''.join(miss_words),
+            ''.join(redundant_words),
         )
 
 
