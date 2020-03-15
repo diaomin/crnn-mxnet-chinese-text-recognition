@@ -165,11 +165,11 @@ def _gen_iters(hp, train_fp_prefix, val_fp_prefix):
         rand_mirror=False,
         mean=None,
         std=None,
-        brightness=0.05,
-        contrast=0.1,
-        saturation=0.3,
-        hue=0.1,
-        pca_noise=0.3,
+        brightness=0.001,
+        contrast=0.001,
+        saturation=0.001,
+        hue=0.05,
+        pca_noise=0.1,
         inter_method=2,
     )
     augs.append(FgBgFlipAug(p=0.2))
