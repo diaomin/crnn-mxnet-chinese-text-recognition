@@ -14,7 +14,7 @@ def cal_num_params(net):
     import numpy as np
     params = [p for p in net.collect_params().values()]
     for p in params:
-        print(p)
+        logger.info(p)
     total = sum([np.prod(p.shape) for p in params])
     logger.info(f'total params: {total}')
     return total

@@ -1,5 +1,6 @@
 DATA_ROOT_DIR = /data2/ocr/outer
 REC_DATA_ROOT_DIR = /dev/data/jinlong/data
+MODEL_NAME = conv-rnn
 
 gen-lst:
 	python scripts/im2rec.py --list --num-label 20 --chunks 1 --train-idx-fp $(DATA_ROOT_DIR)/train.txt --test-idx-fp $(DATA_ROOT_DIR)/test.txt --prefix $(DATA_ROOT_DIR)/lst/cnocr
@@ -12,7 +13,7 @@ gen-rec:
 ##
 
 train:
-	nohup python scripts/cnocr_train.py --gpu 2 --num_proc 20 --loss ctc --dataset cn_ocr --train_file $(REC_DATA_ROOT_DIR)/lst/cnocr_train --test_file $(REC_DATA_ROOT_DIR)/lst/cnocr_test 2>&1 &
+	nohup python scripts/cnocr_train.py --gpu 2 --num_proc 20 --loss ctc --model_name $(MODEL_NAME) --train_file $(REC_DATA_ROOT_DIR)/lst/cnocr_train --test_file $(REC_DATA_ROOT_DIR)/lst/cnocr_test 2>&1 &
 	#python scripts/cnocr_train.py --gpu 1 --num_proc 8 --loss ctc --dataset cn_ocr --data_root /jfs/jinlong/data/ocr/outer/images \
 	#    --train_file /jfs/jinlong/data/ocr/outer/train.txt --test_file /jfs/jinlong/data/ocr/outer/test.txt
 

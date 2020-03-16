@@ -65,7 +65,8 @@ def lstm2(net, num_lstm_layer, num_hidden):
     # import pdb; pdb.set_trace()
     output = lstm(net)  # res: `(sequence_length, batch_size, 2*num_hidden)`
     # print('7', output.infer_shape()[1])
-    return mx.symbol.reshape(output, shape=(-3, -2))  # res: (bz * 35, c)
+    return output
+    # return mx.symbol.reshape(output, shape=(-3, -2))  # res: (bz * 35, c)
     # - **out**: output tensor with shape `(sequence_length, batch_size, num_hidden)`
     # when `layout` is "TNC". If `bidirectional` is True, output shape will instead
     # be `(sequence_length, batch_size, 2*num_hidden)`

@@ -21,19 +21,18 @@ class CnHyperparams(object):
         self._img_width = 280
         self._img_height = 32
 
-        # DenseNet hyper parameters
-        self._depth = 161
-        self._growrate = 32
-        self._reduction = 0.5
-
         # LSTM hyper parameters
         self._num_hidden = 100
         self._num_lstm_layer = 2
         # self._seq_length = 35
-        self.seq_len_cmpr_ratio = 4  # 模型对于图片宽度压缩的比例（模型中的卷积层造成的）
-        self._seq_length = self._img_width // self.seq_len_cmpr_ratio - 1
+        # self.seq_len_cmpr_ratio = 8  # 模型对于图片宽度压缩的比例（模型中的卷积层造成的）
+        # self._seq_length = self._img_width // self.seq_len_cmpr_ratio - 1
+        self._seq_length = None
         self._num_label = 10
         self._drop_out = 0.5
+
+    def set_seq_length(self, seq_len):
+        self._seq_length = seq_len
 
     @property
     def train_epoch_size(self):
