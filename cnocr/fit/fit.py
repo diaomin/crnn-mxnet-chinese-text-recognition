@@ -54,7 +54,7 @@ def fit(network, data_train, data_val, metrics, args, hp, data_names=None):
     # f = module.get_outputs()
     # import pdb; pdb.set_trace()
 
-    lr_scheduler = PolyScheduler(base_lr=hp.learning_rate, final_lr=hp.learning_rate * 0.01, max_update=10, pwr=2)
+    lr_scheduler = PolyScheduler(base_lr=hp.learning_rate, final_lr=hp.learning_rate * 0.01, max_update=hp.num_epoch // 2, pwr=2)
 
     optimizer_params = {#'learning_rate': hp.learning_rate,
                         'lr_scheduler': lr_scheduler,
