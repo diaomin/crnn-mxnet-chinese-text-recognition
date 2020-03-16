@@ -25,9 +25,9 @@ class CnHyperparams(object):
         self._num_hidden = 100
         self._num_lstm_layer = 2
         # self._seq_length = 35
-        # self.seq_len_cmpr_ratio = 8  # 模型对于图片宽度压缩的比例（模型中的卷积层造成的）
         # self._seq_length = self._img_width // self.seq_len_cmpr_ratio - 1
-        self._seq_length = None
+        self.seq_len_cmpr_ratio = None  # 模型对于图片宽度压缩的比例（模型中的卷积层造成的）；不同模型不一样
+        self._seq_length = None  # 不同模型不一样
         self._num_label = 20
         self._drop_out = 0.5
 

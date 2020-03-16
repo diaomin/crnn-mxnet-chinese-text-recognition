@@ -34,6 +34,7 @@ def gen_network(model_name, hp):
     hp = deepcopy(hp)
     model_name = model_name.lower()
     if model_name.startswith('densenet'):
+        hp.seq_len_cmpr_ratio = 4
         hp.set_seq_length(hp.img_width // 4 - 1)
         layer_channels = (
             (64, 128, 256, 512) if model_name == 'densenet-rnn' else (32, 64, 128, 256)
@@ -41,9 +42,11 @@ def gen_network(model_name, hp):
         densenet = DenseNet(layer_channels)
         model = CRnn(hp, densenet)
     elif model_name == 'conv-rnn':
+        hp.seq_len_cmpr_ratio = 8
         hp.set_seq_length(hp.img_width // 8)
         model = lambda data: crnn_lstm(hp, data)
     elif model_name == 'conv-rnn-lite':
+        hp.seq_len_cmpr_ratio = 4
         hp.set_seq_length(hp.img_width // 4 - 1)
         model = lambda data: crnn_lstm_lite(hp, data)
     else:
@@ -82,7 +85,7 @@ class CRnn(nn.HybridBlock):
         return self.lstm(embs)  # res: `(sequence_length, batch_size, 2*num_hidden)`
 
 
-def pipline(model, hp, data=None, need_pred=False):
+def pipline(model, hp, data=None):
     # 构建用于训练的整个计算图
     data = data if data is not None else mx.sym.Variable('data')
 
@@ -96,8 +99,10 @@ def pipline(model, hp, data=None, need_pred=False):
 
     if hp.loss_type:
         # Training mode, add loss
-        loss = add_ctc_loss(pred, hp.seq_length, hp.num_label, hp.loss_type)
-    return (loss, pred) if need_pred else loss
+        return add_ctc_loss(pred, hp.seq_length, hp.num_label, hp.loss_type)
+    else:
+        # Inference mode, add softmax
+        return mx.sym.softmax(data=pred, name='softmax')
 
 
 def convRelu(i, input_data, kernel_size, layer_size, padding_size, bn=True):
