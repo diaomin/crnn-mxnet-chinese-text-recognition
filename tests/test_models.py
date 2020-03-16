@@ -90,12 +90,13 @@ def test_crnn_lstm_lite():
 def test_pipline():
     hp = deepcopy(HP)
     hp.set_seq_length(hp.img_width // 4 - 1)
+    hp._loss_type = None  # infer mode
     layer_channels_list = [(64, 128, 256, 512), (32, 64, 128, 256)]
     for layer_channels in layer_channels_list:
         densenet = DenseNet(layer_channels)
         crnn = CRnn(hp, densenet)
         data = mx.sym.Variable('data', shape=(128, 1, 32, 280))
-        loss, pred = pipline(crnn, hp, data, need_pred=True)
+        pred = pipline(crnn, hp, data)
         pred_shape = pred.infer_shape()[1][0]
         logger.info('shape of pred: %s', pred_shape)
         assert pred_shape == (hp.batch_size * hp.seq_length, hp.num_classes)
