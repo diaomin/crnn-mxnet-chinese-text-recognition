@@ -21,12 +21,12 @@ import numpy as np
 from PIL import Image
 
 from cnocr.__version__ import __version__
-from cnocr.consts import MODEL_EPOCE
+from cnocr.consts import MODEL_EPOCE, MODEL_NAMES
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.fit.lstm import init_states
 from cnocr.fit.ctc_metrics import CtcMetrics
 from cnocr.data_utils.data_iter import SimpleBatch
-from cnocr.symbols.crnn import crnn_lstm
+from cnocr.symbols.crnn import gen_network
 from cnocr.utils import data_dir, get_model_file, read_charset, normalize_img_array
 from cnocr.line_split import line_split
 
@@ -93,9 +93,12 @@ def load_module(prefix, epoch, data_names, data_shapes, network=None):
 
 
 class CnOcr(object):
-    MODEL_FILE_PREFIX = 'model-v{}'.format(__version__)
+    MODEL_FILE_PREFIX = 'cnocr-v{}'.format(__version__)
 
-    def __init__(self, root=data_dir(), model_epoch=MODEL_EPOCE):
+    def __init__(self, model_name='conv-rnn', root=data_dir(), model_epoch=MODEL_EPOCE):
+        assert model_name in MODEL_NAMES
+        self._model_name = model_name
+        self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
         self._model_dir = os.path.join(root, 'models')
         self._model_epoch = model_epoch
         self._assert_and_prepare_model_files(root)
@@ -104,13 +107,13 @@ class CnOcr(object):
         self._hp = Hyperparams()
         self._hp._loss_type = None  # infer mode
 
-        self._mod = self._get_module(self._hp)
+        self._mod = self._get_module()
 
     def _assert_and_prepare_model_files(self, root):
         model_dir = self._model_dir
         model_files = ['label_cn.txt',
-                       '%s-%04d.params' % (self.MODEL_FILE_PREFIX, self._model_epoch),
-                       '%s-symbol.json' % self.MODEL_FILE_PREFIX]
+                       '%s-%04d.params' % (self._model_file_prefix, self._model_epoch),
+                       '%s-symbol.json' % self._model_file_prefix]
         file_prepared = True
         for f in model_files:
             f = os.path.join(model_dir, f)
@@ -125,9 +128,10 @@ class CnOcr(object):
             os.removedirs(model_dir)
         get_model_file(root)
 
-    def _get_module(self, hp):
-        network = crnn_lstm(hp)
-        prefix = os.path.join(self._model_dir, self.MODEL_FILE_PREFIX)
+    def _get_module(self):
+        network, self._hp = gen_network(self._model_name, self._hp)
+        hp = self._hp
+        prefix = os.path.join(self._model_dir, self._model_file_prefix)
         # import pdb; pdb.set_trace()
         data_names = ['data']
         data_shapes = [(data_names[0], (hp.batch_size, 1, hp.img_height, hp.img_width))]
