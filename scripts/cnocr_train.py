@@ -26,6 +26,7 @@ import mxnet as mx
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr.__version__ import __version__
+from cnocr.consts import MODEL_NAMES
 from cnocr.utils import data_dir
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams
 from cnocr.data_utils.data_iter import GrayImageIter
@@ -39,13 +40,13 @@ def parse_args():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     default_model_prefix = os.path.join(
-        data_dir(), 'models', 'model-v{}'.format(__version__)
+        data_dir(), 'models', 'cnocr-v{}'.format(__version__)
     )
 
     parser.add_argument(
         "--model_name",
         help="model name",
-        choices=['conv-rnn', 'conv-rnn-lite', 'densenet-rnn', 'densenet-rnn-lite'],
+        choices=MODEL_NAMES,
         type=str,
         default='conv-rnn',
     )
@@ -115,6 +116,7 @@ def get_fonts(path):
 def run_cn_ocr(args):
     head = '%(asctime)-15s %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=head)
+    args.prefix = '{}-{}'.format(args.prefix, args.model_name)
 
     hp = CnHyperparams()
     network, hp = gen_network(args.model_name, hp)

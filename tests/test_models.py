@@ -10,6 +10,7 @@ from mxnet import nd
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 
+from cnocr.consts import MODEL_NAMES
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams
 from cnocr.symbols.densenet import _make_dense_layer, DenseNet, cal_num_params
 from cnocr.symbols.crnn import (
@@ -101,7 +102,7 @@ def test_pipline():
 
 
 @pytest.mark.parametrize(
-    'model_name', ['conv-rnn', 'conv-rnn-lite', 'densenet-rnn', 'densenet-rnn-lite']
+    'model_name', MODEL_NAMES
 )
 def test_gen_networks(model_name):
     logger.info('model_name: %s', model_name)
