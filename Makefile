@@ -11,10 +11,10 @@ train:
 	python scripts/cnocr_train.py --cpu 2 --loss ctc --model_name $(MODEL_NAME) --train_file data/lst/sample-data_train --test_file data/lst/sample-data_test
 
 evaluate:
-	python scripts/cnocr_evaluate.py -v -i data/sample-data/test.txt --image-prefix-dir data/sample-data --batch-size 128 -o evaluate.out
+	python scripts/cnocr_evaluate.py --model_name $(MODEL_NAME) -v -i data/sample-data/test.txt --image-prefix-dir data/sample-data --batch-size 128 -o evaluate.out
 
 predict:
-	python scripts/cnocr_predict.py --file examples/rand_cn1.png
+	python scripts/cnocr_predict.py --model_name $(MODEL_NAME) --file examples/rand_cn1.png
 
 
 .PHONY: gen-lst gen-rec train evaluate predict

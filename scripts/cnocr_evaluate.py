@@ -27,10 +27,18 @@ import mxnet as mx
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr import CnOcr
+from cnocr.consts import MODEL_NAMES
 
 
 def evaluate():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--model_name",
+        help="model name",
+        choices=MODEL_NAMES,
+        type=str,
+        default='conv-rnn',
+    )
     parser.add_argument(
         "-i",
         "--input-fp",
@@ -56,7 +64,7 @@ def evaluate():
     )
     args = parser.parse_args()
 
-    ocr = CnOcr(model_epoch=20)
+    ocr = CnOcr(model_name=MODEL_NAMES, model_epoch=20)
     alphabet = ocr._alphabet
 
     fn_labels_list = read_input_file(args.input_fp)

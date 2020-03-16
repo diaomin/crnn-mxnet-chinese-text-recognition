@@ -26,16 +26,24 @@ import argparse
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr import CnOcr
+from cnocr.consts import MODEL_NAMES
 
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--model_name",
+        help="model name",
+        choices=MODEL_NAMES,
+        type=str,
+        default='conv-rnn',
+    )
     parser.add_argument("-f", "--file", help="Path to the image file")
     parser.add_argument("-s", "--single-line", default=False,
                         help="Whether the image only includes one-line characters")
     args = parser.parse_args()
 
-    ocr = CnOcr()
+    ocr = CnOcr(model_name=MODEL_NAMES)
     if args.single_line:
         res = ocr.ocr_for_single_line(args.file)
     else:
