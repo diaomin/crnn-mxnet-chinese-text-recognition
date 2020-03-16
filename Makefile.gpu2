@@ -1,8 +1,8 @@
-DATA_ROOT_DIR = /jfs/jinlong/data/ocr/outer
+DATA_ROOT_DIR = /data2/ocr/outer
 REC_DATA_ROOT_DIR = /dev/data/jinlong/data
 
 gen-lst:
-	python scripts/im2rec.py --list --chunks 1 --train-idx-fp $(DATA_ROOT_DIR)/train.txt --test-idx-fp $(DATA_ROOT_DIR)/test.txt --prefix $(DATA_ROOT_DIR)/lst/cnocr
+	python scripts/im2rec.py --list --num-label 20 --chunks 1 --train-idx-fp $(DATA_ROOT_DIR)/train.txt --test-idx-fp $(DATA_ROOT_DIR)/test.txt --prefix $(DATA_ROOT_DIR)/lst/cnocr
 
 gen-rec:
 	python scripts/im2rec.py --pack-label --color 1 --num-thread 1 --prefix $(DATA_ROOT_DIR)/lst --root $(DATA_ROOT_DIR)/images
