@@ -28,7 +28,7 @@ class CnHyperparams(object):
         # self.seq_len_cmpr_ratio = 8  # 模型对于图片宽度压缩的比例（模型中的卷积层造成的）
         # self._seq_length = self._img_width // self.seq_len_cmpr_ratio - 1
         self._seq_length = None
-        self._num_label = 10
+        self._num_label = 20
         self._drop_out = 0.5
 
     def set_seq_length(self, seq_len):
