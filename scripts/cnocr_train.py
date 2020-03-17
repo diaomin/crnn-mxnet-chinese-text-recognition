@@ -78,6 +78,12 @@ def parse_args():
         "--gpu", help="Number of GPUs for training [Default 0]", type=int
     )
     parser.add_argument(
+        '--epoch',
+        type=int,
+        default=20,
+        help='train epochs [Default: 20]',
+    )
+    parser.add_argument(
         '--load_epoch',
         type=int,
         help='load the model on an epoch using the model-load-prefix [Default: no trained model will be loaded]',
@@ -119,6 +125,8 @@ def run_cn_ocr(args):
     args.prefix = '{}-{}'.format(args.prefix, args.model_name)
 
     hp = CnHyperparams()
+    hp._num_epoch = args.epoch
+
     network, hp = gen_network(args.model_name, hp)
     metrics = CtcMetrics(hp.seq_length)
 
