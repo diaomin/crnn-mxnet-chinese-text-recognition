@@ -69,6 +69,11 @@ def parse_args():
         default='/Users/king/Documents/WhatIHaveDone/Test/text_renderer/output/wechat_simulator/test.txt',
     )
     parser.add_argument(
+        "--use_train_image_aug",
+        action='store_true',
+        help="Whether to use image augmentation for training",
+    )
+    parser.add_argument(
         "--cpu",
         help="Number of CPUs for training [Default 8]. Ignored if --gpu is specified.",
         type=int,
@@ -78,10 +83,7 @@ def parse_args():
         "--gpu", help="Number of GPUs for training [Default 0]", type=int
     )
     parser.add_argument(
-        '--epoch',
-        type=int,
-        default=20,
-        help='train epochs [Default: 20]',
+        '--epoch', type=int, default=20, help='train epochs [Default: 20]'
     )
     parser.add_argument(
         '--load_epoch',
@@ -130,7 +132,9 @@ def run_cn_ocr(args):
     network, hp = gen_network(args.model_name, hp)
     metrics = CtcMetrics(hp.seq_length)
 
-    data_train, data_val = _gen_iters(hp, args.train_file, args.test_file)
+    data_train, data_val = _gen_iters(
+        hp, args.train_file, args.test_file, args.use_train_image_aug
+    )
     data_names = ['data']
     fit(
         network=network,
@@ -143,24 +147,26 @@ def run_cn_ocr(args):
     )
 
 
-def _gen_iters(hp, train_fp_prefix, val_fp_prefix):
+def _gen_iters(hp, train_fp_prefix, val_fp_prefix, use_train_image_aug):
     height, width = hp.img_height, hp.img_width
-    augs = mx.image.CreateAugmenter(
-        data_shape=(3, height, width),
-        resize=0,
-        rand_crop=False,
-        rand_resize=False,
-        rand_mirror=False,
-        mean=None,
-        std=None,
-        brightness=0.001,
-        contrast=0.001,
-        saturation=0.001,
-        hue=0.05,
-        pca_noise=0.1,
-        inter_method=2,
-    )
-    augs.append(FgBgFlipAug(p=0.2))
+    augs = None
+    if use_train_image_aug:
+        augs = mx.image.CreateAugmenter(
+            data_shape=(3, height, width),
+            resize=0,
+            rand_crop=False,
+            rand_resize=False,
+            rand_mirror=False,
+            mean=None,
+            std=None,
+            brightness=0.001,
+            contrast=0.001,
+            saturation=0.001,
+            hue=0.05,
+            pca_noise=0.1,
+            inter_method=2,
+        )
+        augs.append(FgBgFlipAug(p=0.2))
     train_iter = GrayImageIter(
         batch_size=hp.batch_size,
         data_shape=(3, height, width),
