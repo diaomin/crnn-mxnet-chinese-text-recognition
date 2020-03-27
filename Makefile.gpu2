@@ -1,5 +1,6 @@
 DATA_ROOT_DIR = /data2/ocr/outer
 REC_DATA_ROOT_DIR = /dev/data/jinlong/data
+# ['conv-rnn', 'conv-rnn-lite', 'densenet-rnn', 'densenet-rnn-lite']
 MODEL_NAME = conv-rnn
 EPOCH = 20
 
@@ -15,9 +16,9 @@ gen-rec:
 ##
 
 train:
-	nohup python scripts/cnocr_train.py --gpu 2 --epoch $(EPOCH) --num_proc 20 --loss ctc --model_name $(MODEL_NAME) \
+	nohup python scripts/cnocr_train.py --gpu 2 --optimizer Adam --epoch $(EPOCH) --lr 3e-4 --loss ctc --model_name $(MODEL_NAME) \
 		--train_file $(REC_DATA_ROOT_DIR)/lst/cnocr_train --test_file $(REC_DATA_ROOT_DIR)/lst/cnocr_test \
-		> nohup-$(MODEL_NAME).out 2>&1 &
+		>> nohup-$(MODEL_NAME).out 2>&1 &
 
 predict:
 	python scripts/cnocr_predict.py --model_name $(MODEL_NAME) --file examples/rand_cn1.png
