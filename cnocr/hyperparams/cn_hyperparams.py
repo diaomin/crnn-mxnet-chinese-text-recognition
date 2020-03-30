@@ -10,6 +10,7 @@ class CnHyperparams(object):
         self._train_epoch_size = 2560000
         self._eval_epoch_size = 3000
         self._num_epoch = 20
+        self.optimizer = "Adam"
         self._learning_rate = 0.001
         self._momentum = 0.9
         self._bn_mom = 0.9
@@ -26,8 +27,10 @@ class CnHyperparams(object):
         self._num_lstm_layer = 2
         # self._seq_length = 35
         # self._seq_length = self._img_width // self.seq_len_cmpr_ratio - 1
-        self.seq_len_cmpr_ratio = None  # 模型对于图片宽度压缩的比例（模型中的卷积层造成的）；不同模型不一样
-        self._seq_length = None  # 不同模型不一样
+        # 模型对于图片宽度压缩的比例（模型中的卷积层造成的）；由模型决定，不同模型不一样
+        self.seq_len_cmpr_ratio = None
+        # 序列长度；由模型决定，不同模型不一样
+        self._seq_length = None
         self._num_label = 20
         self._drop_out = 0.5
 
