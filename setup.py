@@ -23,6 +23,9 @@ required = [
     'mxnet>=1.5.0,<1.7.0',
     'gluoncv>=0.3.0,<0.7.0',
 ]
+extras_require = {
+    "dev": ["pip-tools", "pytest", "python-Levenshtein"],
+}
 
 setup(
     name=PACKAGE_NAME,
@@ -40,6 +43,7 @@ setup(
     #               'cnocr_train': ['chitchatbot=chitchatbot:Spec']},
     include_package_data=True,
     install_requires=required,
+    extras_require=extras_require,
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',

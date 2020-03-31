@@ -22,7 +22,11 @@ from __future__ import print_function
 import sys
 import os
 import argparse
+from operator import itemgetter
+from pathlib import Path
+from collections import Counter
 import mxnet as mx
+import Levenshtein
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -33,12 +37,13 @@ from cnocr.consts import MODEL_NAMES
 def evaluate():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--model_name",
+        "--model-name",
         help="model name",
         choices=MODEL_NAMES,
         type=str,
         default='conv-rnn',
     )
+    parser.add_argument("--model-epoch", type=int, help="model epoch")
     parser.add_argument(
         "-i",
         "--input-fp",
@@ -58,20 +63,21 @@ def evaluate():
 
     parser.add_argument(
         "-o",
-        "--output-fp",
+        "--output-dir",
         default=False,
-        help="the output file path which records the analysis results",
+        help="the output directory which records the analysis results",
     )
     args = parser.parse_args()
 
-    ocr = CnOcr(model_name=MODEL_NAMES, model_epoch=20)
+    ocr = CnOcr(model_name=args.model_name, model_epoch=args.model_epoch)
     alphabet = ocr._alphabet
 
     fn_labels_list = read_input_file(args.input_fp)
-    out_f = open(args.output_fp, 'w')
 
+    miss_cnt, redundant_cnt = Counter(), Counter()
     start_idx = 0
     bad_cnt = 0
+    badcases = []
     while start_idx < len(fn_labels_list):
         batch = fn_labels_list[start_idx : start_idx + args.batch_size]
         batch_img_fns = []
@@ -89,13 +95,44 @@ def evaluate():
             batch_preds, batch_labels, batch_img_fns, alphabet
         ):
             if args.verbose:
-                print(bad_info)
-            out_f.write(bad_info + '\n')
+                print('\t'.join(bad_info))
+            distance = Levenshtein.distance(bad_info[1], bad_info[2])
+            bad_info.insert(0, distance)
+            badcases.append(bad_info)
+            miss_cnt.update(list(bad_info[-2]))
+            redundant_cnt.update(list(bad_info[-1]))
             bad_cnt += 1
 
         start_idx += args.batch_size
 
-    out_f.close()
+    badcases.sort(key=itemgetter(0), reverse=True)
+
+    output_dir = Path(args.output_dir)
+    if not output_dir.exists():
+        output_dir.mkdir()
+    with open(output_dir / 'badcases.txt', 'w') as f:
+        f.write(
+            '\t'.join(
+                [
+                    'distance',
+                    'image_fp',
+                    'real_words',
+                    'pred_words',
+                    'miss_words',
+                    'redundant_words',
+                ]
+            )
+            + '\n'
+        )
+        for bad_info in badcases:
+            f.write('\t'.join(map(str, bad_info)) + '\n')
+    with open(output_dir / 'miss_words_stat.txt', 'w') as f:
+        for word, num in miss_cnt.most_common():
+            f.write('\t'.join([word, str(num)]) + '\n')
+    with open(output_dir / 'redundant_words_stat.txt', 'w') as f:
+        for word, num in redundant_cnt.most_common():
+            f.write('\t'.join([word, str(num)]) + '\n')
+
     print(
         "number of total cases: %d, number of bad cases: %d"
         % (len(fn_labels_list), bad_cnt)
@@ -120,13 +157,13 @@ def compare_preds_to_reals(batch_preds, batch_reals, batch_img_fns, alphabet):
 
         miss_words = reals_set.difference(preds_set)
         redundant_words = preds_set.difference(reals_set)
-        yield '%s; real words: %s; pred words: %s; miss words: %s; redundant words: %s' % (
+        yield [
             img_fn,
             ''.join(reals),
             ''.join(preds),
             ''.join(miss_words),
             ''.join(redundant_words),
-        )
+        ]
 
 
 if __name__ == '__main__':
