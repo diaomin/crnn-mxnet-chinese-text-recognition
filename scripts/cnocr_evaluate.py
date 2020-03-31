@@ -79,6 +79,7 @@ def evaluate():
     bad_cnt = 0
     badcases = []
     while start_idx < len(fn_labels_list):
+        print('start_idx: ', start_idx)
         batch = fn_labels_list[start_idx : start_idx + args.batch_size]
         batch_img_fns = []
         batch_labels = []
