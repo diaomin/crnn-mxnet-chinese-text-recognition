@@ -23,32 +23,34 @@ Proceedings of the IEEE (1998)
 from copy import deepcopy
 import mxnet as mx
 from mxnet.gluon import nn
-from mxnet.gluon.rnn.rnn_layer import LSTM
+from mxnet.gluon.rnn.rnn_layer import LSTM, GRU
 
 from .densenet import DenseNet
 from ..fit.ctc_loss import add_ctc_loss
-from ..fit.lstm import lstm2
 
 
 def gen_network(model_name, hp):
     hp = deepcopy(hp)
+    hp.seq_model_type = model_name.rsplit('-', maxsplit=1)[-1]
     model_name = model_name.lower()
     if model_name.startswith('densenet'):
         hp.seq_len_cmpr_ratio = 4
         hp.set_seq_length(hp.img_width // 4 - 1)
         layer_channels = (
-            (64, 128, 256, 512) if model_name == 'densenet-rnn' else (32, 64, 128, 256)
+            (32, 64, 128, 256)
+            if model_name.startswith('densenet-lite')
+            else (64, 128, 256, 512)
         )
         densenet = DenseNet(layer_channels)
         model = CRnn(hp, densenet)
-    elif model_name == 'conv-rnn':
-        hp.seq_len_cmpr_ratio = 8
-        hp.set_seq_length(hp.img_width // 8)
-        model = lambda data: crnn_lstm(hp, data)
-    elif model_name == 'conv-rnn-lite':
+    elif model_name.startswith('conv-lite'):
         hp.seq_len_cmpr_ratio = 4
         hp.set_seq_length(hp.img_width // 4 - 1)
         model = lambda data: crnn_lstm_lite(hp, data)
+    elif model_name == 'conv-lstm':
+        hp.seq_len_cmpr_ratio = 8
+        hp.set_seq_length(hp.img_width // 8)
+        model = lambda data: crnn_lstm(hp, data)
     else:
         raise NotImplementedError('bad model_name: %s', model_name)
 
@@ -66,13 +68,32 @@ def get_infer_shape(sym_model, hp):
     return shape_dict
 
 
+def gen_seq_model(hp):
+    if hp.seq_model_type.lower() == 'lstm':
+        seq_model = LSTM(hp.num_hidden, hp.num_lstm_layer, bidirectional=True)
+    elif hp.seq_model_type.lower() == 'gru':
+        seq_model = GRU(hp.num_hidden, hp.num_lstm_layer, bidirectional=True)
+    else:
+
+        def fc_seq_model(data):
+            fc = mx.sym.FullyConnected(
+                data, num_hidden=2 * hp.num_hidden, flatten=False, name='seq-fc'
+            )
+            net = mx.sym.Activation(data=fc, act_type='relu', name='seq-relu')
+            return net
+
+        seq_model = fc_seq_model
+    return seq_model
+
+
 class CRnn(nn.HybridBlock):
     def __init__(self, hp, emb_model, **kw):
         super().__init__(**kw)
         self.hp = hp
         self.emb_model = emb_model
         self.dropout = nn.Dropout(hp.dropout)
-        self.lstm = LSTM(hp.num_hidden, hp.num_lstm_layer, bidirectional=True)
+
+        self.seq_model = gen_seq_model(hp)
 
     def hybrid_forward(self, F, X):
         embs = self.emb_model(X)  # res: bz x emb_size x 1 x seq_len
@@ -82,7 +103,8 @@ class CRnn(nn.HybridBlock):
 
         embs = F.squeeze(embs, axis=2)  # res: bz x emb_size x seq_len
         embs = F.transpose(embs, axes=(2, 0, 1))  # res: seq_len x bz x emb_size
-        return self.lstm(embs)  # res: `(sequence_length, batch_size, 2*num_hidden)`
+        # res: `(sequence_length, batch_size, 2*num_hidden)`
+        return self.seq_model(embs)
 
 
 def pipline(model, hp, data=None):
@@ -90,7 +112,7 @@ def pipline(model, hp, data=None):
     data = data if data is not None else mx.sym.Variable('data')
 
     output = model(data)
-    output = mx.symbol.reshape(output, shape=(-3, -2))  # res: (bz * 35, c)
+    output = mx.symbol.reshape(output, shape=(-3, -2))  # res: (seq_len * bz, c)
     pred = mx.sym.FullyConnected(
         data=output, num_hidden=hp.num_classes, name='pred_fc'
     )  # (bz x 35) x num_classes
@@ -222,9 +244,12 @@ def crnn_lstm(hp, data):
     if hp.dropout > 0:
         net = mx.symbol.Dropout(data=net, p=hp.dropout)
 
-    hidden_concat = lstm2(
-        net, num_lstm_layer=hp.num_lstm_layer, num_hidden=hp.num_hidden
-    )
+    net = mx.symbol.squeeze(net, axis=2)  # res: bz x emb_size x seq_len
+    net = mx.symbol.transpose(net, axes=(2, 0, 1))
+
+    seq_model = gen_seq_model(hp)
+    hidden_concat = seq_model(net)
+
     return hidden_concat
 
 
@@ -277,8 +302,11 @@ def crnn_lstm_lite(hp, data):
     if hp.dropout > 0:
         net = mx.symbol.Dropout(data=net, p=hp.dropout)
 
-    hidden_concat = lstm2(
-        net, num_lstm_layer=hp.num_lstm_layer, num_hidden=hp.num_hidden
-    )
+    net = mx.symbol.squeeze(net, axis=2)  # res: bz x emb_size x seq_len
+    net = mx.symbol.transpose(net, axes=(2, 0, 1))
+
+    seq_model = gen_seq_model(hp)
+    hidden_concat = seq_model(net)
+
     # print('sequence length:', hp.seq_length)
     return hidden_concat
