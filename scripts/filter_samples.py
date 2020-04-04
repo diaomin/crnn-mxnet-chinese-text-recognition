@@ -52,6 +52,8 @@ def read_badcases_file(fp, dist_thrsh):
         for line in f:
             line = line.strip()
             fields = line.split('\t')
+            if fields[0] == 'distance':
+                continue
             dist, fp = int(fields[0]), fields[1]
             if dist >= dist_thrsh:
                 fp = '/'.join(fp.split('/')[-2:])

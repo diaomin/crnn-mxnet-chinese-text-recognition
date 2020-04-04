@@ -15,6 +15,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+"""
+选择包含给定id的样本，并按包含数量从高到低排序。
+主要是期望找出l相关的样本，然后看看模型能否预测出ll这种在一块的占位很小的序列。
+"""
 from __future__ import print_function
 
 import argparse
@@ -73,7 +77,6 @@ def copy_files(cand_list, prefix, out_dir):
 
 
 def select(args):
-    """选择包含给定id的样本，并按包含数量从高到低排序。"""
     head = '%(asctime)-15s %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=head)
     cand_list = read_file(args.sample_file, args.target_id)
