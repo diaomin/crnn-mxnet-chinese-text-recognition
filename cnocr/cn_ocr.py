@@ -21,7 +21,7 @@ import numpy as np
 from PIL import Image
 
 from cnocr.__version__ import __version__
-from cnocr.consts import MODEL_EPOCE, MODEL_NAMES
+from cnocr.consts import MODEL_EPOCE, EMB_MODEL_TYPES, SEQ_MODEL_TYPES
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.fit.lstm import init_states
 from cnocr.fit.ctc_metrics import CtcMetrics
@@ -54,7 +54,7 @@ def rescale_img(img, hp):
         img = mx.nd.array(img)
     scale = hp.img_height / img.shape[0]
     new_width = int(scale * img.shape[1])
-    hp._seq_length = new_width // 8
+    # hp._seq_length = new_width // 8
     if len(img.shape) == 2:  # mx.image.imresize needs the third dim
         img = mx.nd.expand_dims(img, 2)
     img = mx.image.imresize(img, w=new_width, h=hp.img_height).asnumpy()
@@ -95,19 +95,30 @@ def load_module(prefix, epoch, data_names, data_shapes, network=None):
 class CnOcr(object):
     MODEL_FILE_PREFIX = 'cnocr-v{}'.format(__version__)
 
-    def __init__(self, model_name='conv-rnn', root=data_dir(), model_epoch=MODEL_EPOCE):
-        assert model_name in MODEL_NAMES
+    def __init__(self, model_name='conv-lite-lstm', root=data_dir(), model_epoch=MODEL_EPOCE,
+                 cand_alphabet=None):
+        self._check_model_name(model_name)
         self._model_name = model_name
         self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
         self._model_dir = os.path.join(root, 'models')
         self._model_epoch = model_epoch
         self._assert_and_prepare_model_files(root)
-        self._alphabet, _ = read_charset(os.path.join(self._model_dir, 'label_cn.txt'))
+        self._alphabet, inv_alph_dict = read_charset(os.path.join(self._model_dir, 'label_cn.txt'))
+
+        self._cand_alph_idx = None
+        if cand_alphabet is not None:
+            self._cand_alph_idx = [inv_alph_dict[word] for word in cand_alphabet]
+            self._cand_alph_idx.sort()
 
         self._hp = Hyperparams()
         self._hp._loss_type = None  # infer mode
 
         self._mod = self._get_module()
+
+    def _check_model_name(self, model_name):
+        emb_model_type, seq_model_type = model_name.rsplit('-', maxsplit=1)
+        assert emb_model_type in EMB_MODEL_TYPES
+        assert seq_model_type in SEQ_MODEL_TYPES
 
     def _assert_and_prepare_model_files(self, root):
         model_dir = self._model_dir
@@ -195,7 +206,6 @@ class CnOcr(object):
         batch_size = len(img_list)
         img_list, img_widths = self._pad_arrays(img_list)
 
-        # import pdb; pdb.set_trace()
         sample = SimpleBatch(
             data_names=['data'],
             data=[mx.nd.array(img_list)])
@@ -203,11 +213,21 @@ class CnOcr(object):
         prob = self._predict(sample)
         prob = np.reshape(prob, (-1, batch_size, prob.shape[1]))  # [seq_len, batch_size, num_classes]
 
+        if self._cand_alph_idx is not None:
+            prob = prob * self._gen_mask(prob.shape)
+
         max_width = max(img_widths)
         res = []
         for i in range(batch_size):
             res.append(self._gen_line_pred_chars(prob[:, i, :], img_widths[i], max_width))
         return res
+
+    def _gen_mask(self, prob_shape):
+        mask_shape = list(prob_shape)
+        mask_shape[1] = 1
+        mask = np.zeros(mask_shape, dtype='int8')
+        mask[:, :, self._cand_alph_idx] = 1
+        return mask
 
     def _preprocess_img_array(self, img):
         """
