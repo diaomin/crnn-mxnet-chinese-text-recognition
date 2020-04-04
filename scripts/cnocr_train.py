@@ -26,7 +26,7 @@ import mxnet as mx
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr.__version__ import __version__
-from cnocr.consts import MODEL_NAMES
+from cnocr.consts import EMB_MODEL_TYPES, SEQ_MODEL_TYPES
 from cnocr.utils import data_dir
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams
 from cnocr.data_utils.data_iter import GrayImageIter
@@ -44,11 +44,18 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--model_name",
-        help="model name",
-        choices=MODEL_NAMES,
+        "--emb_model_type",
+        help="which embedding model to use",
+        choices=EMB_MODEL_TYPES,
         type=str,
         default='conv-rnn',
+    )
+    parser.add_argument(
+        "--seq_model_type",
+        help='which sequence model to use',
+        default='lstm',
+        type=str,
+        choices=SEQ_MODEL_TYPES,
     )
     parser.add_argument(
         "--data_root",
@@ -116,6 +123,7 @@ def parse_args():
 def train_cnocr(args):
     head = '%(asctime)-15s %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=head)
+    args.model_name = args.emb_model_type + '-' + args.seq_model_type
     args.prefix = '{}-{}'.format(args.prefix, args.model_name)
 
     hp = CnHyperparams()
@@ -140,6 +148,7 @@ def train_cnocr(args):
 
 
 def _update_hp(hp, args):
+    hp.seq_model_type = args.seq_model_type
     hp._num_epoch = args.epoch
     hp.optimizer = args.optimizer
     if args.lr is not None:
