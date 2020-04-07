@@ -81,13 +81,7 @@ def parse_args():
         help="Whether to use image augmentation for training",
     )
     parser.add_argument(
-        "--cpu",
-        help="Number of CPUs for training [Default 8]. Ignored if --gpu is specified.",
-        type=int,
-        default=2,
-    )
-    parser.add_argument(
-        "--gpu", help="Number of GPUs for training [Default 0]", type=int, default=0
+        "--gpu", help="Number of GPUs for training [Default 0, means using cpu]", type=int, default=0
     )
     parser.add_argument(
         "--optimizer",
@@ -106,16 +100,22 @@ def parse_args():
     parser.add_argument(
         '--lr',
         type=float,
+        default=0.001,
+        help='learning rate',
+    )
+    parser.add_argument(
+        '--wd', type=float, default=0.0, help='weight decay factor [Default: 0.0]'
+    )
+    parser.add_argument(
+        '--clip_gradient',
+        type=float,
         default=None,
-        help='learning rate [Default: None, means lr from hp will be used]',
+        help='value for clip gradient [Default: None, means no gradient will be clip]',
     )
     parser.add_argument(
         "--prefix",
         help="Checkpoint prefix [Default '{}']".format(default_model_prefix),
         default=default_model_prefix,
-    )
-    parser.add_argument(
-        "--loss", help="'ctc' or 'warpctc' loss [Default 'ctc']", default='ctc'
     )
     return parser.parse_args()
 
@@ -151,8 +151,9 @@ def _update_hp(hp, args):
     hp.seq_model_type = args.seq_model_type
     hp._num_epoch = args.epoch
     hp.optimizer = args.optimizer
-    if args.lr is not None:
-        hp._learning_rate = args.lr
+    hp._learning_rate = args.lr
+    hp.wd = args.wd
+    hp.clip_gradient = args.clip_gradient
     return hp
 
 

@@ -1,7 +1,9 @@
 DATA_ROOT_DIR = /data2/ocr/outer
 REC_DATA_ROOT_DIR = /dev/data/jinlong/data
-# ['conv-rnn', 'conv-rnn-lite', 'densenet-rnn', 'densenet-rnn-lite']
-MODEL_NAME = conv-rnn
+# ['conv', 'conv-lite-rnn', 'densenet', 'densenet-lite']
+EMB_MODEL_TYPE = densenet-lite
+SEQ_MODEL_TYPE = lstm
+MODEL_NAME = $(EMB_MODEL_TYPE)-$(SEQ_MODEL_TYPE)
 EPOCH = 20
 
 gen-lst:
@@ -16,7 +18,8 @@ gen-rec:
 ##
 
 train:
-	nohup python scripts/cnocr_train.py --gpu 2 --optimizer Adam --epoch $(EPOCH) --lr 3e-4 --loss ctc --model_name $(MODEL_NAME) \
+	nohup python scripts/cnocr_train.py --gpu 2 --emb_model_type $(EMB_MODEL_TYPE) --seq_model_type $(SEQ_MODEL_TYPE) \
+	--optimizer Adam --epoch $(EPOCH) --lr 3e-4 --model_name $(MODEL_NAME) \
 		--train_file $(REC_DATA_ROOT_DIR)/lst/cnocr_train --test_file $(REC_DATA_ROOT_DIR)/lst/cnocr_test \
 		>> nohup-$(MODEL_NAME).out 2>&1 &
 
