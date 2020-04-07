@@ -1,21 +1,27 @@
-DATA_ROOT_DIR = /jfs/jinlong/data/ocr/outer
-REC_DATA_ROOT_DIR = /data2
-MODEL_NAME = conv-rnn
+DATA_ROOT_DIR = /data2/ocr/outer
+REC_DATA_ROOT_DIR = /dev/data/jinlong/data
+# ['conv', 'conv-lite-rnn', 'densenet', 'densenet-lite']
+EMB_MODEL_TYPE = densenet-lite
+SEQ_MODEL_TYPE = lstm
+MODEL_NAME = $(EMB_MODEL_TYPE)-$(SEQ_MODEL_TYPE)
+EPOCH = 20
 
 gen-lst:
-	python scripts/im2rec.py --list --num-label 20 --chunks 1 --train-idx-fp $(DATA_ROOT_DIR)/train.txt --test-idx-fp $(DATA_ROOT_DIR)/test.txt --prefix $(DATA_ROOT_DIR)/lst/cnocr
+	python scripts/im2rec.py --list --num-label 20 --chunks 1 --train-idx-fp $(DATA_ROOT_DIR)/train.txt \
+		--test-idx-fp $(DATA_ROOT_DIR)/test.txt --prefix $(DATA_ROOT_DIR)/lst/cnocr
 
 gen-rec:
-	python scripts/im2rec.py --pack-label --color 1 --num-thread 1 --prefix $(DATA_ROOT_DIR)/lst --root $(DATA_ROOT_DIR)/images
+	python scripts/im2rec.py --pack-label --color 1 --num-thread 1 --prefix $(DATA_ROOT_DIR)/lst --root $(DATA_ROOT_DIR)
 
 ##
 ## copy rec dir from $(DATA_ROOT_DIR) to $(REC_DATA_ROOT_DIR)
 ##
 
 train:
-	nohup python scripts/cnocr_train.py --gpu 1 --num_proc 8 --loss ctc --model_name $(MODEL_NAME) --train_file $(REC_DATA_ROOT_DIR)/lst/cnocr_train --test_file $(REC_DATA_ROOT_DIR)/lst/cnocr_test 2>&1 &
-	#python scripts/cnocr_train.py --gpu 1 --num_proc 8 --loss ctc --dataset cn_ocr --data_root /jfs/jinlong/data/ocr/outer/images \
-	#    --train_file /jfs/jinlong/data/ocr/outer/train.txt --test_file /jfs/jinlong/data/ocr/outer/test.txt
+	nohup python scripts/cnocr_train.py --gpu 2 --emb_model_type $(EMB_MODEL_TYPE) --seq_model_type $(SEQ_MODEL_TYPE) \
+	--optimizer Adam --epoch $(EPOCH) --lr 3e-4 --model_name $(MODEL_NAME) \
+		--train_file $(REC_DATA_ROOT_DIR)/lst/cnocr_train --test_file $(REC_DATA_ROOT_DIR)/lst/cnocr_test \
+		>> nohup-$(MODEL_NAME).out 2>&1 &
 
 predict:
 	python scripts/cnocr_predict.py --model_name $(MODEL_NAME) --file examples/rand_cn1.png
