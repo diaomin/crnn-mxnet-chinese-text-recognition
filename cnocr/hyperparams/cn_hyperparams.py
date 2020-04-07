@@ -7,15 +7,16 @@ class CnHyperparams(object):
     """
     def __init__(self):
         # Training hyper parameters
-        self._train_epoch_size = 2560000
-        self._eval_epoch_size = 3000
+        # self._train_epoch_size = 2560000
+        # self._eval_epoch_size = 3000
         self._num_epoch = 20
         self.optimizer = "Adam"
         self._learning_rate = 0.001
-        self._momentum = 0.9
-        self._bn_mom = 0.9
-        self._workspace = 512
-        self._loss_type = "ctc"  # ["warpctc"  "ctc"]
+        self.wd = 0.00001
+        self.clip_gradient = None  # `None`: don't use clip gradient
+        # self._momentum = 0.9
+        # self._bn_mom = 0.9
+        # self._workspace = 512
 
         self._batch_size = 128
         self._num_classes = 6426  # 应该是6426的。。 5990
@@ -23,10 +24,10 @@ class CnHyperparams(object):
         self._img_height = 32
 
         # LSTM hyper parameters
+        self.seq_model_type = 'lstm'
         self._num_hidden = 100
         self._num_lstm_layer = 2
-        # self._seq_length = 35
-        # self._seq_length = self._img_width // self.seq_len_cmpr_ratio - 1
+
         # 模型对于图片宽度压缩的比例（模型中的卷积层造成的）；由模型决定，不同模型不一样
         self.seq_len_cmpr_ratio = None
         # 序列长度；由模型决定，不同模型不一样
@@ -37,13 +38,13 @@ class CnHyperparams(object):
     def set_seq_length(self, seq_len):
         self._seq_length = seq_len
 
-    @property
-    def train_epoch_size(self):
-        return self._train_epoch_size
-
-    @property
-    def eval_epoch_size(self):
-        return self._eval_epoch_size
+    # @property
+    # def train_epoch_size(self):
+    #     return self._train_epoch_size
+    #
+    # @property
+    # def eval_epoch_size(self):
+    #     return self._eval_epoch_size
 
     @property
     def num_epoch(self):
@@ -57,17 +58,17 @@ class CnHyperparams(object):
     def momentum(self):
         return self._momentum
 
-    @property
-    def bn_mom(self):
-        return self._bn_mom
-
-    @property
-    def workspace(self):
-        return self._workspace
+    # @property
+    # def bn_mom(self):
+    #     return self._bn_mom
+    #
+    # @property
+    # def workspace(self):
+    #     return self._workspace
 
     @property
     def loss_type(self):
-        return self._loss_type
+        return "ctc"
 
     @property
     def batch_size(self):
