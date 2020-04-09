@@ -20,6 +20,7 @@ def fit(network, data_train, data_val, metrics, args, hp, data_names=None):
         contexts = [mx.context.gpu(i) for i in range(args.gpu)]
     else:
         contexts = [mx.context.cpu()]
+    print('hp:', hp)
 
     sym, arg_params, aux_params = _load_model(args)
     if sym is not None:

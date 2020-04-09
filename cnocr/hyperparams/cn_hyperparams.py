@@ -35,6 +35,9 @@ class CnHyperparams(object):
         self._num_label = 20
         self._drop_out = 0.5
 
+    def __repr__(self):
+        return str(self.__dict__)
+
     def set_seq_length(self, seq_len):
         self._seq_length = seq_len
 
