@@ -30,7 +30,7 @@ extras_require = {
 setup(
     name=PACKAGE_NAME,
     version=about['__version__'],
-    description="Package for Chinese OCR, which can be used after installed without training yourself OCR model",
+    description="Simple package for Chinese OCR, with small pretrained models",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='breezedeus',
@@ -39,8 +39,6 @@ setup(
     url='https://github.com/breezedeus/cnocr',
     platforms=["Mac", "Linux", "Windows"],
     packages=find_packages(),
-    # entry_points={'cnocr_predict': ['chitchatbot=chitchatbot.cli:main'],
-    #               'cnocr_train': ['chitchatbot=chitchatbot:Spec']},
     include_package_data=True,
     install_requires=required,
     extras_require=extras_require,
