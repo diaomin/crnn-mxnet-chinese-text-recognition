@@ -21,13 +21,13 @@ import numpy as np
 from PIL import Image
 
 from cnocr.__version__ import __version__
-from cnocr.consts import MODEL_EPOCE, EMB_MODEL_TYPES, SEQ_MODEL_TYPES
+from cnocr.consts import AVAILABLE_MODELS
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.fit.lstm import init_states
 from cnocr.fit.ctc_metrics import CtcMetrics
 from cnocr.data_utils.data_iter import SimpleBatch
 from cnocr.symbols.crnn import gen_network
-from cnocr.utils import data_dir, get_model_file, read_charset, normalize_img_array
+from cnocr.utils import data_dir, get_model_file, read_charset, normalize_img_array, check_model_name
 from cnocr.line_split import line_split
 
 
@@ -95,14 +95,16 @@ def load_module(prefix, epoch, data_names, data_shapes, network=None):
 class CnOcr(object):
     MODEL_FILE_PREFIX = 'cnocr-v{}'.format(__version__)
 
-    def __init__(self, model_name='conv-lite-lstm', root=data_dir(), model_epoch=MODEL_EPOCE,
-                 cand_alphabet=None):
-        self._check_model_name(model_name)
+    def __init__(self, model_name='conv-lite-lstm', model_epoch=None,
+                 cand_alphabet=None, root=data_dir()):
+        check_model_name(model_name)
         self._model_name = model_name
         self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
-        self._model_dir = os.path.join(root, 'models')
-        self._model_epoch = model_epoch
-        self._assert_and_prepare_model_files(root)
+        self._model_epoch = model_epoch or AVAILABLE_MODELS[model_name][0]
+
+        root = os.path.join(root, __version__)
+        self._model_dir = os.path.join(root, '%s-%04d' % (self._model_name, self._model_epoch))
+        self._assert_and_prepare_model_files()
         self._alphabet, inv_alph_dict = read_charset(os.path.join(self._model_dir, 'label_cn.txt'))
 
         self._cand_alph_idx = None
@@ -115,12 +117,7 @@ class CnOcr(object):
 
         self._mod = self._get_module()
 
-    def _check_model_name(self, model_name):
-        emb_model_type, seq_model_type = model_name.rsplit('-', maxsplit=1)
-        assert emb_model_type in EMB_MODEL_TYPES
-        assert seq_model_type in SEQ_MODEL_TYPES
-
-    def _assert_and_prepare_model_files(self, root):
+    def _assert_and_prepare_model_files(self):
         model_dir = self._model_dir
         model_files = ['label_cn.txt',
                        '%s-%04d.params' % (self._model_file_prefix, self._model_epoch),
@@ -137,15 +134,15 @@ class CnOcr(object):
 
         if os.path.exists(model_dir):
             os.removedirs(model_dir)
-        get_model_file(root)
+        get_model_file(model_dir)
 
     def _get_module(self):
         network, self._hp = gen_network(self._model_name, self._hp)
         hp = self._hp
         prefix = os.path.join(self._model_dir, self._model_file_prefix)
-        # import pdb; pdb.set_trace()
         data_names = ['data']
         data_shapes = [(data_names[0], (hp.batch_size, 1, hp.img_height, hp.img_width))]
+        print('loading model parameters from dir %s' % self._model_dir)
         mod = load_module(prefix, self._model_epoch, data_names, data_shapes, network=network)
         return mod
 

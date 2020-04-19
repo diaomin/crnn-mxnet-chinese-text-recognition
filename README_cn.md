@@ -1,4 +1,10 @@
-# Update 2019.07.25: 发布 cnocr V1.0.0
+# Release Notes
+
+### Update 2020.04.20: 发布 cnocr V1.1.0
+
+
+
+### Update 2019.07.25: 发布 cnocr V1.0.0
 
 `cnocr`发布了预测效率更高的新版本v1.0.0。**新版本的模型跟以前版本的模型不兼容**。所以如果大家是升级的话，需要重新下载最新的模型文件。具体说明见下面（流程和原来相同）。
 
@@ -15,13 +21,39 @@
 
 **cnocr**是用来做中文OCR的**Python 3**包。cnocr自带了训练好的识别模型，所以安装后即可直接使用。
 
-目前使用的识别模型是**crnn**，识别准确度约为 `98.8%`。
-
 本项目起源于我们自己 ([爱因互动 Ein+](https://einplus.cn)) 内部的项目需求，所以非常感谢公司的支持。
+
+## 可直接使用的模型
+
+cnocr的ocr模型可以分为两阶段：第一阶段是获得ocr图片的局部编码向量，第二部分是对局部编码向量进行序列学习，获得序列编码向量。目前两个阶段分别包含以下的模型：
+
+1. 局部编码模型（emb model）
+   * `conv`：多层的卷积网络；
+   * `conv-lite`：更小的多层卷积网络；
+   * `densenet`：一个小型的`densenet`网络；
+   * `densenet-lite`：一个更小的`densenet`网络。
+2. 序列编码模型（seq model）
+   * `lstm`：两层的LSTM网络；
+   * `gru`：两层的GRU网络；
+   * `fc`：两层的全连接网络。
+
+
+
+cnocr目前包含以下可直接使用的模型：
+
+| 模型名称 | 局部编码模型 | 序列编码模型 | 模型大小 | 迭代次数 | 测试集准确率 |
+| :------- | ------------ | ------------ | -------- | ------ | -------- |
+| conv-lstm | conv | lstm | 36M | 50 | 98.5% |
+| conv-lite-lstm | conv-lite | lstm | 23M | 45 | 98.6% |
+| conv-lite-fc | conv-lite | fc | 20M | 27 | 98.6% |
+| densenet-lite-lstm | densenet-lite | lstm | 8.6M | 42 | 98.6% |
+| densenet-lite-fc | densenet-lite | fc | 6.8M | 32 | 97% |
+
+> 模型名称是由局部编码模型和序列编码模型名称拼接而成。
 
 ## 特色
 
-本项目的大部分代码都fork自 [crnn-mxnet-chinese-text-recognition](https://github.com/diaomin/crnn-mxnet-chinese-text-recognition)，感谢作者。
+本项目的初期代码都fork自 [crnn-mxnet-chinese-text-recognition](https://github.com/diaomin/crnn-mxnet-chinese-text-recognition)，感谢作者。
 
 但源项目使用起来不够方便，所以我在此基础上做了一些封装和重构。主要变化如下：
 

@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import sys
 import os
+import time
 import argparse
 from operator import itemgetter
 from pathlib import Path
@@ -31,19 +32,14 @@ import Levenshtein
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr import CnOcr
-from cnocr.consts import MODEL_NAMES
 
 
 def evaluate():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--model-name",
-        help="model name",
-        choices=MODEL_NAMES,
-        type=str,
-        default='conv-rnn',
+        "--model-name", help="model name", type=str, default='densenet-lite-lstm'
     )
-    parser.add_argument("--model-epoch", type=int, help="model epoch")
+    parser.add_argument("--model-epoch", type=int, default=None, help="model epoch")
     parser.add_argument(
         "-i",
         "--input-fp",
@@ -75,6 +71,7 @@ def evaluate():
     fn_labels_list = read_input_file(args.input_fp)
 
     miss_cnt, redundant_cnt = Counter(), Counter()
+    model_time_cost = 0.0
     start_idx = 0
     bad_cnt = 0
     badcases = []
@@ -91,7 +88,9 @@ def evaluate():
             img = mx.image.imread(img_fp, 1).asnumpy()
             batch_imgs.append(img)
 
+        start_time = time.time()
         batch_preds = ocr.ocr_for_single_lines(batch_imgs)
+        model_time_cost += time.time() - start_time
         for bad_info in compare_preds_to_reals(
             batch_preds, batch_labels, batch_img_fns, alphabet
         ):
@@ -110,7 +109,7 @@ def evaluate():
 
     output_dir = Path(args.output_dir)
     if not output_dir.exists():
-        output_dir.mkdir()
+        os.makedirs(output_dir)
     with open(output_dir / 'badcases.txt', 'w') as f:
         f.write(
             '\t'.join(
@@ -135,8 +134,8 @@ def evaluate():
             f.write('\t'.join([word, str(num)]) + '\n')
 
     print(
-        "number of total cases: %d, number of bad cases: %d"
-        % (len(fn_labels_list), bad_cnt)
+        "number of total cases: %d, time cost per image: %f, number of bad cases: %d"
+        % (len(fn_labels_list), model_time_cost / len(fn_labels_list), bad_cnt)
     )
 
 

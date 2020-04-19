@@ -1,14 +1,18 @@
 # coding: utf-8
 import string
-from .__version__ import __version__
 
 
-MODEL_BASE_URL = 'https://www.dropbox.com/s/7w8l3mk4pvkt34w/cnocr-models-v1.0.0.zip?dl=1'
-MODEL_EPOCE = 20
 EMB_MODEL_TYPES = ['conv', 'conv-lite', 'densenet', 'densenet-lite']
 SEQ_MODEL_TYPES = ['lstm', 'gru', 'fc']
 
-ZIP_FILE_NAME = 'cnocr-models-v{}.zip'.format(__version__)
+# name: (epochs, url)
+AVAILABLE_MODELS = {
+    'conv-lstm': (50, ),
+    'conv-lite-lstm': (45, ),
+    'conv-lite-fc': (27, ),
+    'densenet-lite-lstm': (45, ),
+    'densenet-lite-fc': (32, ),
+}
 
 # 候选字符集合
 NUMBERS = string.digits + string.punctuation

@@ -10,7 +10,7 @@ from mxnet import nd
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 
-from cnocr.consts import MODEL_NAMES
+from cnocr.consts import EMB_MODEL_TYPES, SEQ_MODEL_TYPES
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams
 from cnocr.symbols.densenet import _make_dense_layer, DenseNet, cal_num_params
 from cnocr.symbols.crnn import (
@@ -100,6 +100,12 @@ def test_pipline():
         pred_shape = pred.infer_shape()[1][0]
         logger.info('shape of pred: %s', pred_shape)
         assert pred_shape == (hp.batch_size * hp.seq_length, hp.num_classes)
+
+
+MODEL_NAMES = []
+for emb_model in EMB_MODEL_TYPES:
+    for seq_model in SEQ_MODEL_TYPES:
+        MODEL_NAMES.append('%s-%s' % (emb_model, seq_model))
 
 
 @pytest.mark.parametrize(

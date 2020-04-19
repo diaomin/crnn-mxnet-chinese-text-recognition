@@ -47,7 +47,7 @@ def gen_network(model_name, hp):
         hp.seq_len_cmpr_ratio = 4
         hp.set_seq_length(hp.img_width // 4 - 1)
         model = lambda data: crnn_lstm_lite(hp, data)
-    elif model_name == 'conv-lstm':
+    elif model_name.startswith('conv'):
         hp.seq_len_cmpr_ratio = 8
         hp.set_seq_length(hp.img_width // 8)
         model = lambda data: crnn_lstm(hp, data)
