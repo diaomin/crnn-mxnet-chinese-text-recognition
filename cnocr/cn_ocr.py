@@ -27,7 +27,13 @@ from cnocr.fit.lstm import init_states
 from cnocr.fit.ctc_metrics import CtcMetrics
 from cnocr.data_utils.data_iter import SimpleBatch
 from cnocr.symbols.crnn import gen_network
-from cnocr.utils import data_dir, get_model_file, read_charset, normalize_img_array, check_model_name
+from cnocr.utils import (
+    data_dir,
+    get_model_file,
+    read_charset,
+    normalize_img_array,
+    check_model_name,
+)
 from cnocr.line_split import line_split
 
 
@@ -54,7 +60,6 @@ def rescale_img(img, hp):
         img = mx.nd.array(img)
     scale = hp.img_height / img.shape[0]
     new_width = int(scale * img.shape[1])
-    # hp._seq_length = new_width // 8
     if len(img.shape) == 2:  # mx.image.imresize needs the third dim
         img = mx.nd.expand_dims(img, 2)
     img = mx.image.imresize(img, w=new_width, h=hp.img_height).asnumpy()
@@ -64,11 +69,13 @@ def rescale_img(img, hp):
 
 def lstm_init_states(batch_size, hp):
     """ Returns a tuple of names and zero arrays for LSTM init states"""
-    init_shapes = init_states(batch_size=batch_size, num_lstm_layer=hp.num_lstm_layer, num_hidden=hp.num_hidden)
+    init_shapes = init_states(
+        batch_size=batch_size,
+        num_lstm_layer=hp.num_lstm_layer,
+        num_hidden=hp.num_hidden,
+    )
     init_names = [s[0] for s in init_shapes]
     init_arrays = [mx.nd.zeros(x[1]) for x in init_shapes]
-    # init_names.append('seq_length')
-    # init_arrays.append(hp.seq_length)
     return init_names, init_arrays
 
 
@@ -86,7 +93,9 @@ def load_module(prefix, epoch, data_names, data_shapes, network=None):
     pred_fc = sym.get_internals()['pred_fc_output']
     sym = mx.sym.softmax(data=pred_fc)
 
-    mod = mx.mod.Module(symbol=sym, context=mx.cpu(), data_names=data_names, label_names=None)
+    mod = mx.mod.Module(
+        symbol=sym, context=mx.cpu(), data_names=data_names, label_names=None
+    )
     mod.bind(for_training=False, data_shapes=data_shapes)
     mod.set_params(arg_params, aux_params, allow_missing=False)
     return mod
@@ -95,17 +104,35 @@ def load_module(prefix, epoch, data_names, data_shapes, network=None):
 class CnOcr(object):
     MODEL_FILE_PREFIX = 'cnocr-v{}'.format(__version__)
 
-    def __init__(self, model_name='conv-lite-lstm', model_epoch=None,
-                 cand_alphabet=None, root=data_dir()):
+    def __init__(
+        self,
+        model_name='conv-lite-fc',
+        model_epoch=None,
+        cand_alphabet=None,
+        root=data_dir(),
+    ):
+        """
+
+        :param model_name: 模型名称
+        :param model_epoch: 模型迭代次数
+        :param cand_alphabet: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围
+        :param root: 模型文件所在的根目录。
+            Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.1.0/conv-lite-fc-0027`。
+            Windows下默认值为 ``。
+        """
         check_model_name(model_name)
         self._model_name = model_name
         self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
         self._model_epoch = model_epoch or AVAILABLE_MODELS[model_name][0]
 
         root = os.path.join(root, __version__)
-        self._model_dir = os.path.join(root, '%s-%04d' % (self._model_name, self._model_epoch))
+        self._model_dir = os.path.join(
+            root, '%s-%04d' % (self._model_name, self._model_epoch)
+        )
         self._assert_and_prepare_model_files()
-        self._alphabet, inv_alph_dict = read_charset(os.path.join(self._model_dir, 'label_cn.txt'))
+        self._alphabet, inv_alph_dict = read_charset(
+            os.path.join(self._model_dir, 'label_cn.txt')
+        )
 
         self._cand_alph_idx = None
         if cand_alphabet is not None:
@@ -119,9 +146,11 @@ class CnOcr(object):
 
     def _assert_and_prepare_model_files(self):
         model_dir = self._model_dir
-        model_files = ['label_cn.txt',
-                       '%s-%04d.params' % (self._model_file_prefix, self._model_epoch),
-                       '%s-symbol.json' % self._model_file_prefix]
+        model_files = [
+            'label_cn.txt',
+            '%s-%04d.params' % (self._model_file_prefix, self._model_epoch),
+            '%s-symbol.json' % self._model_file_prefix,
+        ]
         file_prepared = True
         for f in model_files:
             f = os.path.join(model_dir, f)
@@ -143,7 +172,9 @@ class CnOcr(object):
         data_names = ['data']
         data_shapes = [(data_names[0], (hp.batch_size, 1, hp.img_height, hp.img_width))]
         print('loading model parameters from dir %s' % self._model_dir)
-        mod = load_module(prefix, self._model_epoch, data_names, data_shapes, network=network)
+        mod = load_module(
+            prefix, self._model_epoch, data_names, data_shapes, network=network
+        )
         return mod
 
     def ocr(self, img_fp):
@@ -203,12 +234,11 @@ class CnOcr(object):
         batch_size = len(img_list)
         img_list, img_widths = self._pad_arrays(img_list)
 
-        sample = SimpleBatch(
-            data_names=['data'],
-            data=[mx.nd.array(img_list)])
+        sample = SimpleBatch(data_names=['data'], data=[mx.nd.array(img_list)])
 
         prob = self._predict(sample)
-        prob = np.reshape(prob, (-1, batch_size, prob.shape[1]))  # [seq_len, batch_size, num_classes]
+        # [seq_len, batch_size, num_classes]
+        prob = np.reshape(prob, (-1, batch_size, prob.shape[1]))
 
         if self._cand_alph_idx is not None:
             prob = prob * self._gen_mask(prob.shape)
@@ -216,7 +246,9 @@ class CnOcr(object):
         max_width = max(img_widths)
         res = []
         for i in range(batch_size):
-            res.append(self._gen_line_pred_chars(prob[:, i, :], img_widths[i], max_width))
+            res.append(
+                self._gen_line_pred_chars(prob[:, i, :], img_widths[i], max_width)
+            )
         return res
 
     def _gen_mask(self, prob_shape):
@@ -274,8 +306,6 @@ class CnOcr(object):
         :return:
         """
         class_ids = np.argmax(line_prob, axis=-1)
-        # idxs = list(zip(range(len(class_ids)), class_ids))
-        # probs = [line_prob[e[0], e[1]] for e in idxs]
 
         if img_width < max_img_width:
             comp_ratio = self._hp.seq_len_cmpr_ratio
@@ -283,32 +313,8 @@ class CnOcr(object):
             if end_idx < len(class_ids):
                 class_ids[end_idx:] = 0
         prediction, start_end_idx = CtcMetrics.ctc_label(class_ids.tolist())
-        # print(start_end_idx)
         alphabet = self._alphabet
         res = [alphabet[p] if alphabet[p] != '<space>' else ' ' for p in prediction]
 
-        # res = self._insert_space_char(res, start_end_idx)
         return res
 
-    def _insert_space_char(self, pred_chars, start_end_idx, min_interval=None):
-        if len(pred_chars) < 2:
-            return pred_chars
-        assert len(pred_chars) == len(start_end_idx)
-
-        if min_interval is None:
-            # 自动计算最小区间值
-            intervals = {start_end_idx[idx][0] - start_end_idx[idx-1][1] for idx in range(1, len(start_end_idx))}
-            if len(intervals) >= 3:
-                intervals = sorted(list(intervals))
-                if intervals[0] < 1:  # 排除间距为0的情况
-                    intervals = intervals[1:]
-                min_interval = intervals[2]
-            else:
-                min_interval = start_end_idx[-1][1]  # no space will be inserted
-
-        res_chars = [pred_chars[0]]
-        for idx in range(1, len(pred_chars)):
-            if start_end_idx[idx][0] - start_end_idx[idx-1][1] >= min_interval:
-                res_chars.append(' ')
-            res_chars.append(pred_chars[idx])
-        return res_chars
