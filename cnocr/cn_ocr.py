@@ -136,7 +136,7 @@ class CnOcr(object):
 
         self._cand_alph_idx = None
         if cand_alphabet is not None:
-            self._cand_alph_idx = [inv_alph_dict[word] for word in cand_alphabet]
+            self._cand_alph_idx = [0] + [inv_alph_dict[word] for word in cand_alphabet]
             self._cand_alph_idx.sort()
 
         self._hp = Hyperparams()
@@ -317,4 +317,3 @@ class CnOcr(object):
         res = [alphabet[p] if alphabet[p] != '<space>' else ' ' for p in prediction]
 
         return res
-
