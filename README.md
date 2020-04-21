@@ -1,83 +1,164 @@
-中文版说明请见[中文README](./README_cn.md)。
+# Release Notes
+
+### Update 2020.04.20: 发布 cnocr V1.1.0
+
+V1.1.0做了很多大改动，主要如下：
+
+* 更新了训练代码，使用mxnet的recordio首先把数据转换成二进制格式，提升训练效率。也加入了更多可传入的参数。**允许训练集中的文字数量不同，目前是中文10个字，英文20个字母。**
+
+* 内置了各种模型，最小的模型只有之前模型的`1/5`大。开放了很多训练好的模型。
+
+* 英文识别精度显著提升，新模型已经可以识别英文单词间的空格。
+* 支持OCR识别时在给定字符集中进行。
+
+* mxnet依赖升级到更新的版本了。很多人反馈mxnet `1.4.1`经常找不到没法装，现在升级到`>=1.5.0,<1.7.0`。
+
+  
+
+### Update 2019.07.25: 发布 cnocr V1.0.0
+
+`cnocr`发布了预测效率更高的新版本v1.0.0。**新版本的模型跟以前版本的模型不兼容**。所以如果大家是升级的话，需要重新下载最新的模型文件。具体说明见下面（流程和原来相同）。
 
 
 
-# Update 2019.07.25: release cnocr V1.0.0
+主要改动如下：
 
-`cnocr` `v1.0.0` is released, which is more efficient for prediction. **The new version of the model is not compatible with the previous version.** So if upgrading, please download the latest model file again. See below for the details (same as before).
-
-
-
-Main changes are：
-
--  **The new crnn model supports prediction for variable-width image files, so is more efficient for prediction.**
--  Support fine-tuning the existing model with specific data.
--  Fix bugs，such as `train accuracy` always `0`.
--  Depended package `mxnet` is upgraded from `1.3.1`  to `1.4.1`.
-
-
+-  **crnn模型支持可变长预测，提升预测效率**
+-  支持利用特定数据对现有模型进行精调（继续训练）
+-  修复bugs，如训练时`accuracy`一直为`0`
+-  依赖的 `mxnet` 版本从`1.3.1`更新至 `1.4.1`
 
 # cnocr
 
-A python package for Chinese OCR with available trained models.
-So it can be used directly after installed.
+**cnocr**是用来做中文OCR的**Python 3**包。cnocr自带了训练好的识别模型，安装后即可直接使用。
 
-The accuracy of the current crnn model is about `98.8%`.
+本项目起源于我们自己 ([爱因互动 Ein+](https://einplus.cn)) 内部的项目需求，所以非常感谢公司的支持。
 
-The project originates from our own ([爱因互动 Ein+](https://einplus.cn)) internal needs.
-Thanks for the internal supports.
+## 可直接使用的模型
 
-## Changes
+cnocr的ocr模型可以分为两阶段：第一阶段是获得ocr图片的局部编码向量，第二部分是对局部编码向量进行序列学习，获得序列编码向量。目前两个阶段分别包含以下的模型：
 
-Most of the codes are adapted from [crnn-mxnet-chinese-text-recognition](https://github.com/diaomin/crnn-mxnet-chinese-text-recognition).
-Much thanks to the author.
+1. 局部编码模型（emb model）
+   * `conv`：多层的卷积网络；
+   * `conv-lite`：更小的多层卷积网络；
+   * `densenet`：一个小型的`densenet`网络；
+   * `densenet-lite`：一个更小的`densenet`网络。
+2. 序列编码模型（seq model）
+   * `lstm`：两层的LSTM网络；
+   * `gru`：两层的GRU网络；
+   * `fc`：两层的全连接网络。
 
-Some changes are:
 
-* use raw MXNet CTC Loss instead of WarpCTC Loss. No more complicated installation.
-* public pre-trained model for anyone. No more a-few-days training.
-* add online `predict` function and script. Easy to use.
 
-## Installation
+cnocr目前包含以下可直接使用的模型，训练好的模型都放在 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 项目中，可免费下载使用：
+
+| 模型名称 | 局部编码模型 | 序列编码模型 | 模型大小 | 迭代次数 | 测试集准确率 | 测试集中的图片预测速度（秒/张） |
+| :------- | ------------ | ------------ | -------- | ------ | -------- | ------ |
+| conv-lstm | conv | lstm | 36M | 50 | 98.5% |  |
+| conv-lite-lstm | conv-lite | lstm | 23M | 45 | 98.6% |  |
+| conv-lite-fc | conv-lite | fc | 20M | 27 | 98.6% | 0.033837 |
+| densenet-lite-lstm | densenet-lite | lstm | 8.6M | 42 | 98.6% | 0.013124 |
+| densenet-lite-fc | densenet-lite | fc | 6.8M | 32 | 97% |  |
+
+> 模型名称是由局部编码模型和序列编码模型名称拼接而成。
+
+
+
+## 特色
+
+本项目的初期代码fork自 [crnn-mxnet-chinese-text-recognition](https://github.com/diaomin/crnn-mxnet-chinese-text-recognition)，感谢作者。
+
+但源项目使用起来不够方便，所以我在此基础上做了一些封装和重构。主要变化如下：
+
+* 不再使用需要额外安装的MXNet WarpCTC Loss，改用原生的 MXNet CTC Loss。所以安装极简！
+* 自带训练好的中文OCR识别模型。不再需要额外训练！
+* 增加了预测（或推断）接口。所以使用方便！
+
+## 安装
 
 ```bash
 pip install cnocr
 ```
 
-> Please use Python3 (3.4, 3.5, 3.6 should work). Python2 is not tested.
-
-## Usage
-
-The first time cnocr is used, the model files will be downloaded automatically from 
-[Dropbox](https://www.dropbox.com/s/7w8l3mk4pvkt34w/cnocr-models-v1.0.0.zip?dl=0) to `~/.cnocr`. 
-
-The zip file will be extracted and you can find the resulting model files in `~/.cnocr/models` by default.
-In case the automatic download can't perform well, you can download the zip file manually 
-from [Baidu NetDisk](https://pan.baidu.com/s/1DWV3H2UWmzOU6d48UbTYVw) with extraction code `ss81`, and put the zip file to `~/.cnocr`. The code will do else.
+> 注意：请使用Python3 (3.4, 3.5, 3.6以及之后版本应该都行)，没测过Python2下是否ok。
 
 
 
-### Predict
+## 使用方法
 
-Three functions are provided for prediction.
+首次使用cnocr时，系统会自动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 下载zip格式的模型压缩文件，并存于 `~/.cnocr`目录。
+下载后的zip文件代码会自动对其解压，然后把解压后的模型相关目录放于`~/.cnocr/1.1.0`目录中。
 
+如果系统不能自动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 成功下载zip文件，则需要手动下载此zip文件并把它放于 `~/.cnocr/1.1.0`目录。如果Github下载太慢，也可以从 [百度云盘](链接: https://pan.baidu.com/s/1j9PASisDxB_5tjrV2fs2-g)下载， 提取码为 `ri27`。
 
-
-#### 1. `CnOcr.ocr(img_fp)`
-
-The function `cnOcr.ocr (img_fp)` can recognize texts in an image containing multiple lines of text (or single lines).
-
-
-
-**Function Description**
-
-- input parameter `img_fp`: image file path; or color image `mx.nd.NDArray` or `np.ndarray`, with shape `(height, width, 3)`, and the channels should be RGB formatted.
-- return: `List(List(Char))`,  such as:  `[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`.
-  
+放置好zip文件后，后面的事代码就会自动执行了。
 
 
 
-**Use Case**
+# 示例
+
+| 图片                                                         | OCR结果                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| ![examples/helloworld.jpg](./examples/helloworld.jpg)        | Hello World!你好世界                                         |
+| ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png) | 网络支付并无本质的区别，因为<br />每一个手机号码和邮件地址背后<br />都会对应着一个账户--这个账<br />户可以是信用卡账户、借记卡账<br />户，也包括邮局汇款、手机代<br />收、电话代收、预付费卡和点卡<br />等多种形式。 |
+| ![examples/multi-line_cn2.png](./examples/multi-line_cn2.png) | 当然，在媒介越来越多的情形下,<br />意味着传播方式的变化。过去主流<br />的是大众传播,现在互动性和定制<br />性带来了新的挑战——如何让品牌<br />与消费者更加互动。 |
+| ![examples/multi-line_en_white.png](./examples/multi-line_en_white.png) | This chapter is currently only available in this web version. ebook and print will follow.<br />Convolutional neural networks learn abstract features and concepts from raw image pixels. Feature<br />Visualization visualizes the learned features by activation maximization. Network Dissection labels<br />neural network units (e.g. channels) with human concepts. |
+|                                                              |                                                              |
+
+
+
+
+
+### 代码预测
+
+类`CnOcr`是OCR的主类，包含了三个函数针对不同场景进行文字识别。类`CnOcr`的初始化函数如下：
+
+```python
+class CnOcr(object):
+    def __init__(
+        self,
+        model_name='conv-lite-fc',
+        model_epoch=None,
+        cand_alphabet=None,
+        root=data_dir(),
+    ):
+```
+
+其中的几个参数含义如下：
+
+* `model_name`: 模型名称，即上面表格第一列中的值。默认为 `conv-lite-fc`。
+* `model_epoch`: 模型迭代次数。默认为 `None`，表示使用默认的迭代次数值。对于模型名称 `conv-lite-fc`就是 `27`。
+* `cand_alphabet`: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围。`cnocr.consts`中内置了两个候选集合：(1)数字和标点 `NUMBERS`；(1)英文字母、数字和标点 `ENG_LETTERS`。
+   * 例如对于图片 ![examples/hybrid.png](./examples/hybrid.png) ，不做约束时识别结果为 `o12345678`；如果加入数字约束时（`ocr = CnOcr(cand_alphabet=NUMBERS)`），识别结果为 `012345678`。
+* `root`: 模型文件所在的根目录。
+   * Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.1.0/conv-lite-fc-0027`。
+   * Windows下默认值为 ``。
+
+
+
+每个参数都有默认取值，所以可以不传入任何参数值进行初始化：`ocr = CnOcr()`。
+
+
+
+
+类`CnOcr`主要包含三个函数，下面分别说明。
+
+
+
+#### 1. 函数`CnOcr.ocr(img_fp)`
+
+函数`CnOcr.ocr(img_fp)`可以对包含多行文字（或单行）的图片进行文字识别。
+
+
+
+**函数说明**：
+
+- 输入参数 `img_fp`: 可以是需要识别的图片文件路径（如上例）；或者是已经从图片文件中读入的数组，类型可以为`mx.nd.NDArray` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是`(height, width, 3)`，第三个维度是channel，它应该是`RGB`格式的。
+- 返回值：为一个嵌套的`list`，类似这样`[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`。
+
+
+
+**调用示例**：
 
 
 ```python
@@ -87,8 +168,7 @@ res = ocr.ocr('examples/multi-line_cn1.png')
 print("Predicted Chars:", res)
 ```
 
-or:
-
+或：
 ```python
 import mxnet as mx
 from cnocr import CnOcr
@@ -99,11 +179,15 @@ res = ocr.ocr(img)
 print("Predicted Chars:", res)
 ```
 
-The previous codes can recognize texts in the image file [examples/multi-line_cn1.png](./examples/multi-line_cn1.png):
+
+
+上面使用的图片文件 [examples/multi-line_cn1.png](./examples/multi-line_cn1.png)内容如下：
 
 ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png)
 
-The OCR results shoule be:
+
+
+上面预测代码段的返回结果如下：
 
 ```bash
 Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的', '区', '别', '，', '因', '为'],
@@ -115,20 +199,20 @@ Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的'
                   ['等', '多', '种', '形', '式', '。']]
 ```
 
-#### 2. `CnOcr.ocr_for_single_line(img_fp)`
-
-If you know that the image you're predicting contains only one line of text, function `CnOcr.ocr_for_single_line(img_fp)` can be used instead。Compared with `CnOcr.ocr()`, the result of `CnOcr.ocr_for_single_line()` is more reliable because the process of splitting lines is not required. 
 
 
+#### 2. 函数`CnOcr.ocr_for_single_line(img_fp)`
 
-**Function Description**
+如果明确知道要预测的图片中只包含了单行文字，可以使用函数`CnOcr.ocr_for_single_line(img_fp)`进行识别。和 `CnOcr.ocr()`相比，`CnOcr.ocr_for_single_line()`结果可靠性更强，因为它不需要做额外的分行处理。
 
-- input parameter `img_fp`: image file path; or color image `mx.nd.NDArray` or `np.ndarray`, with shape `[height, width]` or `[height, width, channel]`.  The optional channel should be `1` (gray image) or `3` (color image).
-- return: `List(Char)`,  such as:  `['你', '好']`.
+**函数说明**：
+
+- 输入参数 `img_fp`: 可以是需要识别的单行文字图片文件路径（如上例）；或者是已经从图片文件中读入的数组，类型可以为`mx.nd.NDArray` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是`(height, width)`或`(height, width, channel)`。如果没有channel，表示传入的就是灰度图片。第三个维度channel可以是`1`（灰度图片）或者`3`（彩色图片）。如果是彩色图片，它应该是`RGB`格式的。
+- 返回值：为一个`list`，类似这样`['你', '好']`。
 
 
 
-**Use Case**：
+**调用示例**：
 
 ```python
 from cnocr import CnOcr
@@ -137,7 +221,7 @@ res = ocr.ocr_for_single_line('examples/rand_cn1.png')
 print("Predicted Chars:", res)
 ```
 
-or:
+或：
 
 ```python
 import mxnet as mx
@@ -150,30 +234,32 @@ print("Predicted Chars:", res)
 ```
 
 
-The previous codes can recognize texts in the image file  [examples/rand_cn1.png](./examples/rand_cn1.png)：
+对图片文件 [examples/rand_cn1.png](./examples/rand_cn1.png)：
 
 ![examples/rand_cn1.png](./examples/rand_cn1.png)
 
-The OCR results shoule be:
+的预测结果如下：
 
 ```bash
 Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '臭', '姚', '歼', '蠢', '驼', '耳', '裔', '挝', '涯', '狗', '蒽', '子', '犷'] 
 ```
 
-#### 3. `CnOcr.ocr_for_single_lines(img_list)`
-
-Function `CnOcr.ocr_for_single_lines(img_list)` can predict a number of single-line-text image arrays batchly. Actually `CnOcr.ocr(img_fp)` and `CnOcr.ocr_for_single_line(img_fp)` both invoke `CnOcr.ocr_for_single_lines(img_list)` internally.
 
 
+#### 3. 函数`CnOcr.ocr_for_single_lines(img_list)`
 
-**Function Description**
-
-- input parameter `img_list`: list of images, in which each element should be a line image array,  with type `mx.nd.NDArray` or `np.ndarray`.  Each element should be a tensor with values ranging from `0` to` 255`, and with shape `[height, width]` or `[height, width, channel]`.  The optional channel should be `1` (gray image) or `3` (color image).
-- return: `List(List(Char))`,  such as:  `[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`.
+函数`CnOcr.ocr_for_single_lines(img_list)`可以**对多个单行文字图片进行批量预测**。函数`CnOcr.ocr(img_fp)`和`CnOcr.ocr_for_single_line(img_fp)`内部其实都是调用的函数`CnOcr.ocr_for_single_lines(img_list)`。
 
 
 
-**Use Case**：
+**函数说明**：
+
+- 输入参数` img_list`: 为一个`list`；其中每个元素是已经从图片文件中读入的数组，类型可以为`mx.nd.NDArray` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是`(height, width)`或`(height, width, channel)`。如果没有channel，表示传入的就是灰度图片。第三个维度channel可以是`1`（灰度图片）或者`3`（彩色图片）。如果是彩色图片，它应该是`RGB`格式的。
+- 返回值：为一个嵌套的`list`，类似这样`[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`。
+
+
+
+**调用示例**：
 
 ```python
 import mxnet as mx
@@ -187,20 +273,27 @@ res = ocr.ocr_for_single_lines(line_img_list)
 print("Predicted Chars:", res)
 ```
 
-More use cases can be found at [tests/test_cnocr.py](./tests/test_cnocr.py).
 
 
-### Using  the Script
+更详细的使用方法，可参考[tests/test_cnocr.py](./tests/test_cnocr.py)中提供的测试用例。
+
+
+
+### 脚本引用
+
+也可以使用脚本模式预测：
 
 ```bash
 python scripts/cnocr_predict.py --file examples/multi-line_cn1.png
 ```
 
+返回结果同上面。
 
 
-### (No NECESSARY) Train
 
-You can use the package without any train. But if you really really want to train your own models, follow this:
+### 训练自己的模型
+
+cnocr安装后即可直接使用，但如果你**非要**训练自己的模型，请参考下面命令：
 
 ```bash
 python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
@@ -208,7 +301,7 @@ python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
 
 
 
-Fine-tuning the model with specific data from existing models is also supported. Please refer to the following command:
+现在也支持从已有模型利用特定数据精调模型，请参考下面命令：
 
 ```bash
 python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr --load_epoch 20
@@ -216,15 +309,17 @@ python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr -
 
 
 
-More references can be found at  [scripts/run_cnocr_train.sh](./scripts/run_cnocr_train.sh).
+更多可参考脚本[scripts/run_cnocr_train.sh](./scripts/run_cnocr_train.sh)中的命令。
 
 
 
-## Future Work
+## 未来工作
 
-* [x] support multi-line-characters recognition (`Done`)
-* [x] crnn model supports prediction for variable-width image files (`Done`)
-* [x] Add Unit Tests  (`Doing`)
-* [x]  Bugfixes  (`Doing`)
-* [ ] Support space recognition (Tried, but not successful for now )
-* [ ] Try other models such as DenseNet, ResNet
+* [x] 支持图片包含多行文字 (`Done`)
+* [x] crnn模型支持可变长预测，提升灵活性 (since `V1.0.0`)
+* [x] 完善测试用例 (`Doing`)
+* [x] 修bugs（目前代码还比较凌乱。。） (`Doing`)
+* [x] 支持`空格`识别（since `V1.1.0`）
+* [x] 尝试新模型，如 DenseNet，进一步提升识别准确率（since `V1.1.0`）
+* [ ] 优化训练集，去掉不合理的样本；在此基础上，重新训练各个模型
+
