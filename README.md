@@ -146,10 +146,9 @@ cnocr目前包含以下可直接使用的模型，训练好的模型都放在 **
 首次使用cnocr时，系统会自动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 下载zip格式的模型压缩文件，并存于 `~/.cnocr`目录。
 下载后的zip文件代码会自动对其解压，然后把解压后的模型相关目录放于`~/.cnocr/1.1.0`目录中。
 
-如果系统不能自动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 成功下载zip文件，则需要手动下载此zip文件并把它放于 `~/.cnocr/1.1.0`目录。如果Github下载太慢，也可以从 [百度云盘](链接: https://pan.baidu.com/s/1j9PASisDxB_5tjrV2fs2-g)下载， 提取码为 `ri27`。
+如果系统不能自动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 成功下载zip文件，则需要手动下载此zip文件并把它放于 `~/.cnocr/1.1.0`目录。如果Github下载太慢，也可以从 [百度云盘](链接: https://pan.baidu.com/s/1j9PASisDxB_5tjrV2fs2-g) 下载， 提取码为 `ri27`。
 
 放置好zip文件后，后面的事代码就会自动执行了。
-
 
 ### 代码预测
 
@@ -383,6 +382,14 @@ train:
 
 
 #### （三）评估模型
+
+评估模型的代码依赖一些额外的python包，使用下面命令安装这些额外的包：
+
+```bash
+pip install cnocr[dev]
+```
+
+
 
 训练好的模型，可以使用脚本 [scripts/cnocr_evaluate.py](scripts/cnocr_evaluate.py) 评估在测试集上的效果：
 
