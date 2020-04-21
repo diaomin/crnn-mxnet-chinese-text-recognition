@@ -180,7 +180,9 @@ class CnOcr(object):
         :return: List(List(Char)), such as:
             [['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]
         """
-        if isinstance(img_fp, str) and os.path.isfile(img_fp):
+        if isinstance(img_fp, str):
+            if not os.path.isfile(img_fp):
+                raise FileNotFoundError(img_fp)
             img = mx.image.imread(img_fp, 1).asnumpy()
         elif isinstance(img_fp, mx.nd.NDArray):
             img = img_fp.asnumpy()
@@ -205,7 +207,9 @@ class CnOcr(object):
             The optional channel should be 1 (gray image) or 3 (color image).
         :return: character list, such as ['你', '好']
         """
-        if isinstance(img_fp, str) and os.path.isfile(img_fp):
+        if isinstance(img_fp, str):
+            if not os.path.isfile(img_fp):
+                raise FileNotFoundError(img_fp)
             img = read_ocr_img(img_fp)
         elif isinstance(img_fp, mx.nd.NDArray) or isinstance(img_fp, np.ndarray):
             img = img_fp
