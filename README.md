@@ -18,7 +18,7 @@ V1.1.0对代码做了很大改动，重写了大部分训练的代码，也生�
 
 * 相较于之前版本的模型，新的模型精度有显著提升，尤其是针对英文单词的识别。**新模型已经可以识别英文单词间的空格。**
 
-* **支持文字识别只在给定字符集中进行。**对于一些纯数字或者纯英文字母的应用场景可以带来识别率提升。
+* **支持文字识别只在给定字符集中进行。** 对于一些纯数字或者纯英文字母的应用场景可以带来识别率提升。
 
 * 更好的支持黑底白字的多行文字图片。
 
@@ -62,6 +62,29 @@ pip install cnocr
 ```
 
 > 注意：请使用Python3 (3.4, 3.5, 3.6以及之后版本应该都行)，没测过Python2下是否ok。
+
+
+
+## 示例
+
+| 图片                                                         | OCR结果                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| ![examples/helloworld.jpg](./examples/helloworld.jpg)        | Hello World!你好世界                                         |
+| ![examples/chn-00199989.jpg](./examples/chn-00199989.jpg)    | 铑泡胭释邑疫反隽寥缔                                         |
+| ![examples/chn-00199980.jpg](./examples/chn-00199980.jpg)    | 拇箬遭才柄腾戮胖惬炫                                         |
+| ![examples/chn-00199984.jpg](./examples/chn-00199984.jpg)    | 寿猿嗅髓孢刀谎弓供捣                                         |
+| ![examples/chn-00199985.jpg](./examples/chn-00199985.jpg)    | 马靼蘑熨距额猬要藕萼                                         |
+| ![examples/chn-00199981.jpg](./examples/chn-00199981.jpg)    | 掉江悟厉励.谌查门蠕坑                                        |
+| ![examples/00199975.jpg](./examples/00199975.jpg)            | nd-chips fructed ast                                         |
+| ![examples/00199978.jpg](./examples/00199978.jpg)        | zouna unpayably Raqu                                         |
+| ![examples/00199979.jpg](./examples/00199979.jpg)        | ape fissioning Senat                                         |
+| ![examples/00199971.jpg](./examples/00199971.jpg)        | ling oughtlins near                                         |
+| ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png) | 网络支付并无本质的区别，因为<br />每一个手机号码和邮件地址背后<br />都会对应着一个账户--这个账<br />户可以是信用卡账户、借记卡账<br />户，也包括邮局汇款、手机代<br />收、电话代收、预付费卡和点卡<br />等多种形式。 |
+| ![examples/multi-line_cn2.png](./examples/multi-line_cn2.png) | 当然，在媒介越来越多的情形下,<br />意味着传播方式的变化。过去主流<br />的是大众传播,现在互动性和定制<br />性带来了新的挑战——如何让品牌<br />与消费者更加互动。 |
+| ![examples/multi-line_en_white.png](./examples/multi-line_en_white.png) | This chapter is currently only available in this web version. ebook and print will follow.<br />Convolutional neural networks learn abstract features and concepts from raw image pixels. Feature<br />Visualization visualizes the learned features by activation maximization. Network Dissection labels<br />neural network units (e.g. channels) with human concepts. |
+| ![examples/multi-line_en_black.png](./examples/multi-line_en_black.png) | transforms the image many times. First, the image goes through many convolutional layers. In those<br />convolutional layers, the network learns new and increasingly complex features in its layers. Then the <br />transformed image information goes through the fully connected layers and turns into a classification<br />or prediction. |
+
+
 
 
 
@@ -127,30 +150,6 @@ cnocr目前包含以下可直接使用的模型，训练好的模型都放在 **
 如果系统不能自动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 成功下载zip文件，则需要手动下载此zip文件并把它放于 `~/.cnocr/1.1.0`目录。如果Github下载太慢，也可以从 [百度云盘](链接: https://pan.baidu.com/s/1j9PASisDxB_5tjrV2fs2-g)下载， 提取码为 `ri27`。
 
 放置好zip文件后，后面的事代码就会自动执行了。
-
-
-
-# 示例
-
-| 图片                                                         | OCR结果                                                      |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ![examples/helloworld.jpg](./examples/helloworld.jpg)        | Hello World!你好世界                                         |
-| ![examples/chn-00199989.jpg](./examples/chn-00199989.jpg)    | 铑泡胭释邑疫反隽寥缔                                         |
-| ![examples/chn-00199980.jpg](./examples/chn-00199980.jpg)    | 拇箬遭才柄腾戮胖惬炫                                         |
-| ![examples/chn-00199984.jpg](./examples/chn-00199984.jpg)    | 寿猿嗅髓孢刀谎弓供捣                                         |
-| ![examples/chn-00199985.jpg](./examples/chn-00199985.jpg)    | 马靼蘑熨距额猬要藕萼                                         |
-| ![examples/chn-00199981.jpg](./examples/chn-00199981.jpg)    | 掉江悟厉励.谌查门蠕坑                                        |
-| ![examples/00199975.jpg](./examples/00199975.jpg)            | nd-chips fructed ast                                         |
-| ![examples/00199978.jpg](./examples/00199978.jpg)        | zouna unpayably Raqu                                         |
-| ![examples/00199979.jpg](./examples/00199979.jpg)        | ape fissioning Senat                                         |
-| ![examples/00199971.jpg](./examples/00199971.jpg)        | ling oughtlins near                                         |
-| ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png) | 网络支付并无本质的区别，因为<br />每一个手机号码和邮件地址背后<br />都会对应着一个账户--这个账<br />户可以是信用卡账户、借记卡账<br />户，也包括邮局汇款、手机代<br />收、电话代收、预付费卡和点卡<br />等多种形式。 |
-| ![examples/multi-line_cn2.png](./examples/multi-line_cn2.png) | 当然，在媒介越来越多的情形下,<br />意味着传播方式的变化。过去主流<br />的是大众传播,现在互动性和定制<br />性带来了新的挑战——如何让品牌<br />与消费者更加互动。 |
-| ![examples/multi-line_en_white.png](./examples/multi-line_en_white.png) | This chapter is currently only available in this web version. ebook and print will follow.<br />Convolutional neural networks learn abstract features and concepts from raw image pixels. Feature<br />Visualization visualizes the learned features by activation maximization. Network Dissection labels<br />neural network units (e.g. channels) with human concepts. |
-| ![examples/multi-line_en_black.png](./examples/multi-line_en_black.png) | transforms the image many times. First, the image goes through many convolutional layers. In those<br />convolutional layers, the network learns new and increasingly complex features in its layers. Then the <br />transformed image information goes through the fully connected layers and turns into a classification<br />or prediction. |
-
-
-
 
 
 ### 代码预测
