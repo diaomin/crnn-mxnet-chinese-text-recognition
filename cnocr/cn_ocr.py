@@ -194,6 +194,8 @@ class CnOcr(object):
             raise TypeError('Inappropriate argument type.')
         if min(img.shape[0], img.shape[1]) < 2:
             return ''
+        if img.mean() < 145:  # 把黑底白字的图片对调为白底黑字
+            img = 255 - img
         line_imgs = line_split(img, blank=True)
         line_img_list = [line_img for line_img, _ in line_imgs]
         line_chars_list = self.ocr_for_single_lines(line_img_list)
