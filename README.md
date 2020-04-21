@@ -1,15 +1,26 @@
 # Release Notes
 
-### Update 2020.04.20: 发布 cnocr V1.1.0
+### Update 2020.04.21: 发布 cnocr V1.1.0
 
-V1.1.0做了很多大改动，主要如下：
+V1.1.0对代码做了很大改动，重写了大部分训练的代码，也生成了更多更难的训练和测试数据。训练好的模型相较于之前版本的模型精度有显著提升，尤其是针对英文单词的识别。
 
-* 更新了训练代码，使用mxnet的recordio首先把数据转换成二进制格式，提升训练效率。也加入了更多可传入的参数。**允许训练集中的文字数量不同，目前是中文10个字，英文20个字母。**
 
-* 内置了各种模型，最小的模型只有之前模型的`1/5`大。开放了很多训练好的模型。
 
-* 英文识别精度显著提升，新模型已经可以识别英文单词间的空格。
-* 支持OCR识别时在给定字符集中进行。
+以下列出了主要的变更：
+
+* 更新了训练代码，使用mxnet的`recordio`首先把数据转换成二进制格式，提升后续的训练效率。训练时支持对图片做实时数据增强。也加入了更多可传入的参数。
+
+* **允许训练集中的文字数量不同，目前是中文10个字，英文20个字母。**
+
+* 提供了更多的模型选择，允许大家按需训练多种不同大小的识别模型。
+
+* 内置了各种训练好的模型，最小的模型只有之前模型的`1/5`大小。所有模型都可免费使用。
+
+* 相较于之前版本的模型，新的模型精度有显著提升，尤其是针对英文单词的识别。**新模型已经可以识别英文单词间的空格。**
+
+* **支持文字识别只在给定字符集中进行。**对于一些纯数字或者纯英文字母的应用场景可以带来识别率提升。
+
+* 更好的支持黑底白字的多行文字图片。
 
 * mxnet依赖升级到更新的版本了。很多人反馈mxnet `1.4.1`经常找不到没法装，现在升级到`>=1.5.0,<1.7.0`。
 
@@ -32,7 +43,27 @@ V1.1.0做了很多大改动，主要如下：
 
 **cnocr**是用来做中文OCR的**Python 3**包。cnocr自带了训练好的识别模型，安装后即可直接使用。
 
+
+
+cnocr主要针对的是排版简单的印刷体文字图片，如截图图片，扫描件等。cnocr目前内置的文字检测和分行模块无法处理复杂的文字排版定位。如果要用于场景文字图片的识别，需要结合其他的场景文字检测引擎使用。
+
+
+
 本项目起源于我们自己 ([爱因互动 Ein+](https://einplus.cn)) 内部的项目需求，所以非常感谢公司的支持。
+
+
+
+## 安装
+
+嗯，安装真的很简单。
+
+```bash
+pip install cnocr
+```
+
+> 注意：请使用Python3 (3.4, 3.5, 3.6以及之后版本应该都行)，没测过Python2下是否ok。
+
+
 
 ## 可直接使用的模型
 
@@ -52,15 +83,25 @@ cnocr的ocr模型可以分为两阶段：第一阶段是获得ocr图片的局部
 
 cnocr目前包含以下可直接使用的模型，训练好的模型都放在 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 项目中，可免费下载使用：
 
-| 模型名称 | 局部编码模型 | 序列编码模型 | 模型大小 | 迭代次数 | 测试集准确率 | 测试集中的图片预测速度（秒/张） |
+| 模型名称 | 局部编码模型 | 序列编码模型 | 模型大小 | 迭代次数 | 测试集准确率 | 测试集中的图片预测速度<br />（秒/张） |
 | :------- | ------------ | ------------ | -------- | ------ | -------- | ------ |
-| conv-lstm | conv | lstm | 36M | 50 | 98.5% |  |
-| conv-lite-lstm | conv-lite | lstm | 23M | 45 | 98.6% |  |
+| conv-lstm | conv | lstm | 36M | 50 | 98.5% | 0.015924 |
+| conv-lite-lstm | conv-lite | lstm | 23M | 45 | 98.6% | 0.033749 |
 | conv-lite-fc | conv-lite | fc | 20M | 27 | 98.6% | 0.033837 |
 | densenet-lite-lstm | densenet-lite | lstm | 8.6M | 42 | 98.6% | 0.013124 |
-| densenet-lite-fc | densenet-lite | fc | 6.8M | 32 | 97% |  |
+| densenet-lite-fc | densenet-lite | fc | 6.8M | 32 | 97% | 0.012652 |
 
 > 模型名称是由局部编码模型和序列编码模型名称拼接而成。
+
+> 图片预测速度是在多核CPU机器上做的测试， 绝对值依赖机器资源，意义不大；但不同模型之间的相对值是可以参考的。
+
+
+
+虽然上表中给出的多个模型在测试集上的准确率都是 `98.6%`，但从实际使用经验看，综合中英文的识别效果，`conv-lite-fc`是效果最好的，其次是 `densenet-lite-lstm` 和 `conv-lite-lstm`。对于中文识别且识别困难（如文字比较模糊）的场景，建议尝试模型 `conv-lite-lstm`。对于简单的中文识别场景，可以使用模型  `densenet-lite-lstm`  或 `densenet-lite-fc` ，或者利用自己的训练数据对它们进行精调。
+
+
+
+模型 `conv-lstm`把图片长度压缩到 `1/8`再做预测，其他模型是压缩到`1/4`再做预测，所以 `conv-lstm` 虽然比 `conv-lite-lstm` 有更多参数，但预测速度却快了一倍。
 
 
 
@@ -71,18 +112,12 @@ cnocr目前包含以下可直接使用的模型，训练好的模型都放在 **
 但源项目使用起来不够方便，所以我在此基础上做了一些封装和重构。主要变化如下：
 
 * 不再使用需要额外安装的MXNet WarpCTC Loss，改用原生的 MXNet CTC Loss。所以安装极简！
+
 * 自带训练好的中文OCR识别模型。不再需要额外训练！
+
 * 增加了预测（或推断）接口。所以使用方便！
 
-## 安装
-
-```bash
-pip install cnocr
-```
-
-> 注意：请使用Python3 (3.4, 3.5, 3.6以及之后版本应该都行)，没测过Python2下是否ok。
-
-
+  
 
 ## 使用方法
 
@@ -100,10 +135,19 @@ pip install cnocr
 | 图片                                                         | OCR结果                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | ![examples/helloworld.jpg](./examples/helloworld.jpg)        | Hello World!你好世界                                         |
+| ![examples/chn-00199989.jpg](./examples/chn-00199989.jpg)    | 铑泡胭释邑疫反隽寥缔                                         |
+| ![examples/chn-00199980.jpg](./examples/chn-00199980.jpg)    | 拇箬遭才柄腾戮胖惬炫                                         |
+| ![examples/chn-00199984.jpg](./examples/chn-00199984.jpg)    | 寿猿嗅髓孢刀谎弓供捣                                         |
+| ![examples/chn-00199985.jpg](./examples/chn-00199985.jpg)    | 马靼蘑熨距额猬要藕萼                                         |
+| ![examples/chn-00199981.jpg](./examples/chn-00199981.jpg)    | 掉江悟厉励.谌查门蠕坑                                        |
+| ![examples/00199975.jpg](./examples/00199975.jpg)            | nd-chips fructed ast                                         |
+| ![examples/00199978.jpg](./examples/00199978.jpg)        | zouna unpayably Raqu                                         |
+| ![examples/00199979.jpg](./examples/00199979.jpg)        | ape fissioning Senat                                         |
+| ![examples/00199971.jpg](./examples/00199971.jpg)        | ling oughtlins near                                         |
 | ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png) | 网络支付并无本质的区别，因为<br />每一个手机号码和邮件地址背后<br />都会对应着一个账户--这个账<br />户可以是信用卡账户、借记卡账<br />户，也包括邮局汇款、手机代<br />收、电话代收、预付费卡和点卡<br />等多种形式。 |
 | ![examples/multi-line_cn2.png](./examples/multi-line_cn2.png) | 当然，在媒介越来越多的情形下,<br />意味着传播方式的变化。过去主流<br />的是大众传播,现在互动性和定制<br />性带来了新的挑战——如何让品牌<br />与消费者更加互动。 |
 | ![examples/multi-line_en_white.png](./examples/multi-line_en_white.png) | This chapter is currently only available in this web version. ebook and print will follow.<br />Convolutional neural networks learn abstract features and concepts from raw image pixels. Feature<br />Visualization visualizes the learned features by activation maximization. Network Dissection labels<br />neural network units (e.g. channels) with human concepts. |
-|                                                              |                                                              |
+| ![examples/multi-line_en_black.png](./examples/multi-line_en_black.png) | transforms the image many times. First, the image goes through many convolutional layers. In those<br />convolutional layers, the network learns new and increasingly complex features in its layers. Then the <br />transformed image information goes through the fully connected layers and turns into a classification<br />or prediction. |
 
 
 
@@ -321,5 +365,6 @@ python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr -
 * [x] 修bugs（目前代码还比较凌乱。。） (`Doing`)
 * [x] 支持`空格`识别（since `V1.1.0`）
 * [x] 尝试新模型，如 DenseNet，进一步提升识别准确率（since `V1.1.0`）
+* [ ] 加入场景文本检测功能
 * [ ] 优化训练集，去掉不合理的样本；在此基础上，重新训练各个模型
 
