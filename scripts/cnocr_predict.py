@@ -31,7 +31,7 @@ from cnocr import CnOcr
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--model_name", help="model name", type=str, default='densenet-lite-lstm'
+        "--model_name", help="model name", type=str, default='conv-lite-fc'
     )
     parser.add_argument("--model_epoch", type=int, default=None, help="model epoch")
     parser.add_argument("-f", "--file", help="Path to the image file")
