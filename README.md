@@ -20,7 +20,7 @@ V1.1.0对代码做了很大改动，重写了大部分训练的代码，也生�
 
 * **支持文字识别只在给定字符集中进行。** 对于一些纯数字或者纯英文字母的应用场景可以带来识别率提升。
 
-* 更好的支持黑底白字的多行文字图片。
+* 优化了对黑底白字多行文字图片的支持。
 
 * mxnet依赖升级到更新的版本了。很多人反馈mxnet `1.4.1`经常找不到没法装，现在升级到`>=1.5.0,<1.7.0`。
 
@@ -171,7 +171,7 @@ class CnOcr(object):
 * `cand_alphabet`: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围。`cnocr.consts`中内置了两个候选集合：(1)数字和标点 `NUMBERS`；(1)英文字母、数字和标点 `ENG_LETTERS`。
    * 例如对于图片 ![examples/hybrid.png](./examples/hybrid.png) ，不做约束时识别结果为 `o12345678`；如果加入数字约束时（`ocr = CnOcr(cand_alphabet=NUMBERS)`），识别结果为 `012345678`。
 * `root`: 模型文件所在的根目录。
-   * Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.1.0/conv-lite-fc-0027`。
+   * Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.1.0/conv-lite-fc`。
    * Windows下默认值为 `C:\Users\<username>\AppData\Roaming\cnocr`。
 
 
@@ -315,7 +315,7 @@ print("Predicted Chars:", res)
 
 
 
-更详细的使用方法，可参考[tests/test_cnocr.py](./tests/test_cnocr.py)中提供的测试用例。
+更详细的使用方法，可参考 [tests/test_cnocr.py](./tests/test_cnocr.py) 中提供的测试用例。
 
 
 
@@ -333,23 +333,76 @@ python scripts/cnocr_predict.py --file examples/multi-line_cn1.png
 
 ### 训练自己的模型
 
-cnocr安装后即可直接使用，但如果你**非要**训练自己的模型，请参考下面命令：
+cnocr自带训练好的模型， 安装后即可直接使用。但如果你需要训练自己的模型，请参考下面的步骤。所有代码均可在文件 [Makefile](./Makefile) 中找到。
 
-```bash
-python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
+
+
+#### （一）转换图片数据格式
+
+为了提升训练效率，在开始训练之前，需要使用mxnet的`recordio`首先把数据转换成二进制格式：
+
+```makefile
+DATA_ROOT_DIR = data/sample-data
+REC_DATA_ROOT_DIR = data/sample-data-lst
+
+# `EMB_MODEL_TYPE` 可取值：['conv', 'conv-lite-rnn', 'densenet', 'densenet-lite']
+EMB_MODEL_TYPE = densenet-lite
+# `SEQ_MODEL_TYPE` 可取值：['lstm', 'gru', 'fc']
+SEQ_MODEL_TYPE = fc
+MODEL_NAME = $(EMB_MODEL_TYPE)-$(SEQ_MODEL_TYPE)
+
+# 产生 *.lst 文件
+gen-lst:
+    python scripts/im2rec.py --list --num-label 20 --chunks 1 \
+        --train-idx-fp $(DATA_ROOT_DIR)/train.txt --test-idx-fp $(DATA_ROOT_DIR)/test.txt --prefix $(REC_DATA_ROOT_DIR)/sample-data
+
+# 利用 *.lst 文件产生 *.idx 和 *.rec 文件。
+# 真正的图片文件存储在 `examples` 目录，可通过 `--root` 指定。
+gen-rec:
+    python scripts/im2rec.py --pack-label --color 1 --num-thread 1 --prefix $(REC_DATA_ROOT_DIR) --root examples
 ```
 
 
 
-现在也支持从已有模型利用特定数据精调模型，请参考下面命令：
+#### （二）训练模型
 
-```bash
-python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr --load_epoch 20
+利用下面命令在CPU上训练模型：
+
+```makefile
+# 训练模型
+train:
+    python scripts/cnocr_train.py --gpu 0 --emb_model_type $(EMB_MODEL_TYPE) --seq_model_type $(SEQ_MODEL_TYPE) \
+        --optimizer adam --epoch 20 --lr 1e-4 \
+        --train_file $(REC_DATA_ROOT_DIR)/sample-data_train --test_file $(REC_DATA_ROOT_DIR)/sample-data_test
+```
+
+如果需要在GPU上训练，把上面命令中的参数 `--gpu 0`改为`--gpu <num_gpu>`，其中的`<num_gpu>` 为使用的GPU数量。注意，使用GPU训练需要安装mxnet的GPU版本，如`mxnet-cu101`。
+
+
+
+#### （三）评估模型
+
+训练好的模型，可以使用脚本 [scripts/cnocr_evaluate.py](scripts/cnocr_evaluate.py) 评估在测试集上的效果：
+
+```makefile
+# 在测试集上评估模型，所有badcases的具体信息会存放到文件夹 `evaluate/$(MODEL_NAME)` 中
+evaluate:
+    python scripts/cnocr_evaluate.py --model-name $(MODEL_NAME) --model-epoch 1 -v -i $(DATA_ROOT_DIR)/test.txt \
+        --image-prefix-dir examples --batch-size 128 -o evaluate/$(MODEL_NAME)
 ```
 
 
 
-更多可参考脚本[scripts/run_cnocr_train.sh](./scripts/run_cnocr_train.sh)中的命令。
+当然，也可以查看模型在单个文件上的预测效果：
+
+```makefile
+predict:
+    python scripts/cnocr_predict.py --model_name $(MODEL_NAME) --file examples/rand_cn1.png
+```
+
+
+
+上面所有代码均可在文件 [Makefile](./Makefile) 中找到。
 
 
 

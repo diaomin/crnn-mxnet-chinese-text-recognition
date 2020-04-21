@@ -1,7 +1,9 @@
 DATA_ROOT_DIR = data/sample-data
 REC_DATA_ROOT_DIR = data/sample-data-lst
-# ['conv', 'conv-lite-rnn', 'densenet', 'densenet-lite']
+
+# `EMB_MODEL_TYPE` 可取值：['conv', 'conv-lite-rnn', 'densenet', 'densenet-lite']
 EMB_MODEL_TYPE = densenet-lite
+# `SEQ_MODEL_TYPE` 可取值：['lstm', 'gru', 'fc']
 SEQ_MODEL_TYPE = fc
 MODEL_NAME = $(EMB_MODEL_TYPE)-$(SEQ_MODEL_TYPE)
 
@@ -21,6 +23,7 @@ train:
 		--optimizer adam --epoch 20 --lr 1e-4 \
 		--train_file $(REC_DATA_ROOT_DIR)/sample-data_train --test_file $(REC_DATA_ROOT_DIR)/sample-data_test
 
+# 在测试集上评估模型，所有badcases的具体信息会存放到文件夹 `evaluate/$(MODEL_NAME)` 中
 evaluate:
 	python scripts/cnocr_evaluate.py --model-name $(MODEL_NAME) --model-epoch 1 -v -i $(DATA_ROOT_DIR)/test.txt \
 		--image-prefix-dir examples --batch-size 128 -o evaluate/$(MODEL_NAME)
