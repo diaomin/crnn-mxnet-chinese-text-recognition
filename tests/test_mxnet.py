@@ -6,7 +6,6 @@ import mxnet as mx
 import numpy as np
 from mxnet import nd
 import pytest
-from mxnet.image import ImageIter
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
@@ -14,7 +13,7 @@ sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 from cnocr.data_utils.aug import FgBgFlipAug
 from cnocr.data_utils.data_iter import GrayImageIter
 
-LST_DIR = Path('data/lst')
+LST_DIR = Path('data/sample-data-lst')
 DATA_DIR = Path('data/sample-data')
 
 
@@ -39,9 +38,6 @@ def _read_lst_file(fp):
     'fp_prefix',
     [
         LST_DIR / 'sample-data_test',
-        # LST_DIR / 'sample-data_0_train',
-        # LST_DIR / 'sample-data_1_train',
-        # LST_DIR / 'sample-data_2_train',
     ],
 )
 def test_iter(fp_prefix):
@@ -53,18 +49,18 @@ def test_iter(fp_prefix):
         rand_mirror=False,
         mean=None,
         std=None,
-        brightness=0.05,
-        contrast=0.1,
-        saturation=0.3,
-        hue=0.1,
-        pca_noise=0.3,
+        brightness=0.001,
+        contrast=0.001,
+        saturation=0.001,
+        hue=0.05,
+        pca_noise=0.1,
         inter_method=2,
     )
     augs.append(FgBgFlipAug(p=0.2))
     data_iter = GrayImageIter(
         batch_size=2,
         data_shape=(3, 32, 280),
-        label_width=10,
+        label_width=20,
         path_imgrec=str(fp_prefix) + ".rec",
         path_imgidx=str(fp_prefix) + ".idx",
         aug_list=augs,
@@ -84,6 +80,7 @@ def test_iter(fp_prefix):
 
     # data是一个NDArray，表示第一个batch中的数据，因为这里的batch_size大小是4，所以data的size是2*3*32*280
     data = batch.data[0]  # shape of each one: (3, 32, 280)
+    # import pdb; pdb.set_trace()
 
     from matplotlib import pyplot as plt
 
@@ -100,9 +97,17 @@ def test_iter(fp_prefix):
         #         nd.abs(data[i].astype(np.uint8) - expected_imgs[i].transpose((2, 0, 1)))
         #     )
         # )
-        print(float(data[i].min()), float(data[i].max()))
+        # print(float(data[i].min()), float(data[i].max()))
         new_img = data[i].asnumpy() * 255
         plt.imshow(new_img.astype(np.uint8).squeeze(axis=0), cmap='gray')
+        import cv2
+        cv2.imwrite(f'new-{i}.png', new_img.astype(np.uint8).squeeze(axis=0))
         plt.subplot(4, 1, i * 2 + 2)
         plt.imshow(expected_imgs[i].asnumpy())
     plt.show()
+
+
+def test_lr_scheduler():
+    from mxnet import lr_scheduler, optimizer
+    scheduler = lr_scheduler.FactorScheduler(base_lr=1, step=250, factor=0.5)
+    optim = optimizer.SGD(learning_rate=0.1, lr_scheduler=scheduler)
