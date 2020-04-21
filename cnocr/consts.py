@@ -13,10 +13,10 @@ root_url = (
 )
 # name: (epochs, url)
 AVAILABLE_MODELS = {
-    'conv-lstm': (50, root_url + '/conv-lstm-0050.zip'),
-    'conv-lite-lstm': (45, root_url + '/conv-lite-lstm-0045.zip'),
-    'conv-lite-fc': (27, root_url + '/conv-lite-fc-0027.zip'),
-    'densenet-lite-lstm': (42, root_url + '/densenet-lite-lstm-0042.zip'),
+    'conv-lstm': (50, root_url + '/conv-lstm.zip'),
+    'conv-lite-lstm': (45, root_url + '/conv-lite-lstm.zip'),
+    'conv-lite-fc': (27, root_url + '/conv-lite-fc.zip'),
+    'densenet-lite-lstm': (42, root_url + '/densenet-lite-lstm.zip'),
     'densenet-lite-fc': (32, root_url + '/densenet-lite-fc.zip'),
 }
 

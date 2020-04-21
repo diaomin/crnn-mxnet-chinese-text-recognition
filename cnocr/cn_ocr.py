@@ -126,9 +126,7 @@ class CnOcr(object):
         self._model_epoch = model_epoch or AVAILABLE_MODELS[model_name][0]
 
         root = os.path.join(root, __version__)
-        self._model_dir = os.path.join(
-            root, '%s-%04d' % (self._model_name, self._model_epoch)
-        )
+        self._model_dir = os.path.join(root, self._model_name)
         self._assert_and_prepare_model_files()
         self._alphabet, inv_alph_dict = read_charset(
             os.path.join(self._model_dir, 'label_cn.txt')
@@ -161,8 +159,6 @@ class CnOcr(object):
         if file_prepared:
             return
 
-        if os.path.exists(model_dir):
-            os.removedirs(model_dir)
         get_model_file(model_dir)
 
     def _get_module(self):

@@ -71,7 +71,7 @@ def get_model_file(model_dir):
 
     zip_file_path = model_dir + '.zip'
     if not os.path.exists(zip_file_path):
-        model_name = os.path.basename(model_dir).rsplit('-', maxsplit=1)[0]
+        model_name = os.path.basename(model_dir)
         if model_name not in AVAILABLE_MODELS:
             raise NotImplementedError('%s is not an available downloaded model' % model_name)
         url = AVAILABLE_MODELS[model_name][1]

@@ -152,6 +152,8 @@ def make_list_new(args):
         prefix = ''
     else:
         working_dir = os.path.dirname(args.prefix)
+        if not os.path.exists(working_dir):
+            os.makedirs(working_dir)
         prefix = os.path.basename(args.prefix)
 
     test_list = read_file(args.test_idx_fp)

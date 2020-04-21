@@ -39,41 +39,32 @@ from cnocr.fit.fit import fit
 def parse_args():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
-    default_model_prefix = os.path.join(
-        data_dir(), 'models', 'cnocr-v{}'.format(__version__)
-    )
 
     parser.add_argument(
         "--emb_model_type",
         help="which embedding model to use",
         choices=EMB_MODEL_TYPES,
         type=str,
-        default='conv-rnn',
+        default='conv-lite',
     )
     parser.add_argument(
         "--seq_model_type",
         help='which sequence model to use',
-        default='lstm',
+        default='fc',
         type=str,
         choices=SEQ_MODEL_TYPES,
-    )
-    parser.add_argument(
-        "--data_root",
-        help="Path to image files",
-        type=str,
-        default='/Users/king/Documents/WhatIHaveDone/Test/text_renderer/output/wechat_simulator',
     )
     parser.add_argument(
         "--train_file",
         help="Path to train txt file",
         type=str,
-        default='/Users/king/Documents/WhatIHaveDone/Test/text_renderer/output/wechat_simulator/train.txt',
+        default='data/sample-data-lst/train.txt',
     )
     parser.add_argument(
         "--test_file",
         help="Path to test txt file",
         type=str,
-        default='/Users/king/Documents/WhatIHaveDone/Test/text_renderer/output/wechat_simulator/test.txt',
+        default='data/sample-data-lst/test.txt',
     )
     parser.add_argument(
         "--use_train_image_aug",
@@ -81,7 +72,10 @@ def parse_args():
         help="Whether to use image augmentation for training",
     )
     parser.add_argument(
-        "--gpu", help="Number of GPUs for training [Default 0, means using cpu]", type=int, default=0
+        "--gpu",
+        help="Number of GPUs for training [Default 0, means using cpu]",
+        type=int,
+        default=0,
     )
     parser.add_argument(
         "--optimizer",
@@ -97,12 +91,7 @@ def parse_args():
         type=int,
         help='load the model on an epoch using the model-load-prefix [Default: no trained model will be loaded]',
     )
-    parser.add_argument(
-        '--lr',
-        type=float,
-        default=0.001,
-        help='learning rate',
-    )
+    parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
     parser.add_argument(
         '--wd', type=float, default=0.0, help='weight decay factor [Default: 0.0]'
     )
@@ -113,9 +102,9 @@ def parse_args():
         help='value for clip gradient [Default: None, means no gradient will be clip]',
     )
     parser.add_argument(
-        "--prefix",
-        help="Checkpoint prefix [Default '{}']".format(default_model_prefix),
-        default=default_model_prefix,
+        "--out_model_dir",
+        help='output model directory',
+        default=os.path.join(data_dir(), __version__),
     )
     return parser.parse_args()
 
@@ -124,7 +113,13 @@ def train_cnocr(args):
     head = '%(asctime)-15s %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=head)
     args.model_name = args.emb_model_type + '-' + args.seq_model_type
-    args.prefix = '{}-{}'.format(args.prefix, args.model_name)
+    out_dir = os.path.join(args.out_model_dir, args.model_name)
+    print('save models to dir: %s' % out_dir, flush=True)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+    args.prefix = os.path.join(
+        out_dir, 'cnocr-v{}-{}'.format(__version__, args.model_name)
+    )
 
     hp = CnHyperparams()
     hp = _update_hp(hp, args)
