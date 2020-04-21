@@ -1,3 +1,5 @@
+English [README](./README_en.md).
+
 # Release Notes
 
 ### Update 2020.04.21: 发布 cnocr V1.1.0
@@ -168,7 +170,7 @@ class CnOcr(object):
 
 * `model_name`: 模型名称，即上面表格第一列中的值。默认为 `conv-lite-fc`。
 * `model_epoch`: 模型迭代次数。默认为 `None`，表示使用默认的迭代次数值。对于模型名称 `conv-lite-fc`就是 `27`。
-* `cand_alphabet`: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围。`cnocr.consts`中内置了两个候选集合：(1)数字和标点 `NUMBERS`；(1)英文字母、数字和标点 `ENG_LETTERS`。
+* `cand_alphabet`: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围。`cnocr.consts`中内置了两个候选集合：(1) 数字和标点 `NUMBERS`；(2) 英文字母、数字和标点 `ENG_LETTERS`。
    * 例如对于图片 ![examples/hybrid.png](./examples/hybrid.png) ，不做约束时识别结果为 `o12345678`；如果加入数字约束时（`ocr = CnOcr(cand_alphabet=NUMBERS)`），识别结果为 `012345678`。
 * `root`: 模型文件所在的根目录。
    * Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.1.0/conv-lite-fc`。
@@ -281,7 +283,7 @@ print("Predicted Chars:", res)
 的预测结果如下：
 
 ```bash
-Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '臭', '姚', '歼', '蠢', '驼', '耳', '裔', '挝', '涯', '狗', '蒽', '子', '犷'] 
+Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼', '蠢', '驼', '耳', '胬', '挝', '涯', '狗', '蒽', '子', '犷'] 
 ```
 
 
