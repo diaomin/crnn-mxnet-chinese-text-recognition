@@ -52,19 +52,6 @@ cnocr主要针对的是排版简单的印刷体文字图片，如截图图片，
 本项目起源于我们自己 ([爱因互动 Ein+](https://einplus.cn)) 内部的项目需求，所以非常感谢公司的支持。
 
 
-
-## 安装
-
-嗯，安装真的很简单。
-
-```bash
-pip install cnocr
-```
-
-> 注意：请使用Python3 (3.4, 3.5, 3.6以及之后版本应该都行)，没测过Python2下是否ok。
-
-
-
 ## 示例
 
 | 图片                                                         | OCR结果                                                      |
@@ -85,6 +72,16 @@ pip install cnocr
 | ![examples/multi-line_en_black.png](./examples/multi-line_en_black.png) | transforms the image many times. First, the image goes through many convolutional layers. In those<br />convolutional layers, the network learns new and increasingly complex features in its layers. Then the <br />transformed image information goes through the fully connected layers and turns into a classification<br />or prediction. |
 
 
+
+## 安装
+
+嗯，安装真的很简单。
+
+```bash
+pip install cnocr
+```
+
+> 注意：请使用Python3 (3.4, 3.5, 3.6以及之后版本应该都行)，没测过Python2下是否ok。
 
 
 
@@ -175,7 +172,7 @@ class CnOcr(object):
    * 例如对于图片 ![examples/hybrid.png](./examples/hybrid.png) ，不做约束时识别结果为 `o12345678`；如果加入数字约束时（`ocr = CnOcr(cand_alphabet=NUMBERS)`），识别结果为 `012345678`。
 * `root`: 模型文件所在的根目录。
    * Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.1.0/conv-lite-fc-0027`。
-   * Windows下默认值为 ``。
+   * Windows下默认值为 `C:\Users\<username>\AppData\Roaming\cnocr`。
 
 
 
