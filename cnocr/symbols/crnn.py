@@ -35,7 +35,7 @@ def gen_network(model_name, hp):
     model_name = model_name.lower()
     if model_name.startswith('densenet'):
         hp.seq_len_cmpr_ratio = 4
-        hp.set_seq_length(hp.img_width // 4 - 1)
+        hp.set_seq_length(hp.img_width // 4)
         layer_channels = (
             (32, 64, 128, 256)
             if model_name.startswith('densenet-lite')
@@ -288,7 +288,7 @@ def crnn_lstm_lite(hp, data):
     # print('4', net.infer_shape()[1])
     net = bottle_conv(4, net, kernel_size[4], layer_size[4], padding_size[4])
     net = bottle_conv(5, net, kernel_size[5], layer_size[5], padding_size[5], True) + x
-    # res: bz x 512 x 1 x 35，高度变成1的原因是pooling后没用padding
+    # res: bz x 512 x 4 x 69，长度从70变成69的原因是pooling后没用padding
     net = mx.symbol.Pooling(
         data=net, name='pool-2', pool_type='max', kernel=(2, 2), stride=(2, 1)
     )
