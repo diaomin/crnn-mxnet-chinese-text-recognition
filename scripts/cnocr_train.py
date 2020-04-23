@@ -27,13 +27,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr.__version__ import __version__
 from cnocr.consts import EMB_MODEL_TYPES, SEQ_MODEL_TYPES
-from cnocr.utils import data_dir
+from cnocr.utils import data_dir, set_logger
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams
 from cnocr.data_utils.data_iter import GrayImageIter
 from cnocr.data_utils.aug import FgBgFlipAug
 from cnocr.symbols.crnn import gen_network
 from cnocr.fit.ctc_metrics import CtcMetrics
 from cnocr.fit.fit import fit
+
+
+logger = set_logger(log_level=logging.INFO)
 
 
 def parse_args():
@@ -114,7 +117,7 @@ def train_cnocr(args):
     logging.basicConfig(level=logging.DEBUG, format=head)
     args.model_name = args.emb_model_type + '-' + args.seq_model_type
     out_dir = os.path.join(args.out_model_dir, args.model_name)
-    print('save models to dir: %s' % out_dir, flush=True)
+    logger.info('save models to dir: %s' % out_dir)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     args.prefix = os.path.join(

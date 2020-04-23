@@ -22,6 +22,7 @@ from __future__ import print_function
 import sys
 import os
 import time
+import logging
 import argparse
 from operator import itemgetter
 from pathlib import Path
@@ -32,6 +33,10 @@ import Levenshtein
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr import CnOcr
+from cnocr.utils import set_logger
+
+
+logger = set_logger(log_level=logging.INFO)
 
 
 def evaluate():
@@ -76,7 +81,7 @@ def evaluate():
     bad_cnt = 0
     badcases = []
     while start_idx < len(fn_labels_list):
-        print('start_idx: ', start_idx)
+        logger.info('start_idx: %d', start_idx)
         batch = fn_labels_list[start_idx : start_idx + args.batch_size]
         batch_img_fns = []
         batch_labels = []
@@ -95,7 +100,7 @@ def evaluate():
             batch_preds, batch_labels, batch_img_fns, alphabet
         ):
             if args.verbose:
-                print('\t'.join(bad_info))
+                logger.info('\t'.join(bad_info))
             distance = Levenshtein.distance(bad_info[1], bad_info[2])
             bad_info.insert(0, distance)
             badcases.append(bad_info)
@@ -133,7 +138,7 @@ def evaluate():
         for word, num in redundant_cnt.most_common():
             f.write('\t'.join([word, str(num)]) + '\n')
 
-    print(
+    logger.info(
         "number of total cases: %d, time cost per image: %f, number of bad cases: %d"
         % (len(fn_labels_list), model_time_cost / len(fn_labels_list), bad_cnt)
     )

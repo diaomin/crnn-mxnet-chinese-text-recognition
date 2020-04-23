@@ -21,11 +21,16 @@ from __future__ import print_function
 
 import sys
 import os
+import logging
 import argparse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr import CnOcr
+from cnocr.utils import set_logger
+
+
+logger = set_logger(log_level=logging.INFO)
 
 
 def main():
@@ -48,7 +53,7 @@ def main():
         res = ocr.ocr_for_single_line(args.file)
     else:
         res = ocr.ocr(args.file)
-    print("Predicted Chars:", res)
+    logger.info("Predicted Chars: %s", res)
 
 
 if __name__ == '__main__':
