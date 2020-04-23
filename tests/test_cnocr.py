@@ -177,7 +177,7 @@ def test_gray_aug(img_fp, expected):
 
 
 def test_cand_alphabet():
-    from cnocr.consts import NUMBERS
+    from cnocr import NUMBERS
 
     img_fp = os.path.join(example_dir, 'hybrid.png')
 

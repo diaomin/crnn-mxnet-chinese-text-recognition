@@ -21,7 +21,7 @@ import mxnet as mx
 import numpy as np
 from PIL import Image
 
-from cnocr import MODEL_VERSION, AVAILABLE_MODELS
+from cnocr.consts import MODEL_VERSION, AVAILABLE_MODELS
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams as Hyperparams
 from cnocr.fit.lstm import init_states
 from cnocr.fit.ctc_metrics import CtcMetrics
