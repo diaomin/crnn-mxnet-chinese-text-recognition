@@ -1,8 +1,11 @@
 # coding: utf-8
-import os
 import string
 from .__version__ import __version__
 
+
+# 模型版本只对应到第二层，第三层的改动表示模型兼容。
+# 如: __version__ = '1.2.*'，对应的 MODEL_VERSION 都是 '1.2.0'
+MODEL_VERSION = '.'.join(__version__.split('.', maxsplit=2)[:2]) + '.0'
 
 EMB_MODEL_TYPES = ['conv', 'conv-lite', 'densenet', 'densenet-lite']
 SEQ_MODEL_TYPES = ['lstm', 'gru', 'fc']
