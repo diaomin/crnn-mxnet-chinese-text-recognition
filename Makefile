@@ -32,4 +32,12 @@ predict:
 	python scripts/cnocr_predict.py --model_name $(MODEL_NAME) --file examples/rand_cn1.png
 
 
-.PHONY: gen-lst gen-rec train evaluate predict
+package:
+	python setup.py sdist bdist_wheel
+
+VERSION = 1.1.1
+upload:
+	python -m twine upload  dist/cnocr-$(VERSION)* --verbose
+
+
+.PHONY: gen-lst gen-rec train evaluate predict package upload
