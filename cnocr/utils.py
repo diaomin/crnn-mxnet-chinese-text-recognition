@@ -16,11 +16,43 @@
 # specific language governing permissions and limitations
 # under the License.
 import os
+from pathlib import Path
+import logging
 import platform
 import zipfile
 from mxnet.gluon.utils import download
 
 from .consts import AVAILABLE_MODELS, EMB_MODEL_TYPES, SEQ_MODEL_TYPES
+
+
+fmt = '[%(levelname)s %(asctime)s %(funcName)s:%(lineno)d] %(' \
+      'message)s '
+logging.basicConfig(format=fmt)
+logging.captureWarnings(True)
+logger = logging.getLogger()
+
+
+def set_logger(log_file=None, log_level=logging.INFO, log_file_level=logging.NOTSET):
+    """
+    Example:
+        >>> set_logger(log_file)
+        >>> logger.info("abc'")
+    """
+    log_format = logging.Formatter(fmt)
+    logger.setLevel(log_level)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(log_format)
+    logger.handlers = [console_handler]
+    if log_file and log_file != '':
+        if not Path(log_file).parent.exists():
+            os.makedirs(Path(log_file).parent)
+        if isinstance(log_file, Path):
+            log_file = str(log_file)
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(log_file_level)
+        file_handler.setFormatter(log_format)
+        logger.addHandler(file_handler)
+    return logger
 
 
 def data_dir_default():
