@@ -12,7 +12,7 @@ SEQ_MODEL_TYPES = ['lstm', 'gru', 'fc']
 
 root_url = (
     'https://raw.githubusercontent.com/breezedeus/cnocr-models/master/models/%s'
-    % __version__
+    % MODEL_VERSION
 )
 # name: (epochs, url)
 AVAILABLE_MODELS = {
