@@ -77,7 +77,7 @@ def gen_seq_model(hp):
 
         def fc_seq_model(data):
             fc = mx.sym.FullyConnected(
-                data, num_hidden=2 * hp.num_hidden, flatten=False, name='seq-fc'
+                data, num_hidden=hp.num_hidden, flatten=False, name='seq-fc'
             )
             net = mx.sym.Activation(data=fc, act_type='relu', name='seq-relu')
             return net
