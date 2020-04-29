@@ -1,7 +1,6 @@
 # coding: utf-8
 import os
 import sys
-import logging
 from copy import deepcopy
 import pytest
 import mxnet as mx
@@ -44,7 +43,7 @@ def test_densenet():
     net.initialize()
     y = net(x)
     logger.info(net)
-    logger.info(y.shape)  # (128, 512, 1, 69)
+    logger.info(y.shape)  # (128, 512, 1, 70)
     assert y.shape[2] == 1
     logger.info('number of parameters: %d', cal_num_params(net))  # 1748224
 

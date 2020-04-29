@@ -42,6 +42,7 @@ def gen_network(model_name, hp):
             else (64, 128, 256, 512)
         )
         densenet = DenseNet(layer_channels)
+        densenet.hybridize()
         model = CRnn(hp, densenet)
     elif model_name.startswith('conv-lite'):
         hp.seq_len_cmpr_ratio = 4
