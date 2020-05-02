@@ -82,7 +82,7 @@ def lstm_init_states(batch_size, hp):
     return init_names, init_arrays
 
 
-def load_module(prefix, epoch, data_names, data_shapes, network=None):
+def load_module(prefix, epoch, data_names, data_shapes, network=None, context='cpu'):
     """
     Loads the model from checkpoint specified by prefix and epoch, binds it
     to an executor, and sets its parameters and returns a mx.mod.Module
@@ -96,8 +96,13 @@ def load_module(prefix, epoch, data_names, data_shapes, network=None):
     pred_fc = sym.get_internals()['pred_fc_output']
     sym = mx.sym.softmax(data=pred_fc)
 
+    if isinstance(context, str):
+        context = mx.gpu() if context.lower() == 'gpu' else mx.cpu()
+    elif not isinstance(context, mx.Context):
+        raise NotImplementedError('illegal value %s for parameter context' % context)
+
     mod = mx.mod.Module(
-        symbol=sym, context=mx.cpu(), data_names=data_names, label_names=None
+        symbol=sym, context=context, data_names=data_names, label_names=None
     )
     mod.bind(for_training=False, data_shapes=data_shapes)
     mod.set_params(arg_params, aux_params, allow_missing=False)
@@ -113,6 +118,7 @@ class CnOcr(object):
         model_epoch=None,
         cand_alphabet=None,
         root=data_dir(),
+        context='cpu',
     ):
         """
 
@@ -122,6 +128,7 @@ class CnOcr(object):
         :param root: 模型文件所在的根目录。
             Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.1.0/conv-lite-fc-0027`。
             Windows下默认值为 ``。
+        :param context: 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为CPU。
         """
         check_model_name(model_name)
         self._model_name = model_name
@@ -143,7 +150,7 @@ class CnOcr(object):
         self._hp = Hyperparams()
         self._hp._loss_type = None  # infer mode
 
-        self._mod = self._get_module()
+        self._mod = self._get_module(context)
 
     def _assert_and_prepare_model_files(self):
         model_dir = self._model_dir
@@ -164,7 +171,7 @@ class CnOcr(object):
 
         get_model_file(model_dir)
 
-    def _get_module(self):
+    def _get_module(self, context):
         network, self._hp = gen_network(self._model_name, self._hp)
         hp = self._hp
         prefix = os.path.join(self._model_dir, self._model_file_prefix)
@@ -172,7 +179,12 @@ class CnOcr(object):
         data_shapes = [(data_names[0], (hp.batch_size, 1, hp.img_height, hp.img_width))]
         logger.info('loading model parameters from dir %s' % self._model_dir)
         mod = load_module(
-            prefix, self._model_epoch, data_names, data_shapes, network=network
+            prefix,
+            self._model_epoch,
+            data_names,
+            data_shapes,
+            network=network,
+            context=context,
         )
         return mod
 

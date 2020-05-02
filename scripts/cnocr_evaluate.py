@@ -46,6 +46,13 @@ def evaluate():
     )
     parser.add_argument("--model-epoch", type=int, default=None, help="model epoch")
     parser.add_argument(
+        "--context",
+        type=str,
+        default='cpu',
+        choices=['cpu', 'gpu'],
+        help="which context to run inferences",
+    )
+    parser.add_argument(
         "-i",
         "--input-fp",
         default='test.txt',
@@ -70,7 +77,9 @@ def evaluate():
     )
     args = parser.parse_args()
 
-    ocr = CnOcr(model_name=args.model_name, model_epoch=args.model_epoch)
+    ocr = CnOcr(
+        model_name=args.model_name, model_epoch=args.model_epoch, context=args.context
+    )
     alphabet = ocr._alphabet
 
     fn_labels_list = read_input_file(args.input_fp)
