@@ -33,7 +33,7 @@ import Levenshtein
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cnocr import CnOcr
-from cnocr.utils import set_logger
+from cnocr.utils import set_logger, gen_context
 
 
 logger = set_logger(log_level=logging.INFO)
@@ -46,11 +46,10 @@ def evaluate():
     )
     parser.add_argument("--model-epoch", type=int, default=None, help="model epoch")
     parser.add_argument(
-        "--context",
-        type=str,
-        default='cpu',
-        choices=['cpu', 'gpu'],
-        help="which context to run inferences",
+        "--gpu",
+        help="Number of GPUs for training [Default 0, means using cpu]",
+        type=int,
+        default=0,
     )
     parser.add_argument(
         "-i",
@@ -76,9 +75,10 @@ def evaluate():
         help="the output directory which records the analysis results",
     )
     args = parser.parse_args()
+    context = gen_context(args.gpu)
 
     ocr = CnOcr(
-        model_name=args.model_name, model_epoch=args.model_epoch, context=args.context
+        model_name=args.model_name, model_epoch=args.model_epoch, context=context
     )
     alphabet = ocr._alphabet
 

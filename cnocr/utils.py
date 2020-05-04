@@ -20,6 +20,7 @@ from pathlib import Path
 import logging
 import platform
 import zipfile
+import mxnet as mx
 from mxnet.gluon.utils import download
 
 from .consts import AVAILABLE_MODELS, EMB_MODEL_TYPES, SEQ_MODEL_TYPES
@@ -53,6 +54,14 @@ def set_logger(log_file=None, log_level=logging.INFO, log_file_level=logging.NOT
         file_handler.setFormatter(log_format)
         logger.addHandler(file_handler)
     return logger
+
+
+def gen_context(num_gpu):
+    if num_gpu > 0:
+        context = [mx.context.gpu(i) for i in range(num_gpu)]
+    else:
+        context = [mx.context.cpu()]
+    return context
 
 
 def data_dir_default():

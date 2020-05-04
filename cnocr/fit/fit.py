@@ -2,6 +2,8 @@ import logging
 import os
 import mxnet as mx
 
+from ..utils import gen_context
+
 
 def _load_model(args):
     if 'load_epoch' not in args or args.load_epoch is None:
@@ -16,10 +18,7 @@ def _load_model(args):
 
 
 def fit(network, data_train, data_val, metrics, args, hp, data_names=None):
-    if args.gpu > 0:
-        contexts = [mx.context.gpu(i) for i in range(args.gpu)]
-    else:
-        contexts = [mx.context.cpu()]
+    context = gen_context(args.gpu)
     logging.info('hp: %s', hp)
 
     sym, arg_params, aux_params = _load_model(args)
@@ -32,7 +31,7 @@ def fit(network, data_train, data_val, metrics, args, hp, data_names=None):
         symbol=network,
         data_names=["data"] if data_names is None else data_names,
         label_names=['label'],
-        context=contexts,
+        context=context,
     )
 
     begin_epoch = args.load_epoch if args.load_epoch else 0
