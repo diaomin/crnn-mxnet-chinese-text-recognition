@@ -6,7 +6,7 @@ English [README](./README_en.md).
 
 
 
-<img src="./docs/cnocr-qq.jpg" alt="QQ群二维码" style="zoom:50%;" />
+![QQ群二维码](./docs/cnocr-qq.jpg)
 
 
 
