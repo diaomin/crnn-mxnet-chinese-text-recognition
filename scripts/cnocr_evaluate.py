@@ -47,7 +47,8 @@ def evaluate():
     parser.add_argument("--model-epoch", type=int, default=None, help="model epoch")
     parser.add_argument(
         "--gpu",
-        help="Number of GPUs for training [Default 0, means using cpu]",
+        help="Number of GPUs for training [Default 0, means using cpu]"
+        "目前限制gpu <= 1，因为 gpu > 1时预测结果有问题，与 gpu = 1时不同，暂未发现原因。",
         type=int,
         default=0,
     )
@@ -75,6 +76,7 @@ def evaluate():
         help="the output directory which records the analysis results",
     )
     args = parser.parse_args()
+    assert args.gpu <= 1
     context = gen_context(args.gpu)
 
     ocr = CnOcr(
