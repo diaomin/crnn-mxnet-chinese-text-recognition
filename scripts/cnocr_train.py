@@ -96,6 +96,9 @@ def parse_args():
     )
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
     parser.add_argument(
+        '--dropout', type=float, default=0.5, help='dropout ratio [Default: 0.5]'
+    )
+    parser.add_argument(
         '--wd', type=float, default=0.0, help='weight decay factor [Default: 0.0]'
     )
     parser.add_argument(
@@ -150,6 +153,7 @@ def _update_hp(hp, args):
     hp._num_epoch = args.epoch
     hp.optimizer = args.optimizer
     hp._learning_rate = args.lr
+    hp._drop_out = args.dropout
     hp.wd = args.wd
     hp.clip_gradient = args.clip_gradient
     return hp
