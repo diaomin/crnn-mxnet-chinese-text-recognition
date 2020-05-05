@@ -64,6 +64,16 @@ def gen_context(num_gpu):
     return context
 
 
+def check_context(context):
+    if isinstance(context, str):
+        return context.lower() in ('gpu', 'cpu')
+    if isinstance(context, list):
+        if len(context) < 1:
+            return False
+        return all(isinstance(ctx, mx.Context) for ctx in context)
+    return isinstance(context, mx.Context)
+
+
 def data_dir_default():
     """
 

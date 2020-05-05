@@ -33,6 +33,7 @@ from cnocr.utils import (
     read_charset,
     normalize_img_array,
     check_model_name,
+    check_context,
 )
 from cnocr.line_split import line_split
 
@@ -96,10 +97,10 @@ def load_module(prefix, epoch, data_names, data_shapes, network=None, context='c
     pred_fc = sym.get_internals()['pred_fc_output']
     sym = mx.sym.softmax(data=pred_fc)
 
+    if not check_context(context):
+        raise NotImplementedError('illegal value %s for parameter context' % context)
     if isinstance(context, str):
         context = mx.gpu() if context.lower() == 'gpu' else mx.cpu()
-    elif not isinstance(context, mx.Context):
-        raise NotImplementedError('illegal value %s for parameter context' % context)
 
     mod = mx.mod.Module(
         symbol=sym, context=context, data_names=data_names, label_names=None
