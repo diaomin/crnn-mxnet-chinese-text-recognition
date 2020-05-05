@@ -217,13 +217,13 @@ def _make_final_stage_net(stage_index, out_channels):
     with features.name_scope():
         features.add(nn.BatchNorm())
         features.add(nn.Activation('relu'))
-        features.add(nn.Conv2D(out_channels // 4, kernel_size=1, use_bias=False))
-        features.add(nn.BatchNorm())
-        features.add(nn.Activation('relu'))
-        features.add(
-            nn.Conv2D(out_channels, kernel_size=(2, 1), strides=(2, 1), use_bias=False)
-        )
-        features.add(nn.BatchNorm())
-        features.add(nn.Activation('relu'))
-        # features.add(nn.MaxPool2D(pool_size=(2, 1), strides=(2, 1)))
+        # features.add(nn.Conv2D(out_channels // 4, kernel_size=1, use_bias=False))
+        # features.add(nn.BatchNorm())
+        # features.add(nn.Activation('relu'))
+        # features.add(
+        #     nn.Conv2D(out_channels, kernel_size=(2, 1), strides=(2, 1), use_bias=False)
+        # )
+        # features.add(nn.BatchNorm())
+        # features.add(nn.Activation('relu'))
+        features.add(nn.MaxPool2D(pool_size=(2, 1), strides=(2, 1)))
     return features
