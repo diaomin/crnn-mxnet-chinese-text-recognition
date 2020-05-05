@@ -10,6 +10,7 @@ class CnHyperparams(object):
         # self._train_epoch_size = 2560000
         # self._eval_epoch_size = 3000
         self._num_epoch = 20
+        self._loss_type = 'ctc'
         self.optimizer = "Adam"
         self._learning_rate = 0.001
         self.wd = 0.00001
@@ -71,7 +72,7 @@ class CnHyperparams(object):
 
     @property
     def loss_type(self):
-        return "ctc"
+        return self._loss_type
 
     @property
     def batch_size(self):
