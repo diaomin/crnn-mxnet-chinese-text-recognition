@@ -7,7 +7,15 @@ from .__version__ import __version__
 # 如: __version__ = '1.2.*'，对应的 MODEL_VERSION 都是 '1.2.0'
 MODEL_VERSION = '.'.join(__version__.split('.', maxsplit=2)[:2]) + '.0'
 
-EMB_MODEL_TYPES = ['conv', 'conv-lite', 'densenet', 'densenet-lite']
+EMB_MODEL_TYPES = [
+    'conv',  # seq_len == 35, deprecated
+    'conv-lite',  # seq_len == 69
+    'conv-lite-s',  # seq_len == 35
+    'densenet',  # seq_len == 70, deprecated
+    'densenet-lite',  # seq_len == 70
+    'densenet-s',  # seq_len == 35
+    'densenet-lite-s',  # seq_len == 35
+]
 SEQ_MODEL_TYPES = ['lstm', 'gru', 'fc']
 
 root_url = (

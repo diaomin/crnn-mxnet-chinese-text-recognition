@@ -72,29 +72,23 @@ def _make_residual(cell_net):
 
 
 class DenseNet(HybridBlock):
-    r"""Densenet-BC model from the
+    r"""Densenet model adapted with DenseNet in Gluon.
+        "from gluoncv.model_zoo.densenet import DenseNet"
+
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_ paper.
 
     Parameters
     ----------
-    num_init_features : int
-        Number of filters to learn in the first convolution layer.
-    growth_rate : int
-        Number of filters to add each layer (`k` in the paper).
-    block_config : list of int
-        List of integers for numbers of layers in each pooling block.
-    bn_size : int, default 4
-        Multiplicative factor for number of bottle neck layers.
-        (i.e. bn_size * k features in the bottleneck layer)
-    dropout : float, default 0
-        Rate of dropout after each dense layer.
-    classes : int, default 1000
-        Number of classification classes.
+
+    layer_channels: tuple or list with length 4,
+                    such as `layer_channels = (64, 128, 256, 512)`
+    shorter: pooling to 1/8 length if shorter is True, else pooling to 1/4
     """
 
-    def __init__(self, layer_channels, **kwargs):
+    def __init__(self, layer_channels, *, shorter=False, **kwargs):
         assert len(layer_channels) == 4
         super(DenseNet, self).__init__(**kwargs)
+        self.shorter = shorter
         with self.name_scope():
             # Stage 0
             self.features = nn.HybridSequential(prefix='')
@@ -123,7 +117,12 @@ class DenseNet(HybridBlock):
             self.features.add(_make_last_transition(layer_channels[3]))
 
             # Stage 3
-            self.features.add(_make_final_stage_net(3, out_channels=layer_channels[3]))
+            pool_size = strides = (2, 2) if self.shorter else (2, 1)
+            self.features.add(
+                _make_final_stage_net(
+                    3, pool_size, strides, out_channels=layer_channels[3]
+                )
+            )
 
             # num_features = num_init_features
             # for i, num_layers in enumerate(block_config):
@@ -147,8 +146,12 @@ class DenseNet(HybridBlock):
         :return: with shape (batch_size, embed_size, 1, img_width // 4)
         """
         x = self.features(x)  # res: (batch_size, embed_size, 2, img_width // 4)
-        x = F.reshape(x, (0, -3, 0))  # res: (batch_size, embed_size * 2, img_width // 4)
-        x = F.expand_dims(x, axis=2)  # res: (batch_size, embed_size * 2, 1, img_width // 4)
+        x = F.reshape(
+            x, (0, -3, 0)
+        )  # res: (batch_size, embed_size * 2, img_width // 4)
+        x = F.expand_dims(
+            x, axis=2
+        )  # res: (batch_size, embed_size * 2, 1, img_width // 4)
         return x
 
 
@@ -212,7 +215,7 @@ def _make_last_transition(num_output_features):
     return out
 
 
-def _make_final_stage_net(stage_index, out_channels):
+def _make_final_stage_net(stage_index, pool_size, strides, out_channels):
     features = nn.HybridSequential(prefix='stage%d_' % stage_index)
     with features.name_scope():
         features.add(nn.BatchNorm())
@@ -225,5 +228,5 @@ def _make_final_stage_net(stage_index, out_channels):
         # )
         # features.add(nn.BatchNorm())
         # features.add(nn.Activation('relu'))
-        features.add(nn.MaxPool2D(pool_size=(2, 1), strides=(2, 1)))
+        features.add(nn.MaxPool2D(pool_size=pool_size, strides=strides))
     return features

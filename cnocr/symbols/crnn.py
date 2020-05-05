@@ -35,19 +35,25 @@ def gen_network(model_name, hp):
     model_name = model_name.lower()
     if model_name.startswith('densenet'):
         hp.seq_len_cmpr_ratio = 4
-        hp.set_seq_length(hp.img_width // 4)
         layer_channels = (
             (32, 64, 128, 256)
             if model_name.startswith('densenet-lite')
             else (64, 128, 256, 512)
         )
-        densenet = DenseNet(layer_channels)
+        shorter = model_name.startswith('densenet-s-') or model_name.startswith(
+            'densenet-lite-s-'
+        )
+        seq_len = hp.img_width // 8 if shorter else hp.img_width // 4
+        hp.set_seq_length(seq_len)
+        densenet = DenseNet(layer_channels, shorter=shorter)
         densenet.hybridize()
         model = CRnn(hp, densenet)
     elif model_name.startswith('conv-lite'):
         hp.seq_len_cmpr_ratio = 4
-        hp.set_seq_length(hp.img_width // 4 - 1)
-        model = lambda data: crnn_lstm_lite(hp, data)
+        shorter = model_name.startswith('conv-lite-s-')
+        seq_len = hp.img_width // 8 if shorter else hp.img_width // 4 - 1
+        hp.set_seq_length(seq_len)
+        model = lambda data: crnn_lstm_lite(hp, data, shorter=shorter)
     elif model_name.startswith('conv'):
         hp.seq_len_cmpr_ratio = 8
         hp.set_seq_length(hp.img_width // 8)
@@ -254,7 +260,7 @@ def crnn_lstm(hp, data):
     return hidden_concat
 
 
-def crnn_lstm_lite(hp, data):
+def crnn_lstm_lite(hp, data, *, shorter=False):
     kernel_size = [(3, 3), (3, 3), (3, 3), (3, 3), (3, 3), (3, 3)]
     padding_size = [(1, 1), (1, 1), (1, 1), (1, 1), (1, 1), (1, 1)]
     layer_size = [min(32 * 2 ** (i + 1), 512) for i in range(len(kernel_size))]
@@ -289,9 +295,11 @@ def crnn_lstm_lite(hp, data):
     # print('4', net.infer_shape()[1])
     net = bottle_conv(4, net, kernel_size[4], layer_size[4], padding_size[4])
     net = bottle_conv(5, net, kernel_size[5], layer_size[5], padding_size[5], True) + x
-    # res: bz x 512 x 4 x 69，长度从70变成69的原因是pooling后没用padding
+    width_stride = 2 if shorter else 1
+    # res: bz x 512 x 4 x 69 or bz x 512 x 4 x 35
+    #  长度从70变成69的原因是pooling后没用padding
     net = mx.symbol.Pooling(
-        data=net, name='pool-2', pool_type='max', kernel=(2, 2), stride=(2, 1)
+        data=net, name='pool-2', pool_type='max', kernel=(2, 2), stride=(2, width_stride)
     )
     # print('5', net.infer_shape()[1])
     # net = mx.symbol.Convolution(name='conv-%d' % 6, data=net, kernel=(4, 1), num_filter=layer_size[5])

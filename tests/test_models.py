@@ -37,15 +37,19 @@ def test_dense_layer():
 
 
 def test_densenet():
-    x = nd.random.randn(128, 64, 32, 280)
+    width = 280
+    x = nd.random.randn(128, 64, 32, width)
     layer_channels = (64, 128, 256, 512)
-    net = DenseNet(layer_channels)
-    net.initialize()
-    y = net(x)
-    logger.info(net)
-    logger.info(y.shape)  # (128, 512, 1, 70)
-    assert y.shape[2] == 1
-    logger.info('number of parameters: %d', cal_num_params(net))  # 1748224
+    for shorter in (False, True):
+        net = DenseNet(layer_channels, shorter=shorter)
+        net.initialize()
+        y = net(x)
+        logger.info(net)
+        logger.info(y.shape)  # (128, 512, 1, 70) or (128, 512, 1, 35)
+        assert y.shape[2] == 1
+        expected_seq_len = width // 8 if shorter else width // 4
+        assert y.shape[3] == expected_seq_len
+        logger.info('number of parameters: %d', cal_num_params(net))  # 1748224
 
 
 def test_crnn():
@@ -77,17 +81,19 @@ def test_crnn_lstm():
 
 def test_crnn_lstm_lite():
     hp = deepcopy(HP)
-    hp.set_seq_length(hp.img_width // 4 - 1)
-    data = mx.sym.Variable('data', shape=(128, 1, 32, 280))
-    pred = crnn_lstm_lite(HP, data)
-    pred_shape = pred.infer_shape()[1][0]
-    logger.info('shape of pred: %s', pred_shape)
-    assert pred_shape == (hp.seq_length, hp.batch_size, 2 * hp.num_hidden)
+    width = hp.img_width  # 280
+    data = mx.sym.Variable('data', shape=(128, 1, 32, width))
+    for shorter in (False, True):
+        pred = crnn_lstm_lite(HP, data, shorter=shorter)
+        pred_shape = pred.infer_shape()[1][0]
+        logger.info('shape of pred: %s', pred_shape)
+        seq_len = hp.img_width // 8 if shorter else hp.img_width // 4 - 1
+        assert pred_shape == (seq_len, hp.batch_size, 2 * hp.num_hidden)
 
 
 def test_pipline():
     hp = deepcopy(HP)
-    hp.set_seq_length(hp.img_width // 4 - 1)
+    hp.set_seq_length(hp.img_width // 4)
     hp._loss_type = None  # infer mode
     layer_channels_list = [(64, 128, 256, 512), (32, 64, 128, 256)]
     for layer_channels in layer_channels_list:
