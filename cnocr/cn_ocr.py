@@ -312,7 +312,9 @@ class CnOcr(object):
     def _predict(self, sample):
         mod = self._mod
         mod.forward(sample)
-        prob = mod.get_outputs()[0].asnumpy()
+        prob = mod.get_outputs()[0]
+        mx.nd.waitall()
+        prob = prob.asnumpy()
         return prob
 
     def _gen_line_pred_chars(self, line_prob, img_width, max_img_width):
