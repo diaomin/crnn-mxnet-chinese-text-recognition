@@ -87,12 +87,19 @@ def parse_args():
         default='Adam',
     )
     parser.add_argument(
+        '--batch_size',
+        type=int,
+        default=128,
+        help='batch size for each device [Default: 128]',
+    )
+    parser.add_argument(
         '--epoch', type=int, default=20, help='train epochs [Default: 20]'
     )
     parser.add_argument(
         '--load_epoch',
         type=int,
-        help='load the model on an epoch using the model-load-prefix [Default: no trained model will be loaded]',
+        help='load the model on an epoch using the model-load-prefix '
+             '[Default: no trained model will be loaded]',
     )
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
     parser.add_argument(
@@ -152,6 +159,7 @@ def _update_hp(hp, args):
     hp.seq_model_type = args.seq_model_type
     hp._num_epoch = args.epoch
     hp.optimizer = args.optimizer
+    hp._batch_size = args.batch_size
     hp._learning_rate = args.lr
     hp._drop_out = args.dropout
     hp.wd = args.wd
