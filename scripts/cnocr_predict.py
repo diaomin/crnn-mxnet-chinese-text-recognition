@@ -54,6 +54,8 @@ def main():
     else:
         res = ocr.ocr(args.file)
     logger.info("Predicted Chars: %s", res)
+    res = [''.join(line_p) for line_p in res]
+    logger.info('\n' + '\n'.join(res))
 
 
 if __name__ == '__main__':
