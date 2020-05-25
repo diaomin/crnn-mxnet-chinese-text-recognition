@@ -15,7 +15,8 @@ English [README](./README_en.md).
 主要变更：
 
 * 优化了对数字识别的准确度。
-* 模型结构优化，进一步降低了模型的大小，提升了预测速度；最小模型从原来的`6.8M`降为`4.7M`。
+* 优化了模型结构，进一步降低了模型的大小，提升了预测速度；最小模型从原来的`6.8M`降为`4.7M`。
+* 使用了[爱因互动 Ein+](https://einplus.cn)自己的CDN存储模型文件，下载速度超快。
 * 提供了预测速度更快的 `shorter (-s)`版预训练模型：`densenet-lite-s-gru`和`densenet-lite-s-fc`。
 * 默认模型由之前的`conv-lite-fc`改为`densenet-lite-fc`。
 * 预测支持使用GPU。
@@ -26,7 +27,7 @@ English [README](./README_en.md).
 
 
 
-更多更新说明见 [RELEASE NOTES](./RELEASE.md)。
+更多更新说明见 [RELEASE Notes](./RELEASE.md)。
 
 
 
