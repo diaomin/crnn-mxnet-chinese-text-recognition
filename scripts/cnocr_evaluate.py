@@ -150,8 +150,13 @@ def evaluate():
             f.write('\t'.join([word, str(num)]) + '\n')
 
     logger.info(
-        "number of total cases: %d, time cost per image: %f, number of bad cases: %d"
-        % (len(fn_labels_list), model_time_cost / len(fn_labels_list), bad_cnt)
+        "number of total cases: %d, number of bad cases: %d, acc: %.4f, time cost per image: %f"
+        % (
+            len(fn_labels_list),
+            bad_cnt,
+            bad_cnt / len(fn_labels_list),
+            model_time_cost / len(fn_labels_list),
+        )
     )
 
 
