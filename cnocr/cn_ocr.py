@@ -115,7 +115,7 @@ class CnOcr(object):
 
     def __init__(
         self,
-        model_name='conv-lite-fc',
+        model_name='densenet-lite-fc',
         model_epoch=None,
         cand_alphabet=None,
         root=data_dir(),
@@ -165,6 +165,7 @@ class CnOcr(object):
             f = os.path.join(model_dir, f)
             if not os.path.exists(f):
                 file_prepared = False
+                logger.warning('can not find file %s', f)
                 break
 
         if file_prepared:
