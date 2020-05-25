@@ -19,7 +19,7 @@ EMB_MODEL_TYPES = [
 SEQ_MODEL_TYPES = ['lstm', 'gru', 'fc']
 
 root_url = (
-    'https://raw.githubusercontent.com/breezedeus/cnocr-models/master/models/%s'
+    'https://static.einplus.cn/cnocr/%s'
     % MODEL_VERSION
 )
 # name: (epochs, url)
