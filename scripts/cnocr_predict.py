@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import sys
 import os
+import glob
 import logging
 import argparse
 
@@ -39,7 +40,7 @@ def main():
         "--model_name", help="model name", type=str, default='conv-lite-fc'
     )
     parser.add_argument("--model_epoch", type=int, default=None, help="model epoch")
-    parser.add_argument("-f", "--file", help="Path to the image file")
+    parser.add_argument("-f", "--file", help="Path to the image file or dir")
     parser.add_argument(
         "-s",
         "--single-line",
@@ -49,13 +50,19 @@ def main():
     args = parser.parse_args()
 
     ocr = CnOcr(model_name=args.model_name, model_epoch=args.model_epoch)
-    if args.single_line:
-        res = ocr.ocr_for_single_line(args.file)
-    else:
-        res = ocr.ocr(args.file)
-    logger.info("Predicted Chars: %s", res)
-    res = [''.join(line_p) for line_p in res]
-    logger.info('\n' + '\n'.join(res))
+    ocr_func = ocr.ocr_for_single_line if args.single_line else ocr.ocr
+    fp_list = []
+    if os.path.isfile(args.file):
+        fp_list.append(args.file)
+    elif os.path.isdir(args.file):
+        fn_list = glob.glob1(args.file, '*g')
+        fp_list = [os.path.join(args.file, fn) for fn in fn_list]
+
+    for fp in fp_list:
+        res = ocr_func(fp)
+        logger.info('\n' + '='*10 + fp + '='*10)
+        res = [''.join(line_p) for line_p in res]
+        logger.info('\n' + '\n'.join(res))
 
 
 if __name__ == '__main__':
