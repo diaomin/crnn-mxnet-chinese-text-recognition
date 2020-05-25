@@ -127,10 +127,10 @@ cnocr v1.2 目前包含以下可直接使用的模型，训练好的模型都放
 
 ## 使用方法
 
-首次使用cnocr时，系统会自动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 下载zip格式的模型压缩文件，并存于 `~/.cnocr`目录（Windows下默认路径为 `C:\Users\<username>\AppData\Roaming\cnocr`）。
+首次使用cnocr时，系统会自动下载zip格式的模型压缩文件，并存于 `~/.cnocr`目录（Windows下默认路径为 `C:\Users\<username>\AppData\Roaming\cnocr`）。
 下载后的zip文件代码会自动对其解压，然后把解压后的模型相关目录放于`~/.cnocr/1.2.0`目录中。
 
-如果系统不能自动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 成功下载zip文件，则需要手动下载此zip文件并把它放于 `~/.cnocr/1.2.0`目录。如果Github下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1CnbtE693FQqKM1pBDTCrNg) 下载， 提取码为 ` msua`。
+如果系统无法自动成功下载zip文件，则需要手动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 下载此zip文件并把它放于 `~/.cnocr/1.2.0`目录。如果Github下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1CnbtE693FQqKM1pBDTCrNg) 下载， 提取码为 ` msua`。
 
 放置好zip文件后，后面的事代码就会自动执行了。
 
