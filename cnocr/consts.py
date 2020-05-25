@@ -27,8 +27,8 @@ AVAILABLE_MODELS = {
     'conv-lite-fc': (25, root_url + '/conv-lite-fc.zip'),
     'densenet-lite-gru': (39, root_url + '/densenet-lite-gru.zip'),
     'densenet-lite-fc': (40, root_url + '/densenet-lite-fc.zip'),
-    'densenet-lite-s-gru': (35, root_url + '/densenet-lite-gru.zip'),
-    'densenet-lite-s-fc': (40, root_url + '/densenet-lite-fc.zip'),
+    'densenet-lite-s-gru': (35, root_url + '/densenet-lite-s-gru.zip'),
+    'densenet-lite-s-fc': (40, root_url + '/densenet-lite-s-fc.zip'),
 }
 
 # 候选字符集合

@@ -1,4 +1,13 @@
 # Release Notes
+
+### Update 2020.05.25: 发布 cnocr V1.2.1
+
+bugfix:
+
+* 修复了zip文件名的typo。
+
+
+
 ### Update 2020.05.25: 发布 cnocr V1.2.0
 
 主要变更：
