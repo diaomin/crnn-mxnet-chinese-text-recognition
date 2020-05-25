@@ -17,13 +17,13 @@ from cnocr.data_utils.aug import GrayAug
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 example_dir = os.path.join(root_dir, 'examples')
-CNOCR = CnOcr(model_name='conv-lite-fc', model_epoch=None)
+CNOCR = CnOcr(model_name='densenet-lite-fc', model_epoch=None)
 
 SINGLE_LINE_CASES = [
     ('20457890_2399557098.jpg', ['就会哈哈大笑。3.0']),
     ('rand_cn1.png', ['笠淡嘿骅谧鼎皋姚歼蠢驼耳胬挝涯狗蒽孓犷']),
     ('rand_cn2.png', ['凉芦']),
-    ('helloworld.jpg', ['Hello World!你好世界']),
+    ('helloworld.jpg', ['Hello world!你好世界']),
 ]
 MULTIPLE_LINE_CASES = [
     ('hybrid.png', ['o12345678']),
