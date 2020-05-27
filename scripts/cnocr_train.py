@@ -25,8 +25,7 @@ import mxnet as mx
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from cnocr.__version__ import __version__
-from cnocr.consts import EMB_MODEL_TYPES, SEQ_MODEL_TYPES
+from cnocr.consts import EMB_MODEL_TYPES, SEQ_MODEL_TYPES, MODEL_VERSION
 from cnocr.utils import data_dir, set_logger
 from cnocr.hyperparams.cn_hyperparams import CnHyperparams
 from cnocr.data_utils.data_iter import GrayImageIter
@@ -117,7 +116,7 @@ def parse_args():
     parser.add_argument(
         "--out_model_dir",
         help='output model directory',
-        default=os.path.join(data_dir(), __version__),
+        default=os.path.join(data_dir(), MODEL_VERSION),
     )
     return parser.parse_args()
 
@@ -131,7 +130,7 @@ def train_cnocr(args):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     args.prefix = os.path.join(
-        out_dir, 'cnocr-v{}-{}'.format(__version__, args.model_name)
+        out_dir, 'cnocr-v{}-{}'.format(MODEL_VERSION, args.model_name)
     )
 
     hp = CnHyperparams()

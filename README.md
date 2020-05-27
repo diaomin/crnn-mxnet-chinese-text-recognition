@@ -114,7 +114,7 @@ cnocr v1.2 目前包含以下可直接使用的模型，训练好的模型都放
 
 ## 特色
 
-本项目的初期代码fork自 [crnn-mxnet-chinese-text-recognition](https://github.com/diaomin/crnn-mxnet-chinese-text-recognition)，感谢作者。
+本项目的初期代码fork自 [crnn-mxnet-chinese-text-recognition](https://github.com/diaomin/crnn-mxnet-chinese-text-recognition)，感谢作者 [diaomin](https://github.com/diaomin)。
 
 但源项目使用起来不够方便，所以我在此基础上做了一些封装和重构。主要变化如下：
 
