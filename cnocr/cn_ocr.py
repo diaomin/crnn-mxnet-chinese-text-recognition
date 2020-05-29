@@ -160,14 +160,12 @@ class CnOcr(object):
         root = os.path.join(root, MODEL_VERSION)
         self._model_dir = os.path.join(root, self._model_name)
         self._assert_and_prepare_model_files()
-        self._alphabet, inv_alph_dict = read_charset(
+        self._alphabet, self._inv_alph_dict = read_charset(
             os.path.join(self._model_dir, 'label_cn.txt')
         )
 
         self._cand_alph_idx = None
-        if cand_alphabet is not None:
-            self._cand_alph_idx = [0] + [inv_alph_dict[word] for word in cand_alphabet]
-            self._cand_alph_idx.sort()
+        self.set_cand_alphabet(cand_alphabet)
 
         self._hp = Hyperparams()
         self._hp._loss_type = None  # infer mode
@@ -213,6 +211,18 @@ class CnOcr(object):
             context=context,
         )
         return mod
+
+    def set_cand_alphabet(self, cand_alphabet):
+        """
+        设置待识别字符的候选集合。
+        :param cand_alphabet: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围
+        :return: None
+        """
+        if cand_alphabet is None:
+            self._cand_alph_idx = None
+        else:
+            self._cand_alph_idx = [0] + [self._inv_alph_dict[word] for word in cand_alphabet]
+            self._cand_alph_idx.sort()
 
     def ocr(self, img_fp):
         """
