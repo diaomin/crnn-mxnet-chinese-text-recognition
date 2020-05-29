@@ -29,7 +29,7 @@ from .densenet import DenseNet
 from ..fit.ctc_loss import add_ctc_loss
 
 
-def gen_network(model_name, hp):
+def gen_network(model_name, hp, net_prefix=None):
     hp = deepcopy(hp)
     hp.seq_model_type = model_name.rsplit('-', maxsplit=1)[-1]
     model_name = model_name.lower()
@@ -45,23 +45,30 @@ def gen_network(model_name, hp):
         )
         seq_len = hp.img_width // 8 if shorter else hp.img_width // 4
         hp.set_seq_length(seq_len)
-        densenet = DenseNet(layer_channels, shorter=shorter)
+        densenet = DenseNet(layer_channels, shorter=shorter, prefix=net_prefix)
         densenet.hybridize()
-        model = CRnn(hp, densenet)
+        model = CRnn(hp, densenet, prefix=net_prefix)
     elif model_name.startswith('conv-lite'):
         hp.seq_len_cmpr_ratio = 4
         shorter = model_name.startswith('conv-lite-s-')
         seq_len = hp.img_width // 8 if shorter else hp.img_width // 4 - 1
         hp.set_seq_length(seq_len)
-        model = lambda data: crnn_lstm_lite(hp, data, shorter=shorter)
+
+        def model(data):
+            with mx.name.Prefix(net_prefix or ''):
+                return crnn_lstm_lite(hp, data, shorter=shorter)
+
     elif model_name.startswith('conv'):
         hp.seq_len_cmpr_ratio = 8
         hp.set_seq_length(hp.img_width // 8)
-        model = lambda data: crnn_lstm(hp, data)
+
+        def model(data):
+            with mx.name.Prefix(net_prefix or ''):
+                return crnn_lstm(hp, data)
     else:
         raise NotImplementedError('bad model_name: %s', model_name)
 
-    return pipline(model, hp), hp
+    return pipline(model, hp, net_prefix=net_prefix), hp
 
 
 def get_infer_shape(sym_model, hp):
@@ -75,18 +82,25 @@ def get_infer_shape(sym_model, hp):
     return shape_dict
 
 
-def gen_seq_model(hp):
+def gen_seq_model(hp, **kw):
     if hp.seq_model_type.lower() == 'lstm':
-        seq_model = LSTM(hp.num_hidden, hp.num_lstm_layer, bidirectional=True)
+        seq_model = LSTM(hp.num_hidden, hp.num_lstm_layer, bidirectional=True, **kw)
     elif hp.seq_model_type.lower() == 'gru':
-        seq_model = GRU(hp.num_hidden, hp.num_lstm_layer, bidirectional=True)
+        seq_model = GRU(hp.num_hidden, hp.num_lstm_layer, bidirectional=True, **kw)
     else:
 
         def fc_seq_model(data):
-            fc = mx.sym.FullyConnected(
-                data, num_hidden=hp.num_hidden, flatten=False, name='seq-fc'
-            )
-            net = mx.sym.Activation(data=fc, act_type='relu', name='seq-relu')
+            if kw.get('prefix', None):
+                with mx.name.Prefix(kw['prefix']):
+                    fc = mx.sym.FullyConnected(
+                        data, num_hidden=hp.num_hidden, flatten=False, name='seq-fc'
+                    )
+                    net = mx.sym.Activation(data=fc, act_type='relu', name='seq-relu')
+            else:
+                fc = mx.sym.FullyConnected(
+                    data, num_hidden=hp.num_hidden, flatten=False, name='seq-fc'
+                )
+                net = mx.sym.Activation(data=fc, act_type='relu', name='seq-relu')
             return net
 
         seq_model = fc_seq_model
@@ -100,7 +114,7 @@ class CRnn(nn.HybridBlock):
         self.emb_model = emb_model
         self.dropout = nn.Dropout(hp.dropout)
 
-        self.seq_model = gen_seq_model(hp)
+        self.seq_model = gen_seq_model(hp, **kw)
 
     def hybrid_forward(self, F, X):
         embs = self.emb_model(X)  # res: bz x emb_size x 1 x seq_len
@@ -114,15 +128,22 @@ class CRnn(nn.HybridBlock):
         return self.seq_model(embs)
 
 
-def pipline(model, hp, data=None):
+def pipline(model, hp, data=None, *, net_prefix=''):
     # 构建用于训练的整个计算图
     data = data if data is not None else mx.sym.Variable('data')
 
     output = model(data)
-    output = mx.symbol.reshape(output, shape=(-3, -2))  # res: (seq_len * bz, c)
-    pred = mx.sym.FullyConnected(
-        data=output, num_hidden=hp.num_classes, name='pred_fc'
-    )  # (bz x 35) x num_classes
+    if net_prefix:
+        with mx.name.Prefix(net_prefix):
+            output = mx.symbol.reshape(output, shape=(-3, -2))  # res: (seq_len * bz, c)
+            pred = mx.sym.FullyConnected(
+                data=output, num_hidden=hp.num_classes, name='pred_fc'
+            )  # (bz x 35) x num_classes
+    else:
+        output = mx.symbol.reshape(output, shape=(-3, -2))  # res: (seq_len * bz, c)
+        pred = mx.sym.FullyConnected(
+            data=output, num_hidden=hp.num_classes, name='pred_fc'
+        )  # (bz x 35) x num_classes
     # print('pred', pred.infer_shape()[1])
     # import pdb; pdb.set_trace()
 

@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 
 from cnocr import CnOcr
+from cnocr.consts import NUMBERS, AVAILABLE_MODELS
 from cnocr.line_split import line_split
 from cnocr.data_utils.aug import GrayAug
 
@@ -181,14 +182,32 @@ def test_cand_alphabet():
 
     img_fp = os.path.join(example_dir, 'hybrid.png')
 
-    ocr = CnOcr()
+    ocr = CnOcr(name='instance1')
     pred = ocr.ocr(img_fp)
     pred = [''.join(line_p) for line_p in pred]
     print("Predicted Chars:", pred)
     assert len(pred) == 1 and pred[0] == 'o12345678'
 
-    ocr = CnOcr(cand_alphabet=NUMBERS)
+    ocr = CnOcr(name='instance2', cand_alphabet=NUMBERS)
     pred = ocr.ocr(img_fp)
     pred = [''.join(line_p) for line_p in pred]
     print("Predicted Chars:", pred)
     assert len(pred) == 1 and pred[0] == '012345678'
+
+
+INSTANCE_ID = 0
+
+
+@pytest.mark.parametrize('model_name', AVAILABLE_MODELS.keys())
+def test_multiple_instances(model_name):
+    global INSTANCE_ID
+    print('test multiple instances for model_name: %s' % model_name)
+    img_fp = os.path.join(example_dir, 'hybrid.png')
+    INSTANCE_ID += 1
+    print('instance id: %d' % INSTANCE_ID)
+    cnocr1 = CnOcr(model_name, name='instance-%d' % INSTANCE_ID)
+    print_preds(cnocr1.ocr(img_fp))
+    INSTANCE_ID += 1
+    print('instance id: %d' % INSTANCE_ID)
+    cnocr2 = CnOcr(model_name, name='instance-%d' % INSTANCE_ID, cand_alphabet=NUMBERS)
+    print_preds(cnocr2.ocr(img_fp))
