@@ -1,10 +1,21 @@
 # Release Notes
 
+### Update 2020.05.29: 发布 cnocr V1.2.2
+
+主要变更：
+
+* `CnOcr`加入类函数 `CnOcr.set_cand_alphabet(cand_alphabet) `。可通过此类函数设置`cand_alphabet`。这样同一个实例也可以指定不同的`cand_alphabet`进行识别。
+* bugfix:
+  * 修复同时初始化多个实例时会报错的问题。
+
+
+
 ### Update 2020.05.25: 发布 cnocr V1.2.1
 
-bugfix:
+主要变更：
 
-* 修复了zip文件名的typo。
+* bugfix:
+  * 修复了zip文件名的typo。
 
 
 

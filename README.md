@@ -10,7 +10,7 @@ English [README](./README_en.md).
 
 
 
-# 最近更新 【2020.05.25】：V1.2.1
+# 最近更新 【2020.05.29】：V1.2.2
 
 主要变更：
 
@@ -21,6 +21,7 @@ English [README](./README_en.md).
 * 默认模型由之前的`conv-lite-fc`改为`densenet-lite-fc`。
 * 预测支持使用GPU。
 * bugfixs:
+  * 修复同时初始化多个实例时会报错的问题；
   * Web 调用时的内存泄露。感谢 [@myuanz](https://github.com/myuanz)；
   * 输入图片宽度很小时导致异常；
   * 去掉  `f-print`。
@@ -150,6 +151,7 @@ class CnOcr(object):
         cand_alphabet=None,
         root=data_dir(),
         context='cpu',
+        name=None,
     ):
 ```
 
@@ -159,10 +161,12 @@ class CnOcr(object):
 * `model_epoch`: 模型迭代次数。默认为 `None`，表示使用默认的迭代次数值。对于模型名称 `densenet-lite-fc`就是 `40`。
 * `cand_alphabet`: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围。`cnocr.consts`中内置了两个候选集合：(1) 数字和标点 `NUMBERS`；(2) 英文字母、数字和标点 `ENG_LETTERS`。
    * 例如对于图片 ![examples/hybrid.png](./examples/hybrid.png) ，不做约束时识别结果为 `o12345678`；如果加入数字约束时（`ocr = CnOcr(cand_alphabet=NUMBERS)`），识别结果为 `012345678`。
+   * `cand_alphabet`也可以初始化后通过类函数 `CnOcr.set_cand_alphabet(cand_alphabet)` 进行设置。这样同一个实例也可以指定不同的`cand_alphabet`进行识别。
 * `root`: 模型文件所在的根目录。
    * Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.2.0/densenet-lite-fc`。
    * Windows下默认值为 `C:\Users\<username>\AppData\Roaming\cnocr`。
 * `context`：预测使用的机器资源，可取值为字符串`cpu`、`gpu`，或者 `mx.Context`实例。
+* `name`：正在初始化的这个实例的名称。如果需要同时初始化多个实例，需要为不同的实例指定不同的名称。
 
 
 
