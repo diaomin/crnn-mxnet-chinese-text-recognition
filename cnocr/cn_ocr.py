@@ -148,7 +148,7 @@ class CnOcr(object):
         :param cand_alphabet: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围
         :param root: 模型文件所在的根目录。
             Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.2.0/densenet-lite-fc`。
-            Windows下默认值为 `C:\Users\<username>\AppData\Roaming\cnocr`。
+            Windows下默认值为 `C:/Users/<username>/AppData/Roaming/cnocr`。
         :param context: 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为CPU。
         :param name: 正在初始化的这个实例名称。如果需要同时初始化多个实例，需要为不同的实例指定不同的名称。
         """
