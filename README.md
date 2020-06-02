@@ -34,11 +34,11 @@ English [README](./README_en.md).
 
 # cnocr
 
-**cnocr**是**Python 3**下的中英文OCR工具包，自带了多个训练好的识别模型（最小模型仅 `4.7M`），安装后即可直接使用。
+**cnocr** 是 **Python 3** 下的中英文OCR工具包，自带了多个训练好的识别模型（最小模型仅 `4.7M`），安装后即可直接使用。
 
 
 
-cnocr主要针对的是排版简单的印刷体文字图片，如截图图片，扫描件等。目前内置的文字检测和分行模块无法处理复杂的文字排版定位。如果要用于场景文字图片的识别，需要结合其他的场景文字检测引擎使用。
+**cnocr** 主要针对的是排版简单的印刷体文字图片，如截图图片，扫描件等。目前内置的文字检测和分行模块无法处理复杂的文字排版定位。如果要用于场景文字图片的识别，需要结合其他的场景文字检测引擎使用，例如同样基于 MXNet 的文字检测引擎 **[cnstd](https://github.com/breezedeus/cnstd)** 。
 
 
 
@@ -322,6 +322,35 @@ python scripts/cnocr_predict.py --file examples/multi-line_cn1.png
 ```
 
 返回结果同上面。
+
+
+
+### 结合文字检测引擎 **[cnstd](https://github.com/breezedeus/cnstd)** 使用
+
+对于一般的场景图片（如照片、票据等），需要先利用场景文字检测引擎 **[cnstd](https://github.com/breezedeus/cnstd)** 定位到文字所在位置，然后再利用 **cnocr** 进行文本识别。
+
+```python
+from cnstd import CnStd
+from cnocr import CnOcr
+
+std = CnStd()
+cn_ocr = CnOcr()
+
+box_info_list = std.detect('examples/taobao.jpg')
+
+for box_info in box_info_list:
+    cropped_img = box_info['cropped_img']  # 检测出的文本框
+    ocr_res = cn_ocr.ocr_for_single_line(cropped_img)
+    print('ocr result: %s' % ''.join(ocr_res))
+```
+
+注：运行上面示例需要先安装 **[cnstd](https://github.com/breezedeus/cnstd)** ：
+
+```bash
+pip install cnstd
+```
+
+**[cnstd](https://github.com/breezedeus/cnstd)** 相关的更多使用说明请参考其项目地址。
 
 
 
