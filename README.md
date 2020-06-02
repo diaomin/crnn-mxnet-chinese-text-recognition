@@ -336,7 +336,7 @@ from cnocr import CnOcr
 std = CnStd()
 cn_ocr = CnOcr()
 
-box_info_list = std.detect('examples/taobao.jpg')
+box_info_list = std.detect('examples/taobao4.jpg')
 
 for box_info in box_info_list:
     cropped_img = box_info['cropped_img']  # 检测出的文本框
