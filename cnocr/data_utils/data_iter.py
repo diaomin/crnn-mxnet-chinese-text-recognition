@@ -356,6 +356,6 @@ class GrayImageIter(ImageIter):
                 img = img.astype('uint8')
             # color to gray
             img = np.array(Image.fromarray(img.transpose((1, 2, 0)).asnumpy()).convert('L'))
-            img = normalize_img_array(img, dtype='float32')
+            img = normalize_img_array(img)
             new_data[i] = nd.expand_dims(nd.array(img), 0)  # res shape: [1, height, width]
         return new_data

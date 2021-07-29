@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import sys
 import os
+import time
 import glob
 import logging
 import argparse
@@ -40,6 +41,13 @@ def main():
         "--model_name", help="model name", type=str, default='conv-lite-fc'
     )
     parser.add_argument("--model_epoch", type=int, default=None, help="model epoch")
+    parser.add_argument(
+        "--context",
+        help="使用cpu还是gpu运行代码。默认为cpu",
+        type=str,
+        choices=['cpu', 'gpu'],
+        default='cpu',
+    )
     parser.add_argument("-f", "--file", help="Path to the image file or dir")
     parser.add_argument(
         "-s",
@@ -49,7 +57,9 @@ def main():
     )
     args = parser.parse_args()
 
-    ocr = CnOcr(model_name=args.model_name, model_epoch=args.model_epoch)
+    ocr = CnOcr(
+        model_name=args.model_name, model_epoch=args.model_epoch, context=args.context
+    )
     ocr_func = ocr.ocr_for_single_line if args.single_line else ocr.ocr
     fp_list = []
     if os.path.isfile(args.file):
@@ -59,10 +69,15 @@ def main():
         fp_list = [os.path.join(args.file, fn) for fn in fn_list]
 
     for fp in fp_list:
+        start_time = time.time()
         res = ocr_func(fp)
-        logger.info('\n' + '='*10 + fp + '='*10)
-        res = [''.join(line_p) for line_p in res]
-        logger.info('\n' + '\n'.join(res))
+        logger.info('\n' + '=' * 10 + fp + '=' * 10)
+        if not args.single_line:
+            res = '\n'.join([''.join(line_p) for line_p in res])
+        else:
+            res = ''.join(res)
+        logger.info('\n' + res)
+        logger.info('time cost: %f' % (time.time() - start_time))
 
 
 if __name__ == '__main__':

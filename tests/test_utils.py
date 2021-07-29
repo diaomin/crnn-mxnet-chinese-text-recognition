@@ -1,13 +1,15 @@
 import os
 import sys
+from pathlib import Path
 import pytest
 import mxnet as mx
 from mxnet.gluon.utils import download
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
+EXAMPLE_DIR = Path(__file__).parent.parent / 'examples'
 
-from cnocr.utils import check_context
+from cnocr.utils import check_context, read_img
 
 
 @pytest.mark.skip()
@@ -30,3 +32,9 @@ def test_download():
 ])
 def test_check_context(context, expected):
     assert check_context(context) == expected
+
+
+def test_read_img():
+    img_fp = EXAMPLE_DIR / '00010991.jpg'
+    img = read_img(img_fp)
+    print(img.shape, img)

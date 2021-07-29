@@ -20,8 +20,15 @@ from pathlib import Path
 import logging
 import platform
 import zipfile
+from PIL import Image
+from typing import Union
+
+import numpy as np
+import torch
+from torch import Tensor
 import mxnet as mx
 from mxnet.gluon.utils import download
+from torchvision.utils import save_image
 
 from .consts import AVAILABLE_MODELS, EMB_MODEL_TYPES, SEQ_MODEL_TYPES
 
@@ -141,18 +148,60 @@ def read_charset(charset_fp):
         for line in fp:
             alphabet.append(line.rstrip('\n'))
     # print('Alphabet size: %d' % len(alphabet))
-    try:
-        space_idx = alphabet.index('<space>')
-        alphabet[space_idx] = ' '
-    except ValueError:
-        pass
+    # try:
+    #     space_idx = alphabet.index('<space>')
+    #     alphabet[space_idx] = ' '
+    # except ValueError:
+    #     pass
     inv_alph_dict = {_char: idx for idx, _char in enumerate(alphabet)}
     return alphabet, inv_alph_dict
 
 
-def normalize_img_array(img, dtype='float32'):
-    """ rescale to [-1.0, 1.0] """
-    img = img.astype(dtype)
+def read_tsv_file(fp, sep='\t', img_folder=None, mode='eval'):
+    img_fp_list, labels_list = [], []
+    num_fields = 2 if mode != 'test' else 1
+    with open(fp) as f:
+        for line in f:
+            fields = line.strip('\n').split(sep)
+            assert len(fields) == num_fields
+            img_fp = os.path.join(img_folder, fields[0]) if img_folder is not None else fields[0]
+            img_fp_list.append(img_fp)
+
+            if mode != 'test':
+                labels = fields[1].split(' ')
+                labels_list.append(labels)
+
+    return (img_fp_list, labels_list) if mode != 'test' else (img_fp_list, None)
+
+
+def read_img(path):
+    """
+    :param path: image file path
+    :return: gray image, with dim [1, height, width], with values range from 0 to 255
+    """
+    img = Image.open(path)
+    img = img.convert('L')
+    img = np.expand_dims(np.array(img), 0)
+    return img
+
+
+def save_img(img: Union[Tensor, np.ndarray], path):
+    if not isinstance(img, Tensor):
+        img = torch.from_numpy(img)
+    img = (img - img.min()) / (img.max() - img.min() + 1e-6)
+    # img *= 255
+    # img = img.to(dtype=torch.uint8)
+    save_image(img, path)
+
+    # Image.fromarray(img).save(path)
+
+
+def normalize_img_array(img: Union[Tensor, np.ndarray]):
+    """ rescale """
+    if isinstance(img, Tensor):
+        img = img.to(dtype=torch.float32)
+    else:
+        img = img.astype('float32')
     # return (img - np.mean(img, dtype=dtype)) / 255.0
     return img / 255.0
     # return (img - np.median(img)) / (np.std(img, dtype=dtype) + 1e-6)  # 转完以后有些情况会变得不可识别
