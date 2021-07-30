@@ -11,6 +11,7 @@ sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 
 EXAMPLE_DIR = Path(__file__).parent.parent / 'examples'
 INDEX_DIR = Path(__file__).parent.parent / 'data/test'
+IMAGE_DIR = Path(__file__).parent.parent / 'data/images'
 
 from cnocr.data_utils.aug import NormalizeAug
 from cnocr.dataset import OcrDataModule
@@ -40,9 +41,12 @@ def test_trainer():
     data_mod = OcrDataModule(
         index_dir=INDEX_DIR,
         vocab_fp=EXAMPLE_DIR / 'label_cn.txt',
-        img_folder=EXAMPLE_DIR,
+        img_folder=IMAGE_DIR,
         train_transforms=train_transform,
         val_transforms=val_transform,
+        batch_size=64,
+        num_workers=0,
+        pin_memory=False,
     )
     # data_mod.setup()
 
@@ -55,6 +59,7 @@ def test_trainer():
             "step_size": 2,
             "gamma": 0.5
         },
+        "precision": 32,
         "pl_checkpoint_monitor": "complete_match_epoch",
         "pl_checkpoint_mode": "max",
     }
