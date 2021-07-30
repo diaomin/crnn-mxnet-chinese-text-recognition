@@ -142,8 +142,7 @@ def get_model_file(model_dir):
 
 
 def read_charset(charset_fp):
-    alphabet = [None]
-    # 第0个元素是预留id，在CTC中用来分割字符。它不对应有意义的字符
+    alphabet = []
     with open(charset_fp, encoding='utf-8') as fp:
         for line in fp:
             alphabet.append(line.rstrip('\n'))

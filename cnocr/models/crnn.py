@@ -130,7 +130,6 @@ class CRNN(OcrModel):
         self.vocab = vocab
         self.letter2id = {letter: idx for idx, letter in enumerate(self.vocab)}
         self.cfg = cfg
-        self.max_length = 32
         self.feat_extractor = feature_extractor
 
         self.decoder = nn.LSTM(
@@ -182,9 +181,9 @@ class CRNN(OcrModel):
             The loss of the model on the batch
         """
         gt, seq_len = self.compute_target(target)
-        batch_len = model_output.shape[0]
 
         if output_length is None:
+            batch_len = model_output.shape[0]
             output_length = model_output.shape[1] * torch.ones(
                 size=(batch_len,), dtype=torch.int32
             )
@@ -192,11 +191,12 @@ class CRNN(OcrModel):
         # N x T x C -> T x N x C
         logits = model_output.permute(1, 0, 2)
         probs = F.log_softmax(logits, dim=-1)
+
         ctc_loss = F.ctc_loss(
             probs,
             torch.from_numpy(gt).to(device=probs.device),
             output_length,
-            torch.tensor(seq_len, dtype=torch.int),
+            torch.tensor(seq_len, dtype=torch.int, device=probs.device),
             len(self.vocab),
         )
 
@@ -215,7 +215,6 @@ class CRNN(OcrModel):
         encoded = encode_sequences(
             sequences=gts,
             vocab=self.letter2id,
-            target_size=self.max_length,
             eos=len(self.letter2id),
         )
         seq_len = [len(word) for word in gts]
