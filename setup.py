@@ -20,12 +20,15 @@ exec(
 required = [
     'numpy>=1.14.0,<1.20.0',
     'pillow>=5.3.0',
-    'mxnet>=1.5.0,<1.7.0',
-    'gluoncv>=0.3.0,<0.7.0',
 ]
 extras_require = {
     "dev": ["pip-tools", "pytest", "python-Levenshtein"],
 }
+
+entry_points = """
+[console_scripts]
+cnocr = cnocr.cli:cli
+"""
 
 setup(
     name=PACKAGE_NAME,
@@ -40,6 +43,7 @@ setup(
     platforms=["Mac", "Linux", "Windows"],
     packages=find_packages(),
     include_package_data=True,
+    entry_points=entry_points,
     install_requires=required,
     extras_require=extras_require,
     zip_safe=False,

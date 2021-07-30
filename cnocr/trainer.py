@@ -18,8 +18,6 @@ from torch.optim.lr_scheduler import (
 )
 from torch.utils.data import DataLoader
 
-# from ..evaluator.metrics import metrics_dict
-
 logger = logging.getLogger(__name__)
 
 
@@ -56,7 +54,11 @@ def get_lr_scheduler(config, optimizer):
     lr_sch_name = lr_sch_config.pop('name')
 
     if lr_sch_name == 'multi_step':
-        return MultiStepLR(optimizer, milestones=[2, 6, 12], gamma=0.5)
+        return MultiStepLR(
+            optimizer,
+            milestones=lr_sch_config['milestones'],
+            gamma=lr_sch_config['gamma'],
+        )
     elif lr_sch_name == 'cos_anneal':
         return CosineAnnealingWarmRestarts(
             optimizer, T_0=4, T_mult=1, eta_min=orig_lr / 10.0
@@ -71,7 +73,7 @@ def get_lr_scheduler(config, optimizer):
         )
 
     step_size = lr_sch_config['step_size']
-    gamma = config['gamma']
+    gamma = lr_sch_config['gamma']
     if step_size is None or gamma is None:
         return LambdaLR(optimizer, lr_lambda=lambda _: 1)
     return StepLR(optimizer, step_size, gamma=gamma)
@@ -186,8 +188,8 @@ class PlTrainer(object):
             callbacks.append(checkpoint_callback)
 
         self.pl_trainer = pl.Trainer(
-            # limit_train_batches=3,
-            # limit_val_batches=2,
+            limit_train_batches=self.config.get('limit_train_batches', 1.0),
+            limit_val_batches=self.config.get('limit_val_batches', 1.0),
             gpus=self.config.get('gpus'),
             max_epochs=self.config.get('epochs', 20),
             precision=self.config.get('precision', 32),
@@ -219,9 +221,7 @@ class PlTrainer(object):
 
         """
         pl_module = WrapperLightningModule(self.config, model)
-        res = self.pl_trainer.fit(
-            pl_module, train_dataloader, val_dataloaders, datamodule
-        )
+        self.pl_trainer.fit(pl_module, train_dataloader, val_dataloaders, datamodule)
 
         fields = self.pl_trainer.checkpoint_callback.best_model_path.rsplit(
             '.', maxsplit=1
@@ -232,8 +232,6 @@ class PlTrainer(object):
             self.pl_trainer.checkpoint_callback.best_model_path, output_model_fp
         )
         self.saved_model_file = output_model_fp
-
-        return res
 
 
 def resave_model(module_fp, output_model_fp):
