@@ -4,6 +4,7 @@ import logging
 import click
 import json
 
+import torch
 from torchvision import transforms
 
 from cnocr.utils import set_logger
@@ -30,7 +31,10 @@ def cli():
     help='索引文件所在的文件夹，会读取文件夹中的 train.tsv 和 dev.tsv 文件',
 )
 @click.option('--train-config-fp', type=str, required=True, help='训练使用的json配置文件')
-def train(index_dir, train_config_fp):
+@click.option(
+    '-m', '--pretrained-model-fp', type=str, default=None, help='导入的训练好的模型，作为初始模型'
+)
+def train(index_dir, train_config_fp, pretrained_model_fp):
     train_transform = transforms.Compose(
         [
             transforms.RandomInvert(p=0.5),
@@ -57,6 +61,17 @@ def train(index_dir, train_config_fp):
 
     trainer = PlTrainer(train_config)
     model = gen_model(data_mod.vocab)
+
+    if pretrained_model_fp is not None:
+        checkpoint = torch.load(pretrained_model_fp, map_location=torch.device('cpu'))
+        state_dict = checkpoint['state_dict']
+        if all([param_name.startswith('model.') for param_name in state_dict.keys()]):
+            # 表示导入的模型是通过 PlTrainer 训练出的 WrapperLightningModule，对其进行转化
+            state_dict = {}
+            for k, v in checkpoint['state_dict'].items():
+                state_dict[k.split('.', maxsplit=1)[1]] = v
+        model.load_state_dict(state_dict)
+
     trainer.fit(model, datamodule=data_mod)
 
 
