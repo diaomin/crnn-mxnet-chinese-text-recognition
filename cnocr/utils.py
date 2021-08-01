@@ -21,7 +21,7 @@ import logging
 import platform
 import zipfile
 from PIL import Image
-from typing import Union
+from typing import Union, Any, Tuple
 
 import numpy as np
 import torch
@@ -204,3 +204,14 @@ def normalize_img_array(img: Union[Tensor, np.ndarray]):
     # return (img - np.mean(img, dtype=dtype)) / 255.0
     return img / 255.0
     # return (img - np.median(img)) / (np.std(img, dtype=dtype) + 1e-6)  # 转完以后有些情况会变得不可识别
+
+
+def gen_length_mask(lengths: torch.Tensor, mask_size: Union[Tuple, Any]):
+    labels = torch.arange(mask_size[-1], device=lengths.device, dtype=torch.long)
+    while True:
+        if len(labels.shape) >= len(mask_size):
+            break
+        labels = labels.unsqueeze(0)
+        lengths = lengths.unsqueeze(-1)
+    mask = labels < lengths
+    return ~mask

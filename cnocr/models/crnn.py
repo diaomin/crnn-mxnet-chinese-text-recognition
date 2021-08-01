@@ -28,6 +28,7 @@ __all__ = ['CRNN', 'CTCPostProcessor']
 #     },
 # }
 from ..data_utils.utils import encode_sequences
+from ..utils import gen_length_mask
 
 
 class CTCPostProcessor(object):
@@ -45,45 +46,55 @@ class CTCPostProcessor(object):
 
     @staticmethod
     def ctc_best_path(
-        logits: torch.Tensor, vocab: List[str], blank: int = 0
-    ) -> List[Tuple[str, float]]:
+        logits: torch.Tensor,
+        vocab: List[str],
+        input_lengths: Optional[torch.Tensor] = None,
+        blank: int = 0,
+    ) -> List[Tuple[List[str], float]]:
         """Implements best path decoding as shown by Graves (Dissertation, p63), highly inspired from
         <https://github.com/githubharald/CTCDecoder>`_.
 
         Args:
             logits: model output, shape: N x T x C
             vocab: vocabulary to use
+            input_lengths: valid sequence lengths
             blank: index of blank label
 
         Returns:
             A list of tuples: (word, confidence)
         """
         # compute softmax
-        probs = F.softmax(logits.permute(0, 2, 1), dim=-1)
+        probs = F.softmax(logits.permute(0, 2, 1), dim=1)
         # get char indices along best path
-        best_path = torch.argmax(probs, dim=1)
+        best_path = torch.argmax(probs, dim=1)  # [N, T]
+
+        if input_lengths is not None:
+            length_mask = gen_length_mask(input_lengths, probs.shape)  # [N, 1, T]
+            probs.masked_fill_(length_mask, 1.0)
+            best_path.masked_fill_(length_mask.squeeze(1), blank)
+
         # define word proba as min proba of sequence
-        probs, _ = torch.max(probs, dim=1)
-        probs, _ = torch.min(probs, dim=1)
+        probs, _ = torch.max(probs, dim=1)  # [N, T]
+        probs, _ = torch.min(probs, dim=1)  # [N]
 
         words = []
         for sequence in best_path:
             # collapse best path (using itertools.groupby), map to chars, join char list to string
             collapsed = [vocab[k] for k, _ in groupby(sequence) if k != blank]
-            res = ''.join(collapsed)
-            words.append(res)
+            words.append(collapsed)
 
         return list(zip(words, probs.tolist()))
 
     def __call__(  # type: ignore[override]
-        self, logits: torch.Tensor
-    ) -> List[Tuple[str, float]]:
+        self, logits: torch.Tensor, input_lengths: torch.Tensor = None
+    ) -> List[Tuple[List[str], float]]:
         """
         Performs decoding of raw output with CTC and decoding of CTC predictions
         with label_to_idx mapping dictionnary
 
         Args:
             logits: raw output of the model, shape (N, C + 1, seq_len)
+            input_lengths: valid sequence lengths
 
         Returns:
             A tuple of 2 lists: a list of str (words) and a list of float (probs)
@@ -91,7 +102,10 @@ class CTCPostProcessor(object):
         """
         # Decode CTC
         return self.ctc_best_path(
-            logits=logits, vocab=self.vocab, blank=len(self.vocab)
+            logits=logits,
+            vocab=self.vocab,
+            input_lengths=input_lengths,
+            blank=len(self.vocab),
         )
 
 
@@ -156,35 +170,40 @@ class CRNN(OcrModel):
                 m.weight.data.fill_(1.0)
                 m.bias.data.zero_()
 
-    def calculate_loss(self, batch,
-                       return_model_output: bool = False,
-                       return_preds: bool = False,
-                       ):
+    def calculate_loss(
+        self, batch, return_model_output: bool = False, return_preds: bool = False,
+    ):
         imgs, img_lengths, labels_list, label_lengths = batch
         COMPRESS_VAL = 8
-        return self(imgs, img_lengths // COMPRESS_VAL, labels_list, return_model_output, return_preds)
+        return self(
+            imgs,
+            img_lengths // COMPRESS_VAL,
+            labels_list,
+            return_model_output,
+            return_preds,
+        )
 
     def _compute_loss(
         self,
         model_output: torch.Tensor,
         target: List[str],
-        output_length: torch.Tensor = None,
+        seq_length: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Compute CTC loss for the model.
 
         Args:
             gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
-            seq_len: lengths of each gt word inside the batch
+            seq_length: lengths of each gt word inside the batch
 
         Returns:
             The loss of the model on the batch
         """
         gt, seq_len = self.compute_target(target)
 
-        if output_length is None:
+        if seq_length is None:
             batch_len = model_output.shape[0]
-            output_length = model_output.shape[1] * torch.ones(
+            seq_length = model_output.shape[1] * torch.ones(
                 size=(batch_len,), dtype=torch.int32
             )
 
@@ -195,7 +214,7 @@ class CRNN(OcrModel):
         ctc_loss = F.ctc_loss(
             probs,
             torch.from_numpy(gt).to(device=probs.device),
-            output_length,
+            seq_length,
             torch.tensor(seq_len, dtype=torch.int, device=probs.device),
             len(self.vocab),
         )
@@ -213,9 +232,7 @@ class CRNN(OcrModel):
             A tuple of 2 tensors: Encoded labels and sequence lengths (for each entry of the batch)
         """
         encoded = encode_sequences(
-            sequences=gts,
-            vocab=self.letter2id,
-            eos=len(self.letter2id),
+            sequences=gts, vocab=self.letter2id, eos=len(self.letter2id),
         )
         seq_len = [len(word) for word in gts]
         return encoded, seq_len
@@ -242,7 +259,7 @@ class CRNN(OcrModel):
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = self.postprocessor(logits)
+            out["preds"] = self.postprocessor(logits, input_lengths)
 
         if target is not None:
             out['loss'] = self._compute_loss(logits, target, input_lengths)
