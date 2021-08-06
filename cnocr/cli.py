@@ -38,7 +38,7 @@ def train(index_dir, train_config_fp, pretrained_model_fp):
     train_transform = transforms.Compose(
         [
             transforms.RandomInvert(p=0.5),
-            transforms.RandomErasing(p=0.05),
+            # transforms.RandomErasing(p=0.05, scale=(0.01, 0.05)),
             transforms.RandomRotation(degrees=2),
             transforms.RandomAutocontrast(p=0.05),
             NormalizeAug(),

@@ -143,6 +143,7 @@ class CRNN(OcrModel):
         super().__init__()
         self.vocab = vocab
         self.letter2id = {letter: idx for idx, letter in enumerate(self.vocab)}
+        assert len(self.vocab) == len(self.letter2id)
         self.cfg = cfg
         self.feat_extractor = feature_extractor
 
