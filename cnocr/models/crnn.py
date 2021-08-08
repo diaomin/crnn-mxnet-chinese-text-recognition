@@ -1,34 +1,17 @@
 # coding: utf-8
 from itertools import groupby
+from typing import Tuple, Dict, Any, Optional, List
 
 import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
-from typing import Tuple, Dict, Any, Optional, List
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-__all__ = ['CRNN', 'CTCPostProcessor']
-
-# default_cfgs: Dict[str, Dict[str, Any]] = {
-#     'crnn_vgg16_bn': {
-#         'mean': (.5, .5, .5),
-#         'std': (1., 1., 1.),
-#         'backbone': 'vgg16_bn', 'rnn_units': 128, 'lstm_features': 512,
-#         'input_shape': (3, 32, 128),
-#         'vocab': VOCABS['french'],
-#         'url': None,
-#     },
-#     'crnn_resnet31': {
-#         'mean': (.5, .5, .5),
-#         'std': (1., 1., 1.),
-#         'backbone': 'resnet31', 'rnn_units': 128, 'lstm_features': 4 * 512,
-#         'input_shape': (3, 32, 128),
-#         'vocab': VOCABS['french'],
-#         'url': None,
-#     },
-# }
 from ..data_utils.utils import encode_sequences
 from ..utils import gen_length_mask
+
+__all__ = ['CRNN', 'CTCPostProcessor']
 
 
 class CTCPostProcessor(object):
@@ -111,7 +94,11 @@ class CTCPostProcessor(object):
 
 class OcrModel(nn.Module):
     def calculate_loss(self, batch):
-        ...
+        raise NotImplementedError()
+
+    @property
+    def compress_ratio(self):
+        raise NotImplementedError()
 
 
 class CRNN(OcrModel):
@@ -171,14 +158,17 @@ class CRNN(OcrModel):
                 m.weight.data.fill_(1.0)
                 m.bias.data.zero_()
 
+    @property
+    def compress_ratio(self):
+        return self.feat_extractor.compress_ratio
+
     def calculate_loss(
         self, batch, return_model_output: bool = False, return_preds: bool = False,
     ):
         imgs, img_lengths, labels_list, label_lengths = batch
-        COMPRESS_VAL = 8
         return self(
             imgs,
-            img_lengths // COMPRESS_VAL,
+            img_lengths,
             labels_list,
             return_model_output,
             return_preds,
@@ -241,22 +231,25 @@ class CRNN(OcrModel):
     def forward(
         self,
         x: torch.Tensor,
-        input_lengths: torch.Tensor = None,
+        input_lengths: torch.Tensor,
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
         features = self.feat_extractor(x)
+        input_lengths = input_lengths // self.compress_ratio
         # B x C x H x W --> B x C*H x W --> B x W x C*H
         c, h, w = features.shape[1], features.shape[2], features.shape[3]
         features_seq = torch.reshape(features, shape=(-1, h * c, w))
         features_seq = torch.transpose(features_seq, 1, 2)
+        features_seq = pack_padded_sequence(features_seq, input_lengths, batch_first=True, enforce_sorted=False)
         logits, _ = self.decoder(features_seq)
+        logits, output_lens = pad_packed_sequence(logits, batch_first=True, total_length=w)
         logits = self.linear(logits)
 
         out: Dict[str, Any] = {}
         if return_model_output:
-            out["out_map"] = logits
+            out["logits"] = logits
 
         if target is None or return_preds:
             # Post-process boxes
@@ -266,69 +259,3 @@ class CRNN(OcrModel):
             out['loss'] = self._compute_loss(logits, target, input_lengths)
 
         return out
-
-
-# def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any) -> CRNN:
-#
-#     # Patch the config
-#     _cfg = deepcopy(default_cfgs[arch])
-#     _cfg['input_shape'] = input_shape or _cfg['input_shape']
-#     _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
-#     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
-#
-#     # Feature extractor
-#     feat_extractor = backbones.__dict__[_cfg['backbone']]()
-#
-#     kwargs['vocab'] = _cfg['vocab']
-#     kwargs['rnn_units'] = _cfg['rnn_units']
-#     kwargs['lstm_features'] = _cfg['lstm_features']
-#
-#     # Build the model
-#     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
-#     # Load pretrained parameters
-#     if pretrained:
-#         raise NotImplementedError
-#
-#     return model
-#
-#
-# def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
-#     """CRNN with a VGG-16 backbone as described in `"An End-to-End Trainable Neural Network for Image-based
-#     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
-#
-#     Example::
-#         >>> import torch
-#         >>> from doctr.models import crnn_vgg16_bn
-#         >>> model = crnn_vgg16_bn(pretrained=True)
-#         >>> input_tensor = torch.rand(1, 3, 32, 128)
-#         >>> out = model(input_tensor)
-#
-#     Args:
-#         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-#
-#     Returns:
-#         text recognition architecture
-#     """
-#
-#     return _crnn('crnn_vgg16_bn', pretrained, **kwargs)
-#
-#
-# def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
-#     """CRNN with a ResNet-31 backbone as described in `"An End-to-End Trainable Neural Network for Image-based
-#     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
-#
-#     Example::
-#         >>> import torch
-#         >>> from doctr.models import crnn_resnet31
-#         >>> model = crnn_resnet31(pretrained=True)
-#         >>> input_tensor = torch.rand(1, 3, 32, 128)
-#         >>> out = model(input_tensor)
-#
-#     Args:
-#         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-#
-#     Returns:
-#         text recognition architecture
-#     """
-#
-#     return _crnn('crnn_resnet31', pretrained, **kwargs)

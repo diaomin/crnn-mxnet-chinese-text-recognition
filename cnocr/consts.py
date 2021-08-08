@@ -16,6 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 import string
+from pathlib import Path
 from .__version__ import __version__
 
 
@@ -24,6 +25,7 @@ from .__version__ import __version__
 MODEL_VERSION = '.'.join(__version__.split('.', maxsplit=2)[:2]) + '.0'
 
 IMG_STANDARD_HEIGHT = 32
+VOCAB_FP = Path(__file__).parent.parent / 'label_cn.txt'
 
 EMB_MODEL_TYPES = [
     'conv',  # seq_len == 35, deprecated

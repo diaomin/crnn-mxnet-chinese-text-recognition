@@ -15,26 +15,32 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+import hashlib
 import os
 from pathlib import Path
 import logging
 import platform
 import zipfile
-from PIL import Image
-from typing import Union, Any, Tuple
+import requests
+from typing import Union, Any, Tuple, List
 
+from tqdm import tqdm
+from PIL import Image
 import numpy as np
 import torch
 from torch import Tensor
-import mxnet as mx
-from mxnet.gluon.utils import download
+from torch.nn.utils.rnn import pad_sequence
 from torchvision.utils import save_image
+import torchvision.transforms.functional as F
 
-from .consts import AVAILABLE_MODELS, EMB_MODEL_TYPES, SEQ_MODEL_TYPES
+from .consts import (
+    AVAILABLE_MODELS,
+    EMB_MODEL_TYPES,
+    SEQ_MODEL_TYPES,
+    IMG_STANDARD_HEIGHT,
+)
 
-
-fmt = '[%(levelname)s %(asctime)s %(funcName)s:%(lineno)d] %(' \
-      'message)s '
+fmt = '[%(levelname)s %(asctime)s %(funcName)s:%(lineno)d] %(' 'message)s '
 logging.basicConfig(format=fmt)
 logging.captureWarnings(True)
 logger = logging.getLogger()
@@ -107,6 +113,101 @@ def check_model_name(model_name):
     assert seq_model_type in SEQ_MODEL_TYPES
 
 
+def check_sha1(filename, sha1_hash):
+    """Check whether the sha1 hash of the file content matches the expected hash.
+    Parameters
+    ----------
+    filename : str
+        Path to the file.
+    sha1_hash : str
+        Expected sha1 hash in hexadecimal digits.
+    Returns
+    -------
+    bool
+        Whether the file content matches the expected hash.
+    """
+    sha1 = hashlib.sha1()
+    with open(filename, 'rb') as f:
+        while True:
+            data = f.read(1048576)
+            if not data:
+                break
+            sha1.update(data)
+
+    sha1_file = sha1.hexdigest()
+    l = min(len(sha1_file), len(sha1_hash))
+    return sha1.hexdigest()[0:l] == sha1_hash[0:l]
+
+
+def download(url, path=None, overwrite=False, sha1_hash=None):
+    """Download an given URL
+    Parameters
+    ----------
+    url : str
+        URL to download
+    path : str, optional
+        Destination path to store downloaded file. By default stores to the
+        current directory with same name as in url.
+    overwrite : bool, optional
+        Whether to overwrite destination file if already exists.
+    sha1_hash : str, optional
+        Expected sha1 hash in hexadecimal digits. Will ignore existing file when hash is specified
+        but doesn't match.
+    Returns
+    -------
+    str
+        The file path of the downloaded file.
+    """
+    if path is None:
+        fname = url.split('/')[-1]
+    else:
+        path = os.path.expanduser(path)
+        if os.path.isdir(path):
+            fname = os.path.join(path, url.split('/')[-1])
+        else:
+            fname = path
+
+    if (
+        overwrite
+        or not os.path.exists(fname)
+        or (sha1_hash and not check_sha1(fname, sha1_hash))
+    ):
+        dirname = os.path.dirname(os.path.abspath(os.path.expanduser(fname)))
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
+        print('Downloading %s from %s...' % (fname, url))
+        r = requests.get(url, stream=True)
+        if r.status_code != 200:
+            raise RuntimeError("Failed downloading url %s" % url)
+        total_length = r.headers.get('content-length')
+        with open(fname, 'wb') as f:
+            if total_length is None:  # no content length header
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk:  # filter out keep-alive new chunks
+                        f.write(chunk)
+            else:
+                total_length = int(total_length)
+                for chunk in tqdm(
+                    r.iter_content(chunk_size=1024),
+                    total=int(total_length / 1024.0 + 0.5),
+                    unit='KB',
+                    unit_scale=False,
+                    dynamic_ncols=True,
+                ):
+                    f.write(chunk)
+
+        if sha1_hash and not check_sha1(fname, sha1_hash):
+            raise UserWarning(
+                'File {} is downloaded but the content hash does not match. '
+                'The repo may be outdated or download may be incomplete. '
+                'If the "repo_url" is overridden, consider switching to '
+                'the default repo.'.format(fname)
+            )
+
+    return fname
+
+
 def get_model_file(model_dir):
     r"""Return location for the downloaded models on local file system.
 
@@ -131,7 +232,9 @@ def get_model_file(model_dir):
     if not os.path.exists(zip_file_path):
         model_name = os.path.basename(model_dir)
         if model_name not in AVAILABLE_MODELS:
-            raise NotImplementedError('%s is not an available downloaded model' % model_name)
+            raise NotImplementedError(
+                '%s is not an available downloaded model' % model_name
+            )
         url = AVAILABLE_MODELS[model_name][1]
         download(url, path=zip_file_path, overwrite=True)
     with zipfile.ZipFile(zip_file_path) as zf:
@@ -163,7 +266,11 @@ def read_tsv_file(fp, sep='\t', img_folder=None, mode='eval'):
         for line in f:
             fields = line.strip('\n').split(sep)
             assert len(fields) == num_fields
-            img_fp = os.path.join(img_folder, fields[0]) if img_folder is not None else fields[0]
+            img_fp = (
+                os.path.join(img_folder, fields[0])
+                if img_folder is not None
+                else fields[0]
+            )
             img_fp_list.append(img_fp)
 
             if mode != 'test':
@@ -195,6 +302,20 @@ def save_img(img: Union[Tensor, np.ndarray], path):
     # Image.fromarray(img).save(path)
 
 
+def rescale_img(img: np.ndarray) -> torch.Tensor:
+    """
+    rescale an image tensor with [Channel, Height, Width] to the given height value, and keep the ratio
+    :param img: np.ndarray; should be [c, height, width]
+    :return: image tensor with the given height. The resulting dim is [C, height, width]
+    """
+    ori_height, ori_width = img.shape[1:]
+    ratio = ori_height / IMG_STANDARD_HEIGHT
+    img = torch.from_numpy(img)
+    if img.size(1) != IMG_STANDARD_HEIGHT:
+        img = F.resize(img, [IMG_STANDARD_HEIGHT, int(ori_width / ratio)])
+    return img
+
+
 def normalize_img_array(img: Union[Tensor, np.ndarray]):
     """ rescale """
     if isinstance(img, Tensor):
@@ -207,6 +328,7 @@ def normalize_img_array(img: Union[Tensor, np.ndarray]):
 
 
 def gen_length_mask(lengths: torch.Tensor, mask_size: Union[Tuple, Any]):
+    """ see how it is used """
     labels = torch.arange(mask_size[-1], device=lengths.device, dtype=torch.long)
     while True:
         if len(labels.shape) >= len(mask_size):
@@ -215,3 +337,30 @@ def gen_length_mask(lengths: torch.Tensor, mask_size: Union[Tuple, Any]):
         lengths = lengths.unsqueeze(-1)
     mask = labels < lengths
     return ~mask
+
+
+def pad_img_seq(img_list: List[torch.Tensor], padding_value=0) -> torch.Tensor:
+    """
+    Pad a list of variable width image Tensors with `padding_value`.
+
+    :param img_list: each element has shape [C, H, W], where W is variable width
+    :param padding_value: padding value, 0 by default
+    :return: [B, C, H, W_max]
+    """
+    img_list = [img.permute((2, 0, 1)) for img in img_list]  # [W, C, H]
+    imgs = pad_sequence(
+        img_list, batch_first=True, padding_value=padding_value
+    )  # [B, W_max, C, H]
+    return imgs.permute((0, 2, 3, 1))  # [B, C, H, W_max]
+
+
+def load_model_params(model, param_fp, device='cpu'):
+    checkpoint = torch.load(param_fp, map_location=device)
+    state_dict = checkpoint['state_dict']
+    if all([param_name.startswith('model.') for param_name in state_dict.keys()]):
+        # 表示导入的模型是通过 PlTrainer 训练出的 WrapperLightningModule，对其进行转化
+        state_dict = {}
+        for k, v in checkpoint['state_dict'].items():
+            state_dict[k.split('.', maxsplit=1)[1]] = v
+    model.load_state_dict(state_dict)
+    return model

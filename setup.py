@@ -43,6 +43,9 @@ setup(
     platforms=["Mac", "Linux", "Windows"],
     packages=find_packages(),
     include_package_data=True,
+    data_files=[
+        ('', ['label_cn.txt']),
+    ],
     entry_points=entry_points,
     install_requires=required,
     extras_require=extras_require,
