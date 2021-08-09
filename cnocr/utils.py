@@ -34,9 +34,9 @@ from torchvision.utils import save_image
 import torchvision.transforms.functional as F
 
 from .consts import (
+    ENCODER_CONFIGS,
+    DECODER_CONFIGS,
     AVAILABLE_MODELS,
-    EMB_MODEL_TYPES,
-    SEQ_MODEL_TYPES,
     IMG_STANDARD_HEIGHT,
 )
 
@@ -69,22 +69,14 @@ def set_logger(log_file=None, log_level=logging.INFO, log_file_level=logging.NOT
     return logger
 
 
-def gen_context(num_gpu):
-    if num_gpu > 0:
-        context = [mx.context.gpu(i) for i in range(num_gpu)]
-    else:
-        context = [mx.context.cpu()]
-    return context
-
-
 def check_context(context):
     if isinstance(context, str):
-        return context.lower() in ('gpu', 'cpu')
+        return context.lower() in ('gpu', 'cpu', 'cuda')
     if isinstance(context, list):
         if len(context) < 1:
             return False
-        return all(isinstance(ctx, mx.Context) for ctx in context)
-    return isinstance(context, mx.Context)
+        return all(isinstance(ctx, torch.device) for ctx in context)
+    return isinstance(context, torch.device)
 
 
 def data_dir_default():
@@ -108,9 +100,9 @@ def data_dir():
 
 
 def check_model_name(model_name):
-    emb_model_type, seq_model_type = model_name.rsplit('-', maxsplit=1)
-    assert emb_model_type in EMB_MODEL_TYPES
-    assert seq_model_type in SEQ_MODEL_TYPES
+    encoder_type, decoder_type = model_name.rsplit('-', maxsplit=1)
+    assert encoder_type in ENCODER_CONFIGS
+    assert decoder_type in DECODER_CONFIGS
 
 
 def check_sha1(filename, sha1_hash):

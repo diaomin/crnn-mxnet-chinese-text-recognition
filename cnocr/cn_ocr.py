@@ -25,7 +25,7 @@ from PIL import Image
 import torch
 
 from cnocr.consts import MODEL_VERSION, AVAILABLE_MODELS, VOCAB_FP
-from cnocr.models.crnn import CRNN
+from cnocr.models.ocr_model import OcrModel
 from cnocr.utils import (
     data_dir,
     get_model_file,
@@ -36,18 +36,17 @@ from cnocr.utils import (
 )
 from .data_utils.aug import NormalizeAug
 from .line_split import line_split
-from .models.densenet import DenseNet
 
 logger = logging.getLogger(__name__)
 
 
 def gen_model(model_name, vocab):
-    if model_name != 'densenet-s-lstm':
-        logger.warning('only "densenet-s-lstm" is supported now, use it by default')
-    net = DenseNet(32, [2, 2, 2, 2], 64)
-    crnn = CRNN(net, vocab=vocab, lstm_features=512, rnn_units=128)
-    crnn.eval()
-    return crnn
+    check_model_name(model_name)
+    if not model_name.startswith('densenet-s'):
+        logger.warning('only "densenet-s" is supported now, use "densenet-s-fc" by default')
+        model_name = 'densenet-s-fc'
+    model = OcrModel.from_name(model_name, vocab)
+    return model
 
 
 class CnOcr(object):
@@ -73,7 +72,8 @@ class CnOcr(object):
         :param context: 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为CPU。
         :param name: 正在初始化的这个实例名称。如果需要同时初始化多个实例，需要为不同的实例指定不同的名称。
         """
-        # check_model_name(model_name)
+        check_model_name(model_name)
+        check_context(context)
         self._model_name = model_name
         self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
         # self._model_epoch = model_epoch or AVAILABLE_MODELS[model_name][0]
@@ -118,8 +118,8 @@ class CnOcr(object):
             raise FileNotFoundError('no ckpt file is found in %s' % self._model_dir)
 
         fp = fps[0]
-        # prefix = os.path.join(self._model_dir, self._model_file_prefix)
         model = gen_model(self._model_name, self._vocab)
+        model.eval()
         model = load_model_params(model, fp, context)
 
         return model
@@ -227,5 +227,6 @@ class CnOcr(object):
     def _predict(self, img_list: List[torch.Tensor]):
         img_lengths = torch.tensor([img.shape[2] for img in img_list])
         imgs = pad_img_seq(img_list)
-        out = self._mod(imgs, img_lengths, return_preds=True)
+        with torch.no_grad():
+            out = self._mod(imgs, img_lengths, return_preds=True)
         return out

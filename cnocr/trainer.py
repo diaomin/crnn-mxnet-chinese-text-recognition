@@ -6,8 +6,8 @@ from typing import Any, Optional, Union, List
 import numpy as np
 import torch
 import torch.optim as optim
+from torch import nn
 import pytorch_lightning as pl
-from pytorch_lightning import LightningModule, LightningDataModule
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from torch.optim.lr_scheduler import (
     StepLR,
@@ -167,7 +167,7 @@ class PlTrainer(object):
     封装 PyTorch Lightning 的训练器。
     """
 
-    def __init__(self, config):
+    def __init__(self, config, ckpt_fn=None):
         self.config = config
 
         lr_monitor = LearningRateMonitor(logging_interval='step')
@@ -175,7 +175,8 @@ class PlTrainer(object):
 
         mode = self.config.get('pl_checkpoint_mode', 'min')
         monitor = self.config.get('pl_checkpoint_monitor')
-        fn_fields = [self.__class__.__name__, '{epoch:03d}']
+        fn_fields = ckpt_fn or []
+        fn_fields.append('{epoch:03d}')
         if monitor:
             fn_fields.append('{' + monitor + ':.4f}')
             checkpoint_callback = ModelCheckpoint(
@@ -199,10 +200,10 @@ class PlTrainer(object):
 
     def fit(
         self,
-        model: LightningModule,
+        model: nn.Module,
         train_dataloader: Any = None,
         val_dataloaders: Optional[Union[DataLoader, List[DataLoader]]] = None,
-        datamodule: Optional[LightningDataModule] = None,
+        datamodule: Optional[pl.LightningDataModule] = None,
     ):
         r"""
         Runs the full optimization routine.

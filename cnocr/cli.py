@@ -9,13 +9,12 @@ import glob
 
 from torchvision import transforms
 
+from cnocr.consts import MODEL_VERSION
 from cnocr.utils import set_logger, load_model_params
 from cnocr.data_utils.aug import NormalizeAug
 from cnocr.dataset import OcrDataModule
-from cnocr.models.densenet import DenseNet
-from cnocr.models.crnn import CRNN
 from cnocr.trainer import PlTrainer
-from cnocr import CnOcr
+from cnocr import CnOcr, gen_model
 
 _CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help']}
 logger = set_logger(log_level=logging.INFO)
@@ -27,6 +26,7 @@ def cli():
 
 
 @cli.command('train')
+@click.option('-m', '--model-name', type=str, default='densenet-s-fc', help='模型名称')
 @click.option(
     '--index-dir',
     type=str,
@@ -35,9 +35,9 @@ def cli():
 )
 @click.option('--train-config-fp', type=str, required=True, help='训练使用的json配置文件')
 @click.option(
-    '-m', '--pretrained-model-fp', type=str, default=None, help='导入的训练好的模型，作为初始模型'
+    '-p', '--pretrained-model-fp', type=str, default=None, help='导入的训练好的模型，作为初始模型'
 )
-def train(index_dir, train_config_fp, pretrained_model_fp):
+def train(model_name, index_dir, train_config_fp, pretrained_model_fp):
     train_transform = transforms.Compose(
         [
             transforms.RandomInvert(p=0.5),
@@ -62,8 +62,9 @@ def train(index_dir, train_config_fp, pretrained_model_fp):
         pin_memory=train_config['pin_memory'],
     )
 
-    trainer = PlTrainer(train_config)
-    model = gen_model(data_mod.vocab)
+    trainer = PlTrainer(train_config, ckpt_fn=['cnocr', 'v%s' % MODEL_VERSION, model_name])
+    model = gen_model(model_name, data_mod.vocab)
+    logger.info(model)
 
     if pretrained_model_fp is not None:
         load_model_params(model, pretrained_model_fp)
@@ -71,14 +72,8 @@ def train(index_dir, train_config_fp, pretrained_model_fp):
     trainer.fit(model, datamodule=data_mod)
 
 
-def gen_model(vocab):
-    net = DenseNet(32, [2, 2, 2, 2], 64)
-    crnn = CRNN(net, vocab=vocab, lstm_features=512, rnn_units=128)
-    return crnn
-
-
 @cli.command('predict')
-@click.option("--model_name", help="model name", type=str, default='densenet-s-lstm')
+@click.option('-m', '--model-name', type=str, default='densenet-s-fc', help='模型名称')
 @click.option("--model_epoch", type=int, default=None, help="model epoch")
 @click.option(
     "--context",

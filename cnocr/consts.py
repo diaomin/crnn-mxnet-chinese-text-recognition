@@ -21,22 +21,47 @@ from .__version__ import __version__
 
 
 # 模型版本只对应到第二层，第三层的改动表示模型兼容。
-# 如: __version__ = '1.2.*'，对应的 MODEL_VERSION 都是 '1.2.0'
+# 如: __version__ = '1.3.*'，对应的 MODEL_VERSION 都是 '1.3.0'
 MODEL_VERSION = '.'.join(__version__.split('.', maxsplit=2)[:2]) + '.0'
 
 IMG_STANDARD_HEIGHT = 32
 VOCAB_FP = Path(__file__).parent.parent / 'label_cn.txt'
 
-EMB_MODEL_TYPES = [
-    'conv',  # seq_len == 35, deprecated
-    'conv-lite',  # seq_len == 69
-    'conv-lite-s',  # seq_len == 35
-    'densenet',  # seq_len == 70, deprecated
-    'densenet-lite',  # seq_len == 70
-    'densenet-s',  # seq_len == 35
-    'densenet-lite-s',  # seq_len == 35
-]
-SEQ_MODEL_TYPES = ['lstm', 'gru', 'fc']
+ENCODER_CONFIGS = {
+    'densenet-s': {  # 长度压缩至 1/8（seq_len == 35），输出的向量长度为 4*128 = 512
+        'growth_rate': 32,
+        'block_config': [2, 2, 2, 2],
+        'num_init_features': 64,
+        'out_length': 512,  # 输出的向量长度为 4*128 = 512
+    },
+}
+
+DECODER_CONFIGS = {
+    'lstm': {
+        'input_size': 512,  # 对应 encoder 的输出向量长度
+        'rnn_units': 128,
+    },
+    'gru': {
+        'input_size': 512,  # 对应 encoder 的输出向量长度
+        'rnn_units': 128,
+    },
+    'fc': {
+        'input_size': 512,  # 对应 encoder 的输出向量长度
+        'hidden_size': 256,
+        'dropout': 0.3,
+    }
+}
+
+# EMB_MODEL_TYPES = [
+#     'conv',  # seq_len == 35, deprecated
+#     'conv-lite',  # seq_len == 69
+#     'conv-lite-s',  # seq_len == 35
+#     'densenet',  # seq_len == 70, deprecated
+#     'densenet-lite',  # seq_len == 70
+#     'densenet-s',  # seq_len == 35
+#     'densenet-lite-s',  # seq_len == 35
+# ]
+# SEQ_MODEL_TYPES = ['lstm', 'gru', 'fc']
 
 root_url = (
     'https://static.einplus.cn/cnocr/%s'
