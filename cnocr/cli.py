@@ -28,6 +28,7 @@ def cli():
 @cli.command('train')
 @click.option('-m', '--model-name', type=str, default='densenet-s-fc', help='模型名称')
 @click.option(
+    '-i',
     '--index-dir',
     type=str,
     required=True,
@@ -35,9 +36,18 @@ def cli():
 )
 @click.option('--train-config-fp', type=str, required=True, help='训练使用的json配置文件')
 @click.option(
-    '-p', '--pretrained-model-fp', type=str, default=None, help='导入的训练好的模型，作为初始模型'
+    '-r', '--resume-from-checkpoint', type=str, default=None, help='恢复此前中断的训练状态，继续训练'
 )
-def train(model_name, index_dir, train_config_fp, pretrained_model_fp):
+@click.option(
+    '-p',
+    '--pretrained-model-fp',
+    type=str,
+    default=None,
+    help='导入的训练好的模型，作为初始模型。优先级低于"--restore-training-fp"，当传入"--restore-training-fp"时，此传入可能失效。',
+)
+def train(
+    model_name, index_dir, train_config_fp, resume_from_checkpoint, pretrained_model_fp
+):
     train_transform = transforms.Compose(
         [
             transforms.RandomInvert(p=0.5),
@@ -62,14 +72,16 @@ def train(model_name, index_dir, train_config_fp, pretrained_model_fp):
         pin_memory=train_config['pin_memory'],
     )
 
-    trainer = PlTrainer(train_config, ckpt_fn=['cnocr', 'v%s' % MODEL_VERSION, model_name])
+    trainer = PlTrainer(
+        train_config, ckpt_fn=['cnocr', 'v%s' % MODEL_VERSION, model_name]
+    )
     model = gen_model(model_name, data_mod.vocab)
     logger.info(model)
 
     if pretrained_model_fp is not None:
         load_model_params(model, pretrained_model_fp)
 
-    trainer.fit(model, datamodule=data_mod)
+    trainer.fit(model, datamodule=data_mod, resume_from_checkpoint=resume_from_checkpoint)
 
 
 @cli.command('predict')
@@ -89,9 +101,7 @@ def train(model_name, index_dir, train_config_fp, pretrained_model_fp):
     help="Whether the image only includes one-line characters",
 )
 def predict(model_name, model_epoch, context, file, single_line):
-    ocr = CnOcr(
-        model_name=model_name, model_epoch=model_epoch, context=context
-    )
+    ocr = CnOcr(model_name=model_name, model_epoch=model_epoch, context=context)
     ocr_func = ocr.ocr_for_single_line if single_line else ocr.ocr
     fp_list = []
     if os.path.isfile(file):

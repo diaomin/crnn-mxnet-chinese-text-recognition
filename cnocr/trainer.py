@@ -1,6 +1,7 @@
 # coding: utf-8
 import logging
 from copy import deepcopy
+from pathlib import Path
 from typing import Any, Optional, Union, List
 
 import numpy as np
@@ -204,6 +205,7 @@ class PlTrainer(object):
         train_dataloader: Any = None,
         val_dataloaders: Optional[Union[DataLoader, List[DataLoader]]] = None,
         datamodule: Optional[pl.LightningDataModule] = None,
+        resume_from_checkpoint: Optional[Union[Path, str]] = None,
     ):
         r"""
         Runs the full optimization routine.
@@ -214,14 +216,21 @@ class PlTrainer(object):
             train_dataloader: Either a single PyTorch DataLoader or a collection of these
                 (list, dict, nested lists and dicts). In the case of multiple dataloaders, please
                 see this :ref:`page <multiple-training-dataloaders>`
-
             val_dataloaders: Either a single Pytorch Dataloader or a list of them, specifying validation samples.
                 If the model has a predefined val_dataloaders method this will be skipped
-
             datamodule: A instance of :class:`LightningDataModule`.
-
+            resume_from_checkpoint: Path/URL of the checkpoint from which training is resumed. If there is
+                no checkpoint file at the path, start from scratch. If resuming from mid-epoch checkpoint,
+                training will start from the beginning of the next epoch.
         """
-        pl_module = WrapperLightningModule(self.config, model)
+        if resume_from_checkpoint is not None:
+            pl_module = WrapperLightningModule.load_from_checkpoint(
+                resume_from_checkpoint, config=self.config, model=model
+            )
+            self.pl_trainer = pl.Trainer(resume_from_checkpoint=resume_from_checkpoint)
+        else:
+            pl_module = WrapperLightningModule(self.config, model)
+
         self.pl_trainer.fit(pl_module, train_dataloader, val_dataloaders, datamodule)
 
         fields = self.pl_trainer.checkpoint_callback.best_model_path.rsplit(
