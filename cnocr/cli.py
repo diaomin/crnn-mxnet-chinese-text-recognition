@@ -11,7 +11,7 @@ from torchvision import transforms
 
 from cnocr.consts import MODEL_VERSION
 from cnocr.utils import set_logger, load_model_params
-from cnocr.data_utils.aug import NormalizeAug
+from cnocr.data_utils.aug import NormalizeAug, RandomPaddingAug
 from cnocr.dataset import OcrDataModule
 from cnocr.trainer import PlTrainer
 from cnocr import CnOcr, gen_model
@@ -57,6 +57,7 @@ def train(
             transforms.RandomRotation(degrees=2),
             transforms.RandomAutocontrast(p=0.05),
             NormalizeAug(),
+            RandomPaddingAug(p=0.5, max_pad_len=72),
         ]
     )
     val_transform = NormalizeAug()
