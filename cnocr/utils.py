@@ -241,13 +241,12 @@ def read_charset(charset_fp):
     with open(charset_fp, encoding='utf-8') as fp:
         for line in fp:
             alphabet.append(line.rstrip('\n'))
-    # print('Alphabet size: %d' % len(alphabet))
-    # try:
-    #     space_idx = alphabet.index('<space>')
-    #     alphabet[space_idx] = ' '
-    # except ValueError:
-    #     pass
     inv_alph_dict = {_char: idx for idx, _char in enumerate(alphabet)}
+    if len(alphabet) != len(inv_alph_dict):
+        from collections import Counter
+        repeated = Counter(alphabet).most_common(len(alphabet) - len(inv_alph_dict))
+        raise ValueError('repeated chars in vocab: %s' % repeated)
+
     return alphabet, inv_alph_dict
 
 
