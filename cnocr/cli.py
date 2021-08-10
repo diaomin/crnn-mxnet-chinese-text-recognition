@@ -19,6 +19,8 @@ from cnocr import CnOcr, gen_model
 _CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help']}
 logger = set_logger(log_level=logging.INFO)
 
+DEFAULT_MODEL_NAME = 'densenet-s-fc'
+
 
 @click.group(context_settings=_CONTEXT_SETTINGS)
 def cli():
@@ -26,7 +28,7 @@ def cli():
 
 
 @cli.command('train')
-@click.option('-m', '--model-name', type=str, default='densenet-s-fc', help='模型名称')
+@click.option('-m', '--model-name', type=str, default=DEFAULT_MODEL_NAME, help='模型名称')
 @click.option(
     '-i',
     '--index-dir',
@@ -85,7 +87,7 @@ def train(
 
 
 @cli.command('predict')
-@click.option('-m', '--model-name', type=str, default='densenet-s-fc', help='模型名称')
+@click.option('-m', '--model-name', type=str, default=DEFAULT_MODEL_NAME, help='模型名称')
 @click.option("--model_epoch", type=int, default=None, help="model epoch")
 @click.option(
     "--context",
