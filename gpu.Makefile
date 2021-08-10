@@ -6,7 +6,7 @@ MODEL_NAME = $(ENCODER_NAME)-$(DECODER_NAME)
 EPOCH = 41
 
 INDEX_DIR = data
-TRAIN_CONFIG_FP = examples/train_config.json
+TRAIN_CONFIG_FP = examples/train_config_gpu.json
 
 train:
 	cnocr train -m $(MODEL_NAME) --index-dir $(INDEX_DIR) --train-config-fp $(TRAIN_CONFIG_FP)
