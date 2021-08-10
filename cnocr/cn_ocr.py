@@ -77,6 +77,8 @@ class CnOcr(object):
         :param context: 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为CPU。
         :param name: 正在初始化的这个实例名称。如果需要同时初始化多个实例，需要为不同的实例指定不同的名称。
         """
+        if name is not None:
+            logger.warning('param `name` is useless and deprecated in Version %s' % MODEL_VERSION)
         check_model_name(model_name)
         check_context(context)
         self._model_name = model_name
