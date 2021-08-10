@@ -1,5 +1,5 @@
 # coding: utf-8
-from typing import Tuple, Dict, Any, Optional, List
+from typing import Tuple, Dict, Any, Optional, List, Union
 from copy import deepcopy
 
 import numpy as np
@@ -147,9 +147,20 @@ class OcrModel(nn.Module):
         x: torch.Tensor,
         input_lengths: torch.Tensor,
         target: Optional[List[str]] = None,
-        return_model_output: bool = False,
+        candidates: Optional[Union[str, List[str]]] = None,
+        return_logits: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
+        """
+
+        :param x: [B, 1, H, W]; 一组padding后的图片
+        :param input_lengths: shape: [B]；每张图片padding前的真实长度（宽度）
+        :param target: 真实的字符串
+        :param candidates: None or candidate strs; 允许的候选字符集合
+        :param return_logits: 是否返回预测的logits值
+        :param return_preds: 是否返回预测的字符串
+        :return: 预测结果
+        """
         features = self.encoder(x)
         input_lengths = input_lengths // self.encoder.compress_ratio
         # B x C x H x W --> B x C*H x W --> B x W x C*H
@@ -160,9 +171,10 @@ class OcrModel(nn.Module):
         logits = self._decode(features_seq, input_lengths)
 
         logits = self.linear(logits)
+        logits = self._mask_by_candidates(logits, candidates)
 
         out: Dict[str, Any] = {}
-        if return_model_output:
+        if return_logits:
             out["logits"] = logits
 
         if target is None or return_preds:
@@ -189,6 +201,25 @@ class OcrModel(nn.Module):
         logits, output_lens = pad_packed_sequence(
             logits, batch_first=True, total_length=w
         )
+        return logits
+
+    def _mask_by_candidates(
+        self, logits: torch.Tensor, candidates: Optional[Union[str, List[str]]]
+    ):
+        if candidates is None:
+            return logits
+
+        _candidates = [self.letter2id[word] for word in candidates]
+        _candidates.sort()
+        _candidates = torch.tensor(_candidates, dtype=torch.int64)
+
+        candidates = torch.zeros(
+            (len(self.vocab) + 1,), dtype=torch.bool, device=logits.device
+        )
+        candidates[_candidates] = True
+        candidates[-1] = True  # 间隔符号/填充符号，必须为真
+        candidates = candidates.unsqueeze(0).unsqueeze(0)  # 1 x 1 x (vocab_size+1)
+        logits.masked_fill_(~candidates, -100.0)
         return logits
 
     def _compute_loss(

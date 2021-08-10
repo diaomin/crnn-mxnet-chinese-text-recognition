@@ -31,8 +31,11 @@ from cnocr.utils import (
     get_model_file,
     read_charset,
     check_model_name,
-    check_context, read_img,
-    load_model_params, rescale_img, pad_img_seq,
+    check_context,
+    read_img,
+    load_model_params,
+    rescale_img,
+    pad_img_seq,
 )
 from .data_utils.aug import NormalizeAug
 from .line_split import line_split
@@ -43,7 +46,9 @@ logger = logging.getLogger(__name__)
 def gen_model(model_name, vocab):
     check_model_name(model_name)
     if not model_name.startswith('densenet-s'):
-        logger.warning('only "densenet-s" is supported now, use "densenet-s-fc" by default')
+        logger.warning(
+            'only "densenet-s" is supported now, use "densenet-s-fc" by default'
+        )
         model_name = 'densenet-s-fc'
     model = OcrModel.from_name(model_name, vocab)
     return model
@@ -81,11 +86,9 @@ class CnOcr(object):
         root = os.path.join(root, MODEL_VERSION)
         self._model_dir = os.path.join(root, self._model_name)
         # self._assert_and_prepare_model_files()
-        self._vocab, self._inv_alph_dict = read_charset(
-           VOCAB_FP
-        )
+        self._vocab, self._letter2id = read_charset(VOCAB_FP)
 
-        self._cand_alph_idx = None
+        self._candidates = None
         self.set_cand_alphabet(cand_alphabet)
 
         self.context = context
@@ -111,9 +114,13 @@ class CnOcr(object):
 
     def _get_module(self, context):
         from glob import glob
+
         fps = glob('%s/%s*.ckpt' % (self._model_dir, self._model_file_prefix))
         if len(fps) > 1:
-            raise ValueError('multiple ckpt files are found in %s, not sure which one should be used' % self._model_dir)
+            raise ValueError(
+                'multiple ckpt files are found in %s, not sure which one should be used'
+                % self._model_dir
+            )
         elif len(fps) < 1:
             raise FileNotFoundError('no ckpt file is found in %s' % self._model_dir)
 
@@ -131,12 +138,24 @@ class CnOcr(object):
         :return: None
         """
         if cand_alphabet is None:
-            self._cand_alph_idx = None
+            self._candidates = None
         else:
-            self._cand_alph_idx = [self._inv_alph_dict[word] for word in cand_alphabet]
-            self._cand_alph_idx.sort()
+            cand_alphabet = [word if word != ' ' else '<space>' for word in cand_alphabet]
+            excluded = set(
+                [word for word in cand_alphabet if word not in self._letter2id]
+            )
+            if excluded:
+                logger.warning(
+                    'chars in candidates are not in the vocab, ignoring them: %s'
+                    % excluded
+                )
+            candidates = [word for word in cand_alphabet if word in self._letter2id]
+            self._candidates = None if len(candidates) == 0 else candidates
+            logger.info('candidate chars: %s' % self._candidates)
 
-    def ocr(self, img_fp: Union[str, Path, torch.Tensor, np.ndarray]) -> List[Tuple[List[str], float]]:
+    def ocr(
+        self, img_fp: Union[str, Path, torch.Tensor, np.ndarray]
+    ) -> List[Tuple[List[str], float]]:
         """
         :param img_fp: image file path; or color image mx.nd.NDArray or np.ndarray,
             with shape (height, width, 3), and the channels should be RGB formatted.
@@ -162,7 +181,9 @@ class CnOcr(object):
         line_chars_list = self.ocr_for_single_lines(line_img_list)
         return line_chars_list
 
-    def ocr_for_single_line(self, img_fp: Union[str, Path, torch.Tensor, np.ndarray]) -> Tuple[List[str], float]:
+    def ocr_for_single_line(
+        self, img_fp: Union[str, Path, torch.Tensor, np.ndarray]
+    ) -> Tuple[List[str], float]:
         """
         Recognize characters from an image with only one-line characters.
         :param img_fp: image file path; or image mx.nd.NDArray or np.ndarray,
@@ -181,7 +202,9 @@ class CnOcr(object):
         res = self.ocr_for_single_lines([img])
         return res[0]
 
-    def ocr_for_single_lines(self, img_list: List[Union[torch.Tensor, np.ndarray]]) -> List[Tuple[List[str], float]]:
+    def ocr_for_single_lines(
+        self, img_list: List[Union[torch.Tensor, np.ndarray]]
+    ) -> List[Tuple[List[str], float]]:
         """
         Batch recognize characters from a list of one-line-characters images.
         :param img_list: list of images, in which each element should be a line image array,
@@ -206,7 +229,9 @@ class CnOcr(object):
 
         return res
 
-    def _preprocess_img_array(self, img: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+    def _preprocess_img_array(
+        self, img: Union[torch.Tensor, np.ndarray]
+    ) -> torch.Tensor:
         """
         :param img: image array with type torch.Tensor or np.ndarray,
         with shape [height, width] or [channel, height, width].
@@ -228,5 +253,7 @@ class CnOcr(object):
         img_lengths = torch.tensor([img.shape[2] for img in img_list])
         imgs = pad_img_seq(img_list)
         with torch.no_grad():
-            out = self._mod(imgs, img_lengths, return_preds=True)
+            out = self._mod(
+                imgs, img_lengths, candidates=self._candidates, return_preds=True
+            )
         return out
