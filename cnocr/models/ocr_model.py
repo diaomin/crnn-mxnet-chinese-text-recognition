@@ -140,7 +140,9 @@ class OcrModel(nn.Module):
         self, batch, return_model_output: bool = False, return_preds: bool = False,
     ):
         imgs, img_lengths, labels_list, label_lengths = batch
-        return self(imgs, img_lengths, labels_list, return_model_output, return_preds)
+        return self(
+            imgs, img_lengths, labels_list, None, return_model_output, return_preds
+        )
 
     def forward(
         self,
