@@ -18,8 +18,11 @@ exec(
 )
 
 required = [
-    'numpy>=1.14.0,<1.20.0',
-    'pillow>=5.3.0',
+    "torch",
+    "torchvision",
+    "pytorch-lightning",
+    "click",
+    "tqdm",
 ]
 extras_require = {
     "dev": ["pip-tools", "pytest", "python-Levenshtein"],
