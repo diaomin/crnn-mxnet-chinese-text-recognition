@@ -258,6 +258,7 @@ class OcrModel(nn.Module):
             seq_length,
             torch.tensor(seq_len, dtype=torch.int, device=probs.device),
             len(self.vocab),
+            zero_infinity=True,
         )
 
         return ctc_loss
