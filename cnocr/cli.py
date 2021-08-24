@@ -124,6 +124,13 @@ def train(
 )
 @click.option("--model_epoch", type=int, default=None, help="model epoch")
 @click.option(
+    '-p',
+    '--pretrained-model-fp',
+    type=str,
+    default=None,
+    help='导入的训练好的模型，作为初始模型。优先级低于"--restore-training-fp"，当传入"--restore-training-fp"时，此传入失效',
+)
+@click.option(
     "--context",
     help="使用cpu还是gpu运行代码。默认为cpu",
     type=click.Choice(['cpu', 'gpu']),
@@ -136,8 +143,13 @@ def train(
     is_flag=True,
     help="Whether the image only includes one-line characters",
 )
-def predict(model_name, model_epoch, context, file, single_line):
-    ocr = CnOcr(model_name=model_name, model_epoch=model_epoch, context=context)
+def predict(model_name, model_epoch, pretrained_model_fp, context, file, single_line):
+    ocr = CnOcr(
+        model_name=model_name,
+        model_epoch=model_epoch,
+        model_fp=pretrained_model_fp,
+        context=context,
+    )
     ocr_func = ocr.ocr_for_single_line if single_line else ocr.ocr
     fp_list = []
     if os.path.isfile(file):
