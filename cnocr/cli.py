@@ -69,7 +69,7 @@ def cli():
     '--pretrained-model-fp',
     type=str,
     default=None,
-    help='导入的训练好的模型，作为初始模型。优先级低于"--restore-training-fp"，当传入"--restore-training-fp"时，此传入可能失效。',
+    help='导入的训练好的模型，作为初始模型。优先级低于"--restore-training-fp"，当传入"--restore-training-fp"时，此传入失效',
 )
 def train(
     model_name, index_dir, train_config_fp, resume_from_checkpoint, pretrained_model_fp
@@ -128,7 +128,7 @@ def train(
     '--pretrained-model-fp',
     type=str,
     default=None,
-    help='导入的训练好的模型，作为初始模型。优先级低于"--restore-training-fp"，当传入"--restore-training-fp"时，此传入失效',
+    help='使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
 )
 @click.option(
     "--context",
