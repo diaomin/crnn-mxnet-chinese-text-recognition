@@ -82,7 +82,7 @@ def evaluate():
     ocr = CnOcr(
         model_name=args.model_name, model_epoch=args.model_epoch, context=context
     )
-    alphabet = ocr._alphabet
+    alphabet = ocr._vocab
 
     fn_labels_list = read_input_file(args.input_fp)
 
