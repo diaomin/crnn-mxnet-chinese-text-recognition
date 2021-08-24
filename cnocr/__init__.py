@@ -17,5 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from .cn_ocr import CnOcr, gen_model
 from .consts import MODEL_VERSION, AVAILABLE_MODELS, NUMBERS, ENG_LETTERS
+from .cn_ocr import CnOcr, gen_model
+from .line_split import line_split

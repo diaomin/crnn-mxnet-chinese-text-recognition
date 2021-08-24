@@ -81,7 +81,6 @@ class CnOcr(object):
         :param root: 模型文件所在的根目录。
             Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.2.0/densenet-lite-fc`。
             Windows下默认值为 `C:/Users/<username>/AppData/Roaming/cnocr`。
-        :param name: 正在初始化的这个实例名称。如果需要同时初始化多个实例，需要为不同的实例指定不同的名称。
         """
         if 'name' in kwargs:
             logger.warning(
