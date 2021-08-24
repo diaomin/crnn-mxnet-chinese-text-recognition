@@ -1,4 +1,22 @@
 # coding: utf-8
+# Copyright (C) 2021, [Breezedeus](https://github.com/breezedeus).
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
 from __future__ import absolute_import, division, print_function
 import os
 import logging
@@ -10,10 +28,10 @@ import glob
 from torchvision import transforms
 
 from cnocr.consts import MODEL_VERSION
-from cnocr.utils import set_logger, load_model_params
+from cnocr.utils import set_logger, load_model_params, check_model_name
 from cnocr.data_utils.aug import NormalizeAug, RandomPaddingAug
 from cnocr.dataset import OcrDataModule
-from cnocr.trainer import PlTrainer
+from cnocr.trainer import PlTrainer, resave_model
 from cnocr import CnOcr, gen_model
 
 _CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help']}
@@ -28,7 +46,13 @@ def cli():
 
 
 @cli.command('train')
-@click.option('-m', '--model-name', type=str, default=DEFAULT_MODEL_NAME, help='模型名称')
+@click.option(
+    '-m',
+    '--model-name',
+    type=str,
+    default=DEFAULT_MODEL_NAME,
+    help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
+)
 @click.option(
     '-i',
     '--index-dir',
@@ -50,6 +74,7 @@ def cli():
 def train(
     model_name, index_dir, train_config_fp, resume_from_checkpoint, pretrained_model_fp
 ):
+    check_model_name(model_name)
     train_transform = transforms.Compose(
         [
             transforms.RandomInvert(p=0.5),
@@ -84,11 +109,19 @@ def train(
     if pretrained_model_fp is not None:
         load_model_params(model, pretrained_model_fp)
 
-    trainer.fit(model, datamodule=data_mod, resume_from_checkpoint=resume_from_checkpoint)
+    trainer.fit(
+        model, datamodule=data_mod, resume_from_checkpoint=resume_from_checkpoint
+    )
 
 
 @cli.command('predict')
-@click.option('-m', '--model-name', type=str, default=DEFAULT_MODEL_NAME, help='模型名称')
+@click.option(
+    '-m',
+    '--model-name',
+    type=str,
+    default=DEFAULT_MODEL_NAME,
+    help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
+)
 @click.option("--model_epoch", type=int, default=None, help="model epoch")
 @click.option(
     "--context",
@@ -124,6 +157,16 @@ def predict(model_name, model_epoch, context, file, single_line):
         for line_res in res:
             preds, prob = line_res
             logger.info('\npred: %s, with probability %f' % (''.join(preds), prob))
+
+
+@cli.command('resave')
+@click.option('-i', '--input-model-fp', type=str, required=True, help='输入的模型文件路径')
+@click.option('-o', '--output-model-fp', type=str, required=True, help='输出的模型文件路径')
+def resave_model_file(
+    input_model_fp, output_model_fp,
+):
+    """训练好的模型会存储训练状态，使用此命令去掉预测时无关的数据，降低模型大小"""
+    resave_model(input_model_fp, output_model_fp, map_location='cpu')
 
 
 if __name__ == "__main__":

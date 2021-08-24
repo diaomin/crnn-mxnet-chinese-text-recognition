@@ -1,4 +1,5 @@
 # coding: utf-8
+# Copyright (C) 2021, [Breezedeus](https://github.com/breezedeus).
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,6 +16,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+
 import hashlib
 import os
 from pathlib import Path
@@ -71,7 +73,7 @@ def set_logger(log_file=None, log_level=logging.INFO, log_file_level=logging.NOT
 
 def check_context(context):
     if isinstance(context, str):
-        return context.lower() in ('gpu', 'cpu', 'cuda')
+        return any([ctx in context.lower() for ctx in ('gpu', 'cpu', 'cuda')])
     if isinstance(context, list):
         if len(context) < 1:
             return False

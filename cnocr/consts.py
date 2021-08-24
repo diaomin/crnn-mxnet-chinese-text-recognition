@@ -1,4 +1,5 @@
 # coding: utf-8
+# Copyright (C) 2021, [Breezedeus](https://github.com/breezedeus).
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,14 +16,15 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+
 import string
 from pathlib import Path
 from .__version__ import __version__
 
 
 # 模型版本只对应到第二层，第三层的改动表示模型兼容。
-# 如: __version__ = '1.3.*'，对应的 MODEL_VERSION 都是 '1.3.0'
-MODEL_VERSION = '.'.join(__version__.split('.', maxsplit=2)[:2]) + '.0'
+# 如: __version__ = '2.0.*'，对应的 MODEL_VERSION 都是 '2.0'
+MODEL_VERSION = '.'.join(__version__.split('.', maxsplit=2)[:2])
 
 IMG_STANDARD_HEIGHT = 32
 VOCAB_FP = Path(__file__).parent.parent / 'label_cn.txt'
@@ -52,28 +54,14 @@ DECODER_CONFIGS = {
     }
 }
 
-# EMB_MODEL_TYPES = [
-#     'conv',  # seq_len == 35, deprecated
-#     'conv-lite',  # seq_len == 69
-#     'conv-lite-s',  # seq_len == 35
-#     'densenet',  # seq_len == 70, deprecated
-#     'densenet-lite',  # seq_len == 70
-#     'densenet-s',  # seq_len == 35
-#     'densenet-lite-s',  # seq_len == 35
-# ]
-# SEQ_MODEL_TYPES = ['lstm', 'gru', 'fc']
-
 root_url = (
-    'https://static.einplus.cn/cnocr/%s'
+    'https://beiye-model.oss-cn-beijing.aliyuncs.com/models/cnocr/%s/'
     % MODEL_VERSION
 )
 # name: (epochs, url)
 AVAILABLE_MODELS = {
-    'conv-lite-fc': (25, root_url + '/conv-lite-fc.zip'),
-    'densenet-lite-gru': (39, root_url + '/densenet-lite-gru.zip'),
-    'densenet-lite-fc': (40, root_url + '/densenet-lite-fc.zip'),
-    'densenet-lite-s-gru': (35, root_url + '/densenet-lite-s-gru.zip'),
-    'densenet-lite-s-fc': (40, root_url + '/densenet-lite-s-fc.zip'),
+    'densenet-s-fc': (39, root_url + 'densenet-s-fc.zip'),
+    'densenet-s-gru': (11, root_url + 'densenet-s-gru.zip'),
 }
 
 # 候选字符集合

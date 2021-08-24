@@ -1,4 +1,5 @@
 # coding: utf-8
+# Copyright (C) 2021, [Breezedeus](https://github.com/breezedeus).
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,8 +16,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+
 import os
 import logging
+from glob import glob
 from typing import Union, List, Tuple
 from pathlib import Path
 
@@ -61,62 +64,61 @@ class CnOcr(object):
         self,
         model_name='densenet-lite-fc',
         model_epoch=None,
+        *,
         cand_alphabet=None,
-        root=data_dir(),
         context='cpu',  # ['cpu', 'gpu', 'cuda']
-        name=None,
+        model_fp=None,
+        root=data_dir(),
+        **kwargs,
     ):
         """
 
         :param model_name: 模型名称
         :param model_epoch: 模型迭代次数。默认为 None，表示使用系统自带的模型对应的迭代次数
         :param cand_alphabet: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围
+        :param context: 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为CPU。
+        :param model_fp: 如果不使用系统自带的模型，可以通过此参数直接指定所使用的模型文件（'.ckpt' 文件）
         :param root: 模型文件所在的根目录。
             Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.2.0/densenet-lite-fc`。
             Windows下默认值为 `C:/Users/<username>/AppData/Roaming/cnocr`。
-        :param context: 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为CPU。
         :param name: 正在初始化的这个实例名称。如果需要同时初始化多个实例，需要为不同的实例指定不同的名称。
         """
-        if name is not None:
-            logger.warning('param `name` is useless and deprecated in Version %s' % MODEL_VERSION)
+        if 'name' in kwargs:
+            logger.warning(
+                'param `name` is useless and deprecated since version %s'
+                % MODEL_VERSION
+            )
         check_model_name(model_name)
         check_context(context)
         self._model_name = model_name
-        self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
-        # self._model_epoch = model_epoch or AVAILABLE_MODELS[model_name][0]
+        self.context = context
 
-        root = os.path.join(root, MODEL_VERSION)
-        self._model_dir = os.path.join(root, self._model_name)
-        # self._assert_and_prepare_model_files()
+        self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
+        self._model_epoch = model_epoch or AVAILABLE_MODELS.get('model_name', [None])[0]
+        if self._model_epoch is not None:
+            self._model_file_prefix = '%s-epoch=%03d' % (
+                self._model_file_prefix,
+                self._model_epoch,
+            )
+
+        self._assert_and_prepare_model_files(model_fp, root)
         self._vocab, self._letter2id = read_charset(VOCAB_FP)
 
         self._candidates = None
         self.set_cand_alphabet(cand_alphabet)
 
-        self.context = context
-        self._mod = self._get_module(context)
+        self._model = self._get_model(context)
 
-    def _assert_and_prepare_model_files(self):
-        model_dir = self._model_dir
-        model_files = [
-            '%s-%04d.params' % (self._model_file_prefix, self._model_epoch),
-        ]
-        file_prepared = True
-        for f in model_files:
-            f = os.path.join(model_dir, f)
-            if not os.path.exists(f):
-                file_prepared = False
-                logger.warning('can not find file %s', f)
-                break
+    def _assert_and_prepare_model_files(self, model_fp, root):
+        if model_fp is not None and not os.path.isfile(model_fp):
+            raise FileNotFoundError('can not find model file %s' % model_fp)
 
-        if file_prepared:
+        if model_fp is not None:
+            self._model_fp = model_fp
             return
 
-        get_model_file(model_dir)
-
-    def _get_module(self, context):
-        from glob import glob
-
+        root = os.path.join(root, MODEL_VERSION)
+        self._model_dir = os.path.join(root, self._model_name)
         fps = glob('%s/%s*.ckpt' % (self._model_dir, self._model_file_prefix))
         if len(fps) > 1:
             raise ValueError(
@@ -124,12 +126,18 @@ class CnOcr(object):
                 % self._model_dir
             )
         elif len(fps) < 1:
-            raise FileNotFoundError('no ckpt file is found in %s' % self._model_dir)
+            logger.warning('no ckpt file is found in %s' % self._model_dir)
+            get_model_file(self._model_dir)  # download the .zip file and unzip
+            fps = glob('%s/%s*.ckpt' % (self._model_dir, self._model_file_prefix))
 
-        fp = fps[0]
+        self._model_fp = fps[0]
+
+    def _get_model(self, context):
+        logger.info('use model: %s' % self._model_fp)
         model = gen_model(self._model_name, self._vocab)
         model.eval()
-        model = load_model_params(model, fp, context)
+        model.to(self.context)
+        model = load_model_params(model, self._model_fp, context)
 
         return model
 
@@ -142,7 +150,9 @@ class CnOcr(object):
         if cand_alphabet is None:
             self._candidates = None
         else:
-            cand_alphabet = [word if word != ' ' else '<space>' for word in cand_alphabet]
+            cand_alphabet = [
+                word if word != ' ' else '<space>' for word in cand_alphabet
+            ]
             excluded = set(
                 [word for word in cand_alphabet if word not in self._letter2id]
             )
@@ -159,8 +169,8 @@ class CnOcr(object):
         self, img_fp: Union[str, Path, torch.Tensor, np.ndarray]
     ) -> List[Tuple[List[str], float]]:
         """
-        :param img_fp: image file path; or color image mx.nd.NDArray or np.ndarray,
-            with shape (height, width, 3), and the channels should be RGB formatted.
+        :param img_fp: image file path; or color image torch.Tensor or np.ndarray,
+            with shape (height, width, 3), and the channels should be RGB formatted, scaled in [0, 255].
         :return: list of (list of chars, prob), such as
             [(['第', '一', '行'], 0.80), (['第', '二', '行'], 0.75), (['第', '三', '行'], 0.9)]
         """
@@ -179,7 +189,7 @@ class CnOcr(object):
         if img.mean() < 145:  # 把黑底白字的图片对调为白底黑字
             img = 255 - img
         line_imgs = line_split(np.squeeze(img, axis=0), blank=True)
-        line_img_list = [np.expand_dims(line_img, axis=0) for line_img, _ in line_imgs]
+        line_img_list = [np.expand_dims(line_img, axis=-1) for line_img, _ in line_imgs]
         line_chars_list = self.ocr_for_single_lines(line_img_list)
         return line_chars_list
 
@@ -196,7 +206,7 @@ class CnOcr(object):
         if isinstance(img_fp, str):
             if not os.path.isfile(img_fp):
                 raise FileNotFoundError(img_fp)
-            img = read_img(img_fp)
+            img = read_img(img_fp).transpose((2, 0, 1))
         elif isinstance(img_fp, torch.Tensor) or isinstance(img_fp, np.ndarray):
             img = img_fp
         else:
@@ -210,7 +220,7 @@ class CnOcr(object):
         """
         Batch recognize characters from a list of one-line-characters images.
         :param img_list: list of images, in which each element should be a line image array,
-            with type mx.nd.NDArray or np.ndarray.
+            with type torch.Tensor or np.ndarray.
             Each element should be a tensor with values ranging from 0 to 255,
             and with shape [height, width] or [height, width, channel].
             The optional channel should be 1 (gray image) or 3 (color image).
@@ -236,26 +246,26 @@ class CnOcr(object):
     ) -> torch.Tensor:
         """
         :param img: image array with type torch.Tensor or np.ndarray,
-        with shape [height, width] or [channel, height, width].
+        with shape [height, width] or [height, width, channel].
         channel shoule be 1 (gray image) or 3 (color image).
 
         :return: torch.Tensor, with shape (1, height, width)
         """
-        if len(img.shape) == 3 and img.shape[0] == 3:
+        if len(img.shape) == 3 and img.shape[2] == 3:
             if isinstance(img, torch.Tensor):
                 img = img.numpy()
             if img.dtype != np.dtype('uint8'):
                 img = img.astype('uint8')
             # color to gray
-            img = np.array(Image.fromarray(img).convert('L'))
-        img = rescale_img(img)
+            img = np.expand_dims(np.array(Image.fromarray(img).convert('L')), -1)
+        img = rescale_img(img.transpose((2, 0, 1)))  # res: [C, H, W]
         return NormalizeAug()(img).to(device=torch.device(self.context))
 
+    @torch.no_grad()
     def _predict(self, img_list: List[torch.Tensor]):
         img_lengths = torch.tensor([img.shape[2] for img in img_list])
         imgs = pad_img_seq(img_list)
-        with torch.no_grad():
-            out = self._mod(
-                imgs, img_lengths, candidates=self._candidates, return_preds=True
-            )
+        out = self._model(
+            imgs, img_lengths, candidates=self._candidates, return_preds=True
+        )
         return out

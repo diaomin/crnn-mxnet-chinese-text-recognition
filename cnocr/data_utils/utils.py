@@ -1,50 +1,29 @@
-# from doctr
+# coding: utf-8
+# Copyright (C) 2021, [Breezedeus](https://github.com/breezedeus).
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# Credits: adapted from https://github.com/mindee/doctr
 
-import string
-import unicodedata
 from typing import Dict
 
 import numpy as np
 from typing import List, Optional, Any
 
-# from .vocabs import VOCABS
-
 __all__ = ['encode_sequence', 'decode_sequence', 'encode_sequences']
-
-
-# def translate(
-#     input_string: str,
-#     vocab_name: str,
-#     unknown_char: str = '■',
-# ) -> str:
-#     """Translate a string input in a given vocabulary
-#
-#     Args:
-#         input_string: input string to translate
-#         vocab_name: vocabulary to use (french, latin, ...)
-#         unknown_char: unknown character for non-translatable characters
-#
-#     Returns:
-#         A string translated in a given vocab"""
-#
-#     if VOCABS.get(vocab_name) is None:
-#         raise KeyError("output vocabulary must be in vocabs dictionnary")
-#
-#     translated = ''
-#     for char in input_string:
-#         if char not in VOCABS[vocab_name]:
-#             # we need to translate char into a vocab char
-#             if char in string.whitespace:
-#                 # remove whitespaces
-#                 continue
-#             # normalize character if it is not in vocab
-#             char = unicodedata.normalize('NFD', char).encode('ascii', 'ignore').decode('ascii')
-#             if char == '' or char not in VOCABS[vocab_name]:
-#                 # if normalization fails or char still not in vocab, return unknown character)
-#                 char = unknown_char
-#         translated += char
-#     return translated
-#
 
 
 def encode_sequence(input_string: str, vocab: Dict[str, int],) -> List[int]:
