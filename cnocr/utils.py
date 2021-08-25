@@ -246,6 +246,7 @@ def read_charset(charset_fp):
     inv_alph_dict = {_char: idx for idx, _char in enumerate(alphabet)}
     if len(alphabet) != len(inv_alph_dict):
         from collections import Counter
+
         repeated = Counter(alphabet).most_common(len(alphabet) - len(inv_alph_dict))
         raise ValueError('repeated chars in vocab: %s' % repeated)
 
@@ -273,15 +274,19 @@ def read_tsv_file(fp, sep='\t', img_folder=None, mode='eval'):
     return (img_fp_list, labels_list) if mode != 'test' else (img_fp_list, None)
 
 
-def read_img(path):
+def read_img(path: Union[str, Path], gray=True) -> np.ndarray:
     """
     :param path: image file path
-    :return: gray image, with dim [1, height, width], with values range from 0 to 255
+    :param gray: whether to return a gray image array
+    :return:
+        * when `gray==True`, return a gray image, with dim [height, width, 1], with values range from 0 to 255
+        * when `gray==False`, return a color image, with dim [height, width, 3], with values range from 0 to 255
     """
     img = Image.open(path)
-    img = img.convert('L')
-    img = np.expand_dims(np.array(img), 0)
-    return img
+    if gray:
+        return np.expand_dims(np.array(img.convert('L')), -1)
+    else:
+        return np.asarray(img.convert('RGB'))
 
 
 def save_img(img: Union[Tensor, np.ndarray], path):

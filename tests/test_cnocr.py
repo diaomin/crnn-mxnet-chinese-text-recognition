@@ -1,10 +1,26 @@
 # coding: utf-8
+# Copyright (C) 2021, [Breezedeus](https://github.com/breezedeus).
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
 import os
 import sys
 import pytest
 import numpy as np
-import mxnet as mx
-from mxnet import nd
 from PIL import Image
 import Levenshtein
 
@@ -12,13 +28,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 
 from cnocr import CnOcr
+from cnocr.utils import read_img
 from cnocr.consts import NUMBERS, AVAILABLE_MODELS
 from cnocr.line_split import line_split
-from cnocr.data_utils.aug import GrayAug
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 example_dir = os.path.join(root_dir, 'examples')
-CNOCR = CnOcr(model_name='densenet-lite-fc', model_epoch=None)
+CNOCR = CnOcr(model_name='densenet-s-fc', model_epoch=None)
 
 SINGLE_LINE_CASES = [
     ('20457890_2399557098.jpg', ['就会哈哈大笑。3.0']),
@@ -73,7 +89,7 @@ CASES = SINGLE_LINE_CASES + MULTIPLE_LINE_CASES
 
 
 def print_preds(pred):
-    pred = [''.join(line_p) for line_p in pred]
+    pred = [''.join(line_p) for line_p, _ in pred]
     print("Predicted Chars:", pred)
 
 
@@ -82,7 +98,7 @@ def cal_score(preds, expected):
         return 0
     total_cnt = 0
     total_dist = 0
-    for real, pred in zip(expected, preds):
+    for real, (pred, _) in zip(expected, preds):
         pred = ''.join(pred)
         distance = Levenshtein.distance(real, pred)
         total_dist += distance
@@ -96,22 +112,21 @@ def test_ocr(img_fp, expected):
     ocr = CNOCR
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     img_fp = os.path.join(root_dir, 'examples', img_fp)
-    # img_fp = 'multi-line-game.jpeg'
 
     pred = ocr.ocr(img_fp)
     print('\n')
     print_preds(pred)
-    assert cal_score(pred, expected) >= 0.9
+    assert cal_score(pred, expected) >= 0.8
 
-    img = mx.image.imread(img_fp, 1)
+    img = read_img(img_fp)
     pred = ocr.ocr(img)
     print_preds(pred)
-    assert cal_score(pred, expected) >= 0.9
+    assert cal_score(pred, expected) >= 0.8
 
-    img = mx.image.imread(img_fp, 1).asnumpy()
+    img = read_img(img_fp, gray=False)
     pred = ocr.ocr(img)
     print_preds(pred)
-    assert cal_score(pred, expected) >= 0.9
+    assert cal_score(pred, expected) >= 0.8
 
 
 @pytest.mark.parametrize('img_fp, expected', SINGLE_LINE_CASES)
@@ -121,30 +136,30 @@ def test_ocr_for_single_line(img_fp, expected):
     img_fp = os.path.join(root_dir, 'examples', img_fp)
     pred = ocr.ocr_for_single_line(img_fp)
     print('\n')
-    print_preds(pred)
-    assert cal_score([pred], expected) >= 0.9
+    print_preds([pred])
+    assert cal_score([pred], expected) >= 0.8
 
-    img = mx.image.imread(img_fp, 1)
+    img = read_img(img_fp)
     pred = ocr.ocr_for_single_line(img)
-    print_preds(pred)
-    assert cal_score([pred], expected) >= 0.9
+    print_preds([pred])
+    assert cal_score([pred], expected) >= 0.8
 
-    img = mx.image.imread(img_fp, 1).asnumpy()
+    img = read_img(img_fp, gray=False)
     pred = ocr.ocr_for_single_line(img)
-    print_preds(pred)
-    assert cal_score([pred], expected) >= 0.9
+    print_preds([pred])
+    assert cal_score([pred], expected) >= 0.8
 
     img = np.array(Image.fromarray(img).convert('L'))
     assert len(img.shape) == 2
     pred = ocr.ocr_for_single_line(img)
-    print_preds(pred)
-    assert cal_score([pred], expected) >= 0.9
+    print_preds([pred])
+    assert cal_score([pred], expected) >= 0.8
 
     img = np.expand_dims(img, axis=2)
     assert len(img.shape) == 3 and img.shape[2] == 1
     pred = ocr.ocr_for_single_line(img)
-    print_preds(pred)
-    assert cal_score([pred], expected) >= 0.9
+    print_preds([pred])
+    assert cal_score([pred], expected) >= 0.8
 
 
 @pytest.mark.parametrize('img_fp, expected', MULTIPLE_LINE_CASES)
@@ -152,59 +167,28 @@ def test_ocr_for_single_lines(img_fp, expected):
     ocr = CNOCR
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     img_fp = os.path.join(root_dir, 'examples', img_fp)
-    img = mx.image.imread(img_fp, 1).asnumpy()
+    img = read_img(img_fp)
     if img.mean() < 145:  # 把黑底白字的图片对调为白底黑字
         img = 255 - img
-    line_imgs = line_split(img, blank=True)
+    line_imgs = line_split(np.squeeze(img, -1), blank=True)
     line_img_list = [line_img for line_img, _ in line_imgs]
     pred = ocr.ocr_for_single_lines(line_img_list)
     print('\n')
     print_preds(pred)
-    assert cal_score(pred, expected) >= 0.9
+    assert cal_score(pred, expected) >= 0.8
 
-    line_img_list = [nd.array(line_img) for line_img in line_img_list]
+    line_img_list = [np.array(line_img) for line_img in line_img_list]
     pred = ocr.ocr_for_single_lines(line_img_list)
     print_preds(pred)
-    assert cal_score(pred, expected) >= 0.9
+    assert cal_score(pred, expected) >= 0.8
 
 
-@pytest.mark.parametrize('img_fp, expected', SINGLE_LINE_CASES)
-def test_gray_aug(img_fp, expected):
-    img_fp = os.path.join(example_dir, img_fp)
-    img = mx.image.imread(img_fp, 1)
-    aug = GrayAug()
-    res_img = aug(img)
-    print(res_img.shape, res_img.dtype)
-
-
-def test_cand_alphabet1():
+def test_cand_alphabet():
     img_fp = os.path.join(example_dir, 'hybrid.png')
 
-    ocr = CnOcr(name='instance1')
+    ocr = CnOcr(cand_alphabet=NUMBERS)
     pred = ocr.ocr(img_fp)
-    pred = [''.join(line_p) for line_p in pred]
-    print("Predicted Chars:", pred)
-    assert len(pred) == 1 and pred[0] == 'o12345678'
-
-    ocr = CnOcr(name='instance2', cand_alphabet=NUMBERS)
-    pred = ocr.ocr(img_fp)
-    pred = [''.join(line_p) for line_p in pred]
-    print("Predicted Chars:", pred)
-    assert len(pred) == 1 and pred[0] == '012345678'
-
-
-def test_cand_alphabet2():
-    img_fp = os.path.join(example_dir, 'hybrid.png')
-
-    ocr = CnOcr(name='instance1')
-    pred = ocr.ocr(img_fp)
-    pred = [''.join(line_p) for line_p in pred]
-    print("Predicted Chars:", pred)
-    assert len(pred) == 1 and pred[0] == 'o12345678'
-
-    ocr.set_cand_alphabet(NUMBERS)
-    pred = ocr.ocr(img_fp)
-    pred = [''.join(line_p) for line_p in pred]
+    pred = [''.join(line_p) for line_p, _ in pred]
     print("Predicted Chars:", pred)
     assert len(pred) == 1 and pred[0] == '012345678'
 

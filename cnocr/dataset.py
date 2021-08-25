@@ -40,7 +40,7 @@ class OcrDataset(Dataset):
 
     def __getitem__(self, item):
         img_fp = self.img_fp_list[item]
-        img = read_img(img_fp)
+        img = read_img(img_fp).transpose((2, 0, 1))  # res: [1, H, W]
         img = rescale_img(img)
 
         if self.mode != 'test':
