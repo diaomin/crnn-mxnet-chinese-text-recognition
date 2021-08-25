@@ -20,7 +20,7 @@
 import os
 import logging
 from glob import glob
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Optional, Collection
 from pathlib import Path
 
 import numpy as np
@@ -62,13 +62,13 @@ class CnOcr(object):
 
     def __init__(
         self,
-        model_name='densenet-lite-fc',
-        model_epoch=None,
+        model_name: str = 'densenet-s-fc',
+        model_epoch: Optional[int] = None,
         *,
-        cand_alphabet=None,
-        context='cpu',  # ['cpu', 'gpu', 'cuda']
-        model_fp=None,
-        root=data_dir(),
+        cand_alphabet: Optional[Union[Collection, str]] = None,
+        context: str = 'cpu',  # ['cpu', 'gpu', 'cuda']
+        model_fp: Optional[str] = None,
+        root: Union[str, Path] = data_dir(),
         **kwargs,
     ):
         """
@@ -93,7 +93,11 @@ class CnOcr(object):
         self.context = context
 
         self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
-        self._model_epoch = model_epoch or AVAILABLE_MODELS.get('model_name', [None])[0]
+        self._model_epoch = (
+            model_epoch
+            if model_epoch is not None
+            else AVAILABLE_MODELS.get(model_name, [None])[0]
+        )
         if self._model_epoch is not None:
             self._model_file_prefix = '%s-epoch=%03d' % (
                 self._model_file_prefix,
@@ -140,7 +144,7 @@ class CnOcr(object):
 
         return model
 
-    def set_cand_alphabet(self, cand_alphabet):
+    def set_cand_alphabet(self, cand_alphabet: Optional[Union[Collection, str]]):
         """
         设置待识别字符的候选集合。
         :param cand_alphabet: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围
@@ -173,48 +177,66 @@ class CnOcr(object):
         :return: list of (list of chars, prob), such as
             [(['第', '一', '行'], 0.80), (['第', '二', '行'], 0.75), (['第', '三', '行'], 0.9)]
         """
-        if isinstance(img_fp, str):
-            if not os.path.isfile(img_fp):
-                raise FileNotFoundError(img_fp)
-            img = read_img(img_fp)
-        elif isinstance(img_fp, torch.Tensor):
-            img = img_fp.numpy()
-        elif isinstance(img_fp, np.ndarray):
-            img = img_fp
-        else:
-            raise TypeError('Inappropriate argument type.')
-        if min(img.shape[1], img.shape[2]) < 2:
+        img = self._prepare_img(img_fp)
+
+        if min(img.shape[0], img.shape[1]) < 2:
             return []
         if img.mean() < 145:  # 把黑底白字的图片对调为白底黑字
             img = 255 - img
-        line_imgs = line_split(np.squeeze(img, axis=0), blank=True)
+        line_imgs = line_split(np.squeeze(img, axis=-1), blank=True)
         line_img_list = [np.expand_dims(line_img, axis=-1) for line_img, _ in line_imgs]
         line_chars_list = self.ocr_for_single_lines(line_img_list)
         return line_chars_list
+
+    def _prepare_img(
+            self, img_fp: Union[str, Path, torch.Tensor, np.ndarray]
+    ) -> np.ndarray:
+        """
+        :param img: image array with type torch.Tensor or np.ndarray,
+        with shape [height, width] or [height, width, channel].
+        channel should be 1 (gray image) or 3 (color image).
+
+        :return: np.ndarray, with shape (height, width, 1), dtype uint8, scale [0, 255]
+        """
+        img = img_fp
+        if isinstance(img_fp, (str, Path)):
+            if not os.path.isfile(img_fp):
+                raise FileNotFoundError(img_fp)
+            img = read_img(img_fp)
+
+        if isinstance(img, torch.Tensor):
+            img = img.numpy()
+
+        if len(img.shape) == 2:
+            img = np.expand_dims(img, -1)
+        elif len(img.shape) == 3:
+            if img.shape[2] == 3:
+                # color to gray
+                img = np.expand_dims(np.array(Image.fromarray(img).convert('L')), -1)
+            elif img.shape[2] != 1:
+                raise ValueError('only images with shape [height, width, 1] (gray images), '
+                                 'or [height, width, 3] (RGB-formated color images) are supported')
+
+        if img.dtype != np.dtype('uint8'):
+            img = img.astype('uint8')
+        return img
 
     def ocr_for_single_line(
         self, img_fp: Union[str, Path, torch.Tensor, np.ndarray]
     ) -> Tuple[List[str], float]:
         """
         Recognize characters from an image with only one-line characters.
-        :param img_fp: image file path; or image mx.nd.NDArray or np.ndarray,
+        :param img_fp: image file path; or image torch.Tensor or np.ndarray,
             with shape [height, width] or [height, width, channel].
             The optional channel should be 1 (gray image) or 3 (color image).
         :return: (list of chars, prob), such as (['你', '好'], 0.80)
         """
-        if isinstance(img_fp, str):
-            if not os.path.isfile(img_fp):
-                raise FileNotFoundError(img_fp)
-            img = read_img(img_fp).transpose((2, 0, 1))
-        elif isinstance(img_fp, torch.Tensor) or isinstance(img_fp, np.ndarray):
-            img = img_fp
-        else:
-            raise TypeError('Inappropriate argument type.')
+        img = self._prepare_img(img_fp)
         res = self.ocr_for_single_lines([img])
         return res[0]
 
     def ocr_for_single_lines(
-        self, img_list: List[Union[torch.Tensor, np.ndarray]]
+        self, img_list: List[Union[str, Path, torch.Tensor, np.ndarray]]
     ) -> List[Tuple[List[str], float]]:
         """
         Batch recognize characters from a list of one-line-characters images.
@@ -228,7 +250,8 @@ class CnOcr(object):
         """
         if len(img_list) == 0:
             return []
-        img_list = [self._preprocess_img_array(img) for img in img_list]
+        img_list = [self._prepare_img(img) for img in img_list]
+        img_list = [self._transform_img(img) for img in img_list]
 
         out = self._predict(img_list)
 
@@ -240,8 +263,8 @@ class CnOcr(object):
 
         return res
 
-    def _preprocess_img_array(
-        self, img: Union[torch.Tensor, np.ndarray]
+    def _transform_img(
+        self, img: np.ndarray
     ) -> torch.Tensor:
         """
         :param img: image array with type torch.Tensor or np.ndarray,
@@ -250,13 +273,6 @@ class CnOcr(object):
 
         :return: torch.Tensor, with shape (1, height, width)
         """
-        if len(img.shape) == 3 and img.shape[2] == 3:
-            if isinstance(img, torch.Tensor):
-                img = img.numpy()
-            if img.dtype != np.dtype('uint8'):
-                img = img.astype('uint8')
-            # color to gray
-            img = np.expand_dims(np.array(Image.fromarray(img).convert('L')), -1)
         img = rescale_img(img.transpose((2, 0, 1)))  # res: [C, H, W]
         return NormalizeAug()(img).to(device=torch.device(self.context))
 
