@@ -27,7 +27,7 @@ import glob
 
 from torchvision import transforms
 
-from cnocr.consts import MODEL_VERSION
+from cnocr.consts import MODEL_VERSION, ENCODER_CONFIGS, DECODER_CONFIGS
 from cnocr.utils import set_logger, load_model_params, check_model_name
 from cnocr.data_utils.aug import NormalizeAug, RandomPaddingAug
 from cnocr.dataset import OcrDataModule
@@ -38,6 +38,11 @@ _CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help']}
 logger = set_logger(log_level=logging.INFO)
 
 DEFAULT_MODEL_NAME = 'densenet-s-fc'
+LEGAL_MODEL_NAMES = {
+    enc_name + '-' + dec_name
+    for enc_name in ENCODER_CONFIGS.keys()
+    for dec_name in DECODER_CONFIGS.keys()
+}
 
 
 @click.group(context_settings=_CONTEXT_SETTINGS)
@@ -49,7 +54,7 @@ def cli():
 @click.option(
     '-m',
     '--model-name',
-    type=str,
+    type=click.Choice(LEGAL_MODEL_NAMES),
     default=DEFAULT_MODEL_NAME,
     help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
@@ -60,16 +65,26 @@ def cli():
     required=True,
     help='索引文件所在的文件夹，会读取文件夹中的 train.tsv 和 dev.tsv 文件',
 )
-@click.option('--train-config-fp', type=str, required=True, help='训练使用的json配置文件')
 @click.option(
-    '-r', '--resume-from-checkpoint', type=str, default=None, help='恢复此前中断的训练状态，继续训练'
+    '--train-config-fp',
+    type=str,
+    required=True,
+    help='训练使用的json配置文件，参考 `example/train_config.json`',
+)
+@click.option(
+    '-r',
+    '--resume-from-checkpoint',
+    type=str,
+    default=None,
+    help='恢复此前中断的训练状态，继续训练。默认为 `None`',
 )
 @click.option(
     '-p',
     '--pretrained-model-fp',
     type=str,
     default=None,
-    help='导入的训练好的模型，作为初始模型。优先级低于"--restore-training-fp"，当传入"--restore-training-fp"时，此传入失效',
+    help='导入的训练好的模型，作为初始模型。'
+    '优先级低于"--restore-training-fp"，当传入"--restore-training-fp"时，此传入失效。默认为 `None`',
 )
 def train(
     model_name, index_dir, train_config_fp, resume_from_checkpoint, pretrained_model_fp
@@ -118,11 +133,16 @@ def train(
 @click.option(
     '-m',
     '--model-name',
-    type=str,
+    type=click.Choice(LEGAL_MODEL_NAMES),
     default=DEFAULT_MODEL_NAME,
     help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
-@click.option("--model_epoch", type=int, default=None, help="model epoch")
+@click.option(
+    "--model_epoch",
+    type=int,
+    default=None,
+    help="model epoch。默认为 `None`，表示使用系统自带的预训练模型",
+)
 @click.option(
     '-p',
     '--pretrained-model-fp',
@@ -132,18 +152,20 @@ def train(
 )
 @click.option(
     "--context",
-    help="使用cpu还是gpu运行代码。默认为cpu",
-    type=click.Choice(['cpu', 'gpu']),
+    help="使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为 `cpu`",
+    type=str,
     default='cpu',
 )
-@click.option("-f", "--file", help="Path to the image file or dir")
+@click.option("-i", "--img-file-or-dir", required=True, help="输入图片的文件路径或者指定的文件夹")
 @click.option(
     "-s",
     "--single-line",
     is_flag=True,
-    help="Whether the image only includes one-line characters",
+    help="是否输入图片只包含单行文字。对包含单行文字的图片，不做按行切分；否则会先对图片按行分割后再进行识别",
 )
-def predict(model_name, model_epoch, pretrained_model_fp, context, file, single_line):
+def predict(
+    model_name, model_epoch, pretrained_model_fp, context, img_file_or_dir, single_line
+):
     ocr = CnOcr(
         model_name=model_name,
         model_epoch=model_epoch,
@@ -152,11 +174,11 @@ def predict(model_name, model_epoch, pretrained_model_fp, context, file, single_
     )
     ocr_func = ocr.ocr_for_single_line if single_line else ocr.ocr
     fp_list = []
-    if os.path.isfile(file):
-        fp_list.append(file)
-    elif os.path.isdir(file):
-        fn_list = glob.glob1(file, '*g')
-        fp_list = [os.path.join(file, fn) for fn in fn_list]
+    if os.path.isfile(img_file_or_dir):
+        fp_list.append(img_file_or_dir)
+    elif os.path.isdir(img_file_or_dir):
+        fn_list = glob.glob1(img_file_or_dir, '*g')
+        fp_list = [os.path.join(img_file_or_dir, fn) for fn in fn_list]
 
     for fp in fp_list:
         start_time = time.time()

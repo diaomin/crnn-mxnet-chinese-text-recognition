@@ -18,7 +18,7 @@ evaluate:
 		--image-prefix-dir examples --batch-size 128 -o evaluate/$(MODEL_NAME)
 
 predict:
-	cnocr predict -m $(MODEL_NAME) -f examples/rand_cn1.png
+	cnocr predict -m $(MODEL_NAME) -i examples/rand_cn1.png
 
 
 package:

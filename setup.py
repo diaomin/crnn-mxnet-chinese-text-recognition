@@ -44,6 +44,7 @@ required = [
     'numpy',
     # 'scipy',
     "pytorch-lightning",
+    "pillow>=5.3.0",
 ]
 extras_require = {
     "dev": ["pip-tools", "pytest", "python-Levenshtein"],
