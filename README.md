@@ -1,30 +1,21 @@
 English [README](./README_en.md).
 
-# cnocr 使用交流QQ群
+# cnocr
 
-欢迎扫码加入QQ交流群：
-
-
+**cnocr** 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**中文**、**英文**的常见字符识别，自带了多个训练好的检测模型，安装后即可直接使用。欢迎扫码加入QQ交流群：
 
 ![QQ群二维码](./docs/cnocr-qq.jpg)
 
 
 
-# 最近更新 【2020.05.29】：V1.2.2
+# 最近更新 【2021.08.27】：V2.0.0
 
 主要变更：
 
-* 优化了对数字识别的准确度。
-* 优化了模型结构，进一步降低了模型的大小，提升了预测速度；最小模型从原来的`6.8M`降为`4.7M`。
-* 使用了[爱因互动 Ein+](https://einplus.cn)自己的CDN存储模型文件，下载速度超快。
-* 提供了预测速度更快的 `shorter (-s)`版预训练模型：`densenet-lite-s-gru`和`densenet-lite-s-fc`。
-* 默认模型由之前的`conv-lite-fc`改为`densenet-lite-fc`。
-* 预测支持使用GPU。
-* bugfixs:
-  * 修复同时初始化多个实例时会报错的问题；
-  * Web 调用时的内存泄露。感谢 [@myuanz](https://github.com/myuanz)；
-  * 输入图片宽度很小时导致异常；
-  * 去掉  `f-print`。
+* MXNet 越来越小众化，故从基于 MXNet 的实现转为基于 **PyTorch** 的实现；
+* 重新实现了识别模型，优化了训练数据，重新训练模型；
+* 优化了能识别的字符集合；
+* 优化了对英文的识别效果。
 
 
 
@@ -32,17 +23,11 @@ English [README](./README_en.md).
 
 
 
-# cnocr
+## 使用场景说明
 
-**cnocr** 是 **Python 3** 下的中英文OCR工具包，自带了多个训练好的识别模型（最小模型仅 `4.7M`），安装后即可直接使用。
-
-
-
-**cnocr** 主要针对的是排版简单的印刷体文字图片，如截图图片，扫描件等。目前内置的文字检测和分行模块无法处理复杂的文字排版定位。如果要用于场景文字图片的识别，需要结合其他的场景文字检测引擎使用，例如同样基于 MXNet 的文字检测引擎 **[cnstd](https://github.com/breezedeus/cnstd)** 。
+**cnocr** 主要针对的是**排版简单的印刷体文字图片**，如截图图片，扫描件等。目前内置的文字检测和分行模块无法处理复杂的文字排版定位。如果要用于场景文字图片的识别，需要结合其他的场景文字检测引擎使用，例如文字检测引擎 **[cnstd](https://github.com/breezedeus/cnstd)** 。
 
 
-
-本项目起源于我们自己 ([爱因互动 Ein+](https://einplus.cn)) 内部的项目需求，所以非常感谢公司的支持。
 
 ## 示例
 
@@ -73,66 +58,42 @@ English [README](./README_en.md).
 pip install cnocr
 ```
 
-> 注意：请使用Python3 (3.4, 3.5, 3.6以及之后版本应该都行)，没测过Python2下是否ok。
+> 注意：请使用 **Python3**（3.6以及之后版本应该都行），没测过Python2下是否ok。
 
 
 
 ## 可直接使用的模型
 
-cnocr的ocr模型可以分为两阶段：第一阶段是获得ocr图片的局部编码向量，第二部分是对局部编码向量进行序列学习，获得序列编码向量。目前两个阶段分别包含以下的模型：
+cnocr的ocr模型可以分为两阶段：第一阶段是获得ocr图片的局部编码向量，第二部分是对局部编码向量进行序列学习，获得序列编码向量。目前的PyTorch版本的两个阶段分别包含以下模型：
 
 1. 局部编码模型（emb model）
-   * `conv`：多层的卷积网络；
-   * `conv-lite/conv-lite-s`：更小的多层卷积网络；后缀没有`-s`表示把图片长度压缩到 `1/4`再做预测，有`-s`表示把图片长度压缩到 `1/8`再做预测。以下类似。
-   * `densenet/densenet-s`：一个小型的`densenet`网络；
-   * `densenet-lite/densenet-lite-s`：一个更小的`densenet`网络。
+   * **`densenet-s`**：一个小型的`densenet`网络；
 2. 序列编码模型（seq model）
-   * `lstm`：一层的LSTM网络；
-   * `gru`：一层的GRU网络；
-   * `fc`：两层的全连接网络。
+   * **`lstm`**：一层的LSTM网络；
+   * **`gru`**：一层的GRU网络；
+   * **`fc`**：两层的全连接网络。
 
 
 
-cnocr v1.2 目前包含以下可直接使用的模型，训练好的模型都放在 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 项目中，可免费下载使用：
+cnocr **V2.0** 目前包含以下可直接使用的模型，训练好的模型都放在 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 项目中，可免费下载使用：
 
-| 模型名称 | 局部编码模型 | 序列编码模型 | 模型大小 | 迭代次数 | 测试集准确率 | 测试集中的图片预测速度<br />（秒/张，环境：单GPU） |
-| :------- | ------------ | ------------ | -------- | ------ | -------- | -------- |
-| conv-lite-fc | conv-lite | fc | 18M | 25 | 98.61% | 0.004191 |
-| densenet-lite-gru | densenet-lite | gru | 9.5M | 39 | 99.04% | 0.003349 |
-| densenet-lite-fc | densenet-lite | fc | 4.7M | 40 | 97.61% |0.003299|
-| densenet-lite-s-gru | densenet-lite-s | gru | 9.5M | 35 | 98.52% |0.002434|
-| densenet-lite-s-fc | densenet-lite-s | fc | 4.7M | 40 | 97.20% |0.002429|
+| 模型名称 | 局部编码模型 | 序列编码模型 | 模型大小 | 迭代次数 | 测试集准确率  |
+| :------- | ------------ | ------------ | -------- | ------ | -------- |
+| densenet-s-gru | densenet-lite-s | gru | 11 M | 11 | 95.5% |
+| densenet-s-fc | densenet-s | fc | 8.7 M | 39 | 91.9% |
 
 > 模型名称是由局部编码模型和序列编码模型名称拼接而成。
 
-> 图片预测速度是在单个GPU环境下做的测试， 绝对值依赖机器资源，意义不大；但不同模型之间的相对值是可以参考的。
 
 
 
-局部编码模型的名称如果以`-s`结尾，表示把图片长度压缩到 `1/8`做预测；没有以`-s`结尾则表示把图片长度压缩到`1/4`再做预测。相对于中文单字的大小，部分英文字母如`i`、`l`占位较少，对图片长度压缩过大会影响英文的识别精度。所以在英文场景下，建议使用不以`-s`结尾的局部编码模型，如`densenet-lite-fc`、`densenet-lite-gru`。
-
-
-
-## 特色
-
-本项目的初期代码fork自 [crnn-mxnet-chinese-text-recognition](https://github.com/diaomin/crnn-mxnet-chinese-text-recognition)，感谢作者 [diaomin](https://github.com/diaomin)。
-
-但源项目使用起来不够方便，所以我在此基础上做了一些封装和重构。主要变化如下：
-
-* 不再使用需要额外安装的MXNet WarpCTC Loss，改用原生的 MXNet CTC Loss。所以安装极简！
-
-* 自带训练好的中文OCR识别模型。不再需要额外训练！
-
-* 增加了预测（或推断）接口。所以使用方便！
-
-  
 
 ## 使用方法
 
-首次使用cnocr时，系统会自动下载zip格式的模型压缩文件，并存于 `~/.cnocr`目录（Windows下默认路径为 `C:\Users\<username>\AppData\Roaming\cnocr`）。
-下载后的zip文件代码会自动对其解压，然后把解压后的模型相关目录放于`~/.cnocr/1.2.0`目录中。
+首次使用cnocr时，系统会**自动下载** zip格式的模型压缩文件，并存于 `~/.cnocr`目录（Windows下默认路径为 `C:\Users\<username>\AppData\Roaming\cnocr`）。
+下载后的zip文件代码会自动对其解压，然后把解压后的模型相关目录放于`~/.cnocr/2.0`目录中。
 
-如果系统无法自动成功下载zip文件，则需要手动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 下载此zip文件并把它放于 `~/.cnocr/1.2.0`目录。如果Github下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1CnbtE693FQqKM1pBDTCrNg) 下载， 提取码为 ` msua`。
+如果系统无法自动成功下载zip文件，则需要手动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 下载此zip文件并把它放于 `~/.cnocr/2.0`目录。如果Github下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1c68zjHfTVeqiSMXBEPYMrg) 下载， 提取码为 ` 9768`。
 
 放置好zip文件后，后面的事代码就会自动执行了。
 
@@ -146,29 +107,37 @@ cnocr v1.2 目前包含以下可直接使用的模型，训练好的模型都放
 class CnOcr(object):
     def __init__(
         self,
-        model_name='densenet-lite-fc',
-        model_epoch=None,
-        cand_alphabet=None,
-        root=data_dir(),
-        context='cpu',
-        name=None,
+        model_name: str = 'densenet-s-fc'
+        model_epoch: Optional[int] = None,
+        *,
+        cand_alphabet: Optional[Union[Collection, str]] = None,
+        context: str = 'cpu',  # ['cpu', 'gpu', 'cuda']
+        model_fp: Optional[str] = None,
+        root: Union[str, Path] = data_dir(),
+        **kwargs,
     ):
 ```
 
 其中的几个参数含义如下：
 
-* `model_name`: 模型名称，即上面表格第一列中的值。默认为 `densenet-lite-fc`。
-* `model_epoch`: 模型迭代次数。默认为 `None`，表示使用默认的迭代次数值。对于模型名称 `densenet-lite-fc`就是 `40`。
-* `cand_alphabet`: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围。`cnocr.consts`中内置了两个候选集合：(1) 数字和标点 `NUMBERS`；(2) 英文字母、数字和标点 `ENG_LETTERS`。
-   * 例如对于图片 ![examples/hybrid.png](./examples/hybrid.png) ，不做约束时识别结果为 `o12345678`；如果加入数字约束时（`ocr = CnOcr(cand_alphabet=NUMBERS)`），识别结果为 `012345678`。
+* `model_name`: 模型名称，即上面表格第一列中的值。默认为 `densenet-s-fc`。
+
+* `model_epoch`: 模型迭代次数。默认为 `None`，表示使用默认的迭代次数值。对于模型名称 `densenet-s-fc`就是 `39`。
+
+* `cand_alphabet`: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围。取值可以是字符串，如 `"0123456789"`，或者字符列表，如 `["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]`。
+  
    * `cand_alphabet`也可以初始化后通过类函数 `CnOcr.set_cand_alphabet(cand_alphabet)` 进行设置。这样同一个实例也可以指定不同的`cand_alphabet`进行识别。
-* `root`: 模型文件所在的根目录。
-   * Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.2.0/densenet-lite-fc`。
+   
+* `context`：预测使用的机器资源，可取值为字符串`cpu`、`gpu`、`cuda:0`等。
+
+* `model_fp`:  如果不使用系统自带的模型，可以通过此参数直接指定所使用的模型文件（`.ckpt` 文件）。
+
+* `root`:  模型文件所在的根目录。
+
+   * Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.0/densenet-s-fc`。
    * Windows下默认值为 `C:\Users\<username>\AppData\Roaming\cnocr`。
-* `context`：预测使用的机器资源，可取值为字符串`cpu`、`gpu`，或者 `mx.Context`实例。
-* `name`：正在初始化的这个实例的名称。如果需要同时初始化多个实例，需要为不同的实例指定不同的名称。
 
-
+   
 
 每个参数都有默认取值，所以可以不传入任何参数值进行初始化：`ocr = CnOcr()`。
 
@@ -187,8 +156,8 @@ class CnOcr(object):
 
 **函数说明**：
 
-- 输入参数 `img_fp`: 可以是需要识别的图片文件路径（如上例）；或者是已经从图片文件中读入的数组，类型可以为`mx.nd.NDArray` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是`(height, width, 3)`，第三个维度是channel，它应该是`RGB`格式的。
-- 返回值：为一个嵌套的`list`，类似这样`[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`。
+- 输入参数 `img_fp`: 可以是需要识别的图片文件路径（如下例）；或者是已经从图片文件中读入的数组，类型可以为 `torch.Tensor` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是 `[height, width]` （灰度图片）或者 `[height, width, channel]`，`channel` 可以等于`1`（灰度图片）或者`3`（`RGB`格式的彩色图片）。
+- 返回值：为一个嵌套的`list`，其中的每个元素存储了对一行文字的识别结果，其中也包含了识别概率值。类似这样`[(['第', '一', '行'], 0.80), (['第', '二', '行'], 0.75), (['第', '三', '行'], 0.9)]`，其中的数字为对应的识别概率值。
 
 
 
@@ -197,6 +166,7 @@ class CnOcr(object):
 
 ```python
 from cnocr import CnOcr
+
 ocr = CnOcr()
 res = ocr.ocr('examples/multi-line_cn1.png')
 print("Predicted Chars:", res)
@@ -204,11 +174,12 @@ print("Predicted Chars:", res)
 
 或：
 ```python
-import mxnet as mx
+from cnocr.utils import read_img
 from cnocr import CnOcr
+
 ocr = CnOcr()
 img_fp = 'examples/multi-line_cn1.png'
-img = mx.image.imread(img_fp, 1)
+img = read_img(img_fp)
 res = ocr.ocr(img)
 print("Predicted Chars:", res)
 ```
@@ -224,13 +195,14 @@ print("Predicted Chars:", res)
 上面预测代码段的返回结果如下：
 
 ```bash
-Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的', '区', '别', '，', '因', '为'],
-                  ['每', '一', '个', '手', '机', '号', '码', '和', '邮', '件', '地', '址', '背', '后'],
-                  ['都', '会', '对', '应', '着', '一', '个', '账', '户', '一', '―', '这', '个', '账'],
-                  ['户', '可', '以', '是', '信', '用', '卡', '账', '户', '、', '借', '记', '卡', '账'],
-                  ['户', '，', '也', '包', '括', '邮', '局', '汇', '款', '、', '手', '机', '代'],
-                  ['收', '、', '电', '话', '代', '收', '、', '预', '付', '费', '卡', '和', '点', '卡'],
-                  ['等', '多', '种', '形', '式', '。']]
+Predicted Chars: [
+		(['网', '络', '支', '付', '并', '无', '本', '质', '的', '区', '别', '，', '因', '为'], 0.8677546381950378), 
+		(['每', '一', '个', '手', '机', '号', '码', '和', '邮', '件', '地', '址', '背', '后'], 0.6706454157829285), 
+		(['都', '会', '对', '应', '着', '一', '个', '账', '户', '一', '一', '这', '个', '账'], 0.5052655935287476), 
+		(['户', '可', '以', '是', '信', '用', '卡', '账', '户', '、', '借', '记', '卡', '账'], 0.7785991430282593), 
+		(['户', '，', '也', '包', '括', '邮', '局', '汇', '款', '、', '手', '机', '代'], 0.37458470463752747), 
+		(['收', '、', '电', '话', '代', '收', '、', '预', '付', '费', '卡', '和', '点', '卡'], 0.7326119542121887), 
+		(['等', '多', '种', '形', '式', '。'], 0.14462216198444366)]
 ```
 
 
@@ -241,8 +213,8 @@ Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的'
 
 **函数说明**：
 
-- 输入参数 `img_fp`: 可以是需要识别的单行文字图片文件路径（如上例）；或者是已经从图片文件中读入的数组，类型可以为`mx.nd.NDArray` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是`(height, width)`或`(height, width, channel)`。如果没有channel，表示传入的就是灰度图片。第三个维度channel可以是`1`（灰度图片）或者`3`（彩色图片）。如果是彩色图片，它应该是`RGB`格式的。
-- 返回值：为一个`list`，类似这样`['你', '好']`。
+- 输入参数 `img_fp`: 可以是需要识别的图片文件路径（如下例）；或者是已经从图片文件中读入的数组，类型可以为 `torch.Tensor` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是 `[height, width]` （灰度图片）或者 `[height, width, channel]`，`channel` 可以等于`1`（灰度图片）或者`3`（`RGB`格式的彩色图片）。
+- 返回值：为一个`tuple`，其中存储了对一行文字的识别结果，也包含了识别概率值。类似这样`(['第', '一', '行'], 0.80)`，其中的数字为对应的识别概率值。
 
 
 
@@ -250,6 +222,7 @@ Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的'
 
 ```python
 from cnocr import CnOcr
+
 ocr = CnOcr()
 res = ocr.ocr_for_single_line('examples/rand_cn1.png')
 print("Predicted Chars:", res)
@@ -258,11 +231,12 @@ print("Predicted Chars:", res)
 或：
 
 ```python
-import mxnet as mx
+from cnocr.utils import read_img
 from cnocr import CnOcr
+
 ocr = CnOcr()
 img_fp = 'examples/rand_cn1.png'
-img = mx.image.imread(img_fp, 1)
+img = read_img(img_fp)
 res = ocr.ocr_for_single_line(img)
 print("Predicted Chars:", res)
 ```
@@ -275,7 +249,7 @@ print("Predicted Chars:", res)
 的预测结果如下：
 
 ```bash
-Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼', '蠢', '驼', '耳', '胬', '挝', '涯', '狗', '蒽', '子', '犷'] 
+Predicted Chars: (['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼', '蠢', '驼', '耳', '胬', '挝', '涯', '狗', '蒽', '了', '狞'], 0.7832438349723816)
 ```
 
 
@@ -288,20 +262,23 @@ Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼',
 
 **函数说明**：
 
-- 输入参数` img_list`: 为一个`list`；其中每个元素是已经从图片文件中读入的数组，类型可以为`mx.nd.NDArray` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是`(height, width)`或`(height, width, channel)`。如果没有channel，表示传入的就是灰度图片。第三个维度channel可以是`1`（灰度图片）或者`3`（彩色图片）。如果是彩色图片，它应该是`RGB`格式的。
-- 返回值：为一个嵌套的`list`，类似这样`[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`。
+- 输入参数` img_list`: 为一个`list`；其中每个元素可以是需要识别的图片文件路径（如下例）；或者是已经从图片文件中读入的数组，类型可以为 `torch.Tensor` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是 `[height, width]` （灰度图片）或者 `[height, width, channel]`，`channel` 可以等于`1`（灰度图片）或者`3`（`RGB`格式的彩色图片）。
+- 返回值：为一个嵌套的`list`，其中的每个元素存储了对一行文字的识别结果，其中也包含了识别概率值。类似这样`[(['第', '一', '行'], 0.80), (['第', '二', '行'], 0.75), (['第', '三', '行'], 0.9)]`，其中的数字为对应的识别概率值。
 
 
 
 **调用示例**：
 
 ```python
-import mxnet as mx
+import numpy as np
+
+from cnocr.utils import read_img
 from cnocr import CnOcr
+
 ocr = CnOcr()
 img_fp = 'examples/multi-line_cn1.png'
-img = mx.image.imread(img_fp, 1).asnumpy()
-line_imgs = line_split(img, blank=True)
+img = read_img(img_fp)
+line_imgs = line_split(np.squeeze(img, -1), blank=True)
 line_img_list = [line_img for line_img, _ in line_imgs]
 res = ocr.ocr_for_single_lines(line_img_list)
 print("Predicted Chars:", res)
@@ -318,7 +295,7 @@ print("Predicted Chars:", res)
 也可以使用脚本模式预测：
 
 ```bash
-python scripts/cnocr_predict.py --file examples/multi-line_cn1.png
+cnocr predict -i examples/multi-line_cn1.png
 ```
 
 返回结果同上面。
@@ -336,12 +313,12 @@ from cnocr import CnOcr
 std = CnStd()
 cn_ocr = CnOcr()
 
-box_info_list = std.detect('examples/taobao4.jpg')
+box_infos = std.detect('examples/taobao.jpg')
 
-for box_info in box_info_list:
-    cropped_img = box_info['cropped_img']  # 检测出的文本框
+for box_info in box_infos['detected_texts']:
+    cropped_img = box_info['cropped_img']
     ocr_res = cn_ocr.ocr_for_single_line(cropped_img)
-    print('ocr result: %s' % ''.join(ocr_res))
+    print('ocr result: %s' % str(ocr_out))
 ```
 
 注：运行上面示例需要先安装 **[cnstd](https://github.com/breezedeus/cnstd)** ：
@@ -446,5 +423,6 @@ predict:
 * [x] 支持`空格`识别（since `V1.1.0`）
 * [x] 尝试新模型，如 DenseNet，进一步提升识别准确率（since `V1.1.0`）
 * [x] 优化训练集，去掉不合理的样本；在此基础上，重新训练各个模型
-* [ ] 加入场景文本检测功能
+* [x] 由 MXNet 改为 PyTorch 架构（since v2.0.0）
+* [ ] 基于 PyTorch 训练更高效的模型
 

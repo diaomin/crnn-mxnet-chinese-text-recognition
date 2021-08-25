@@ -173,7 +173,8 @@ class CnOcr(object):
     ) -> List[Tuple[List[str], float]]:
         """
         :param img_fp: image file path; or color image torch.Tensor or np.ndarray,
-            with shape (height, width, 3), and the channels should be RGB formatted, scaled in [0, 255].
+            with shape [height, width] or [height, width, channel].
+            channel should be 1 (gray image) or 3 (RGB formatted color image). scaled in [0, 255].
         :return: list of (list of chars, prob), such as
             [(['第', '一', '行'], 0.80), (['第', '二', '行'], 0.75), (['第', '三', '行'], 0.9)]
         """
