@@ -1,6 +1,6 @@
 # Release Notes
 
-### Update 2021.08.27: 发布 cnocr V2.0.0
+### Update 2021.08.26: 发布 cnocr V2.0.0
 
 主要变更：
 

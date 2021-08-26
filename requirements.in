@@ -1,5 +1,7 @@
-torch
-torchvision
-pytorch-lightning
 click
 tqdm
+torch>=1.7.0
+torchvision
+numpy
+pytorch-lightning
+pillow>=5.3.0
