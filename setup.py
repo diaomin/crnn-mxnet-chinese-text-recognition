@@ -42,7 +42,6 @@ required = [
     "torch>=1.7.0",
     "torchvision",
     'numpy',
-    # 'scipy',
     "pytorch-lightning",
     "pillow>=5.3.0",
 ]
