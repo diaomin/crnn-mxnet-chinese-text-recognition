@@ -1,4 +1,4 @@
-English [README](./README_en.md).
+English [README](./README_en.md) (`out-dated`).
 
 # cnocr
 
@@ -17,7 +17,7 @@ English [README](./README_en.md).
 * 优化了能识别的字符集合；
 * 优化了对英文的识别效果；
 * 优化了对场景文字的识别效果；
-* 使用接口略有调整，请谨慎更新。
+* 使用接口略有调整。
 
 
 
