@@ -68,9 +68,7 @@ setup(
     platforms=["Mac", "Linux", "Windows"],
     packages=find_packages(),
     include_package_data=True,
-    data_files=[
-        ('', ['cnocr/label_cn.txt']),
-    ],
+    data_files=[('', ['cnocr/label_cn.txt'])],
     entry_points=entry_points,
     install_requires=required,
     extras_require=extras_require,
@@ -86,6 +84,6 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
-        'Topic :: Software Development :: Libraries :: Scientific/Engineering :: Artificial Intelligence'
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
 )
