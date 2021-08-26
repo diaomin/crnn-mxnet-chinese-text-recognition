@@ -65,7 +65,9 @@ class CTCPostProcessor(object):
         best_path = torch.argmax(probs, dim=1)  # [N, T]
 
         if input_lengths is not None:
-            length_mask = gen_length_mask(input_lengths, probs.shape)  # [N, 1, T]
+            length_mask = gen_length_mask(input_lengths, probs.shape).to(
+                device=probs.device
+            )  # [N, 1, T]
             probs.masked_fill_(length_mask, 1.0)
             best_path.masked_fill_(length_mask.squeeze(1), blank)
 
