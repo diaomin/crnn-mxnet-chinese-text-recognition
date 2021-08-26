@@ -90,6 +90,8 @@ class CnOcr(object):
         check_model_name(model_name)
         check_context(context)
         self._model_name = model_name
+        if context == 'gpu':
+            context = 'cuda'
         self.context = context
 
         self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
