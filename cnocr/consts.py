@@ -27,7 +27,7 @@ from .__version__ import __version__
 MODEL_VERSION = '.'.join(__version__.split('.', maxsplit=2)[:2])
 
 IMG_STANDARD_HEIGHT = 32
-VOCAB_FP = Path(__file__).parent.parent / 'label_cn.txt'
+VOCAB_FP = Path(__file__).parent / 'label_cn.txt'
 
 ENCODER_CONFIGS = {
     'densenet-s': {  # 长度压缩至 1/8（seq_len == 35），输出的向量长度为 4*128 = 512
