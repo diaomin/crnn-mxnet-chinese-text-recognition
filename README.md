@@ -79,7 +79,7 @@ cnocr **V2.0** 目前包含以下可直接使用的模型，训练好的模型�
 
 | 模型名称 | 局部编码模型 | 序列编码模型 | 模型大小 | 迭代次数 | 测试集准确率  |
 | :------- | ------------ | ------------ | -------- | ------ | -------- |
-| densenet-s-gru | densenet-lite-s | gru | 11 M | 11 | 95.5% |
+| densenet-s-gru | densenet-s | gru | 11 M | 11 | 95.5% |
 | densenet-s-fc | densenet-s | fc | 8.7 M | 39 | 91.9% |
 
 > 模型名称是由局部编码模型和序列编码模型名称拼接而成。
@@ -290,18 +290,6 @@ print("Predicted Chars:", res)
 
 
 
-### 脚本引用
-
-也可以使用脚本模式预测：
-
-```bash
-cnocr predict -i examples/multi-line_cn1.png
-```
-
-返回结果同上面。
-
-
-
 ### 结合文字检测引擎 **[cnstd](https://github.com/breezedeus/cnstd)** 使用
 
 对于一般的场景图片（如照片、票据等），需要先利用场景文字检测引擎 **[cnstd](https://github.com/breezedeus/cnstd)** 定位到文字所在位置，然后再利用 **cnocr** 进行文本识别。
@@ -331,86 +319,116 @@ pip install cnstd
 
 
 
-### 训练自己的模型
-
-cnocr自带训练好的模型， 安装后即可直接使用。但如果你需要训练自己的模型，请参考下面的步骤。所有代码均可在文件 [Makefile](./Makefile) 中找到。
 
 
+### 脚本使用
 
-#### （一）转换图片数据格式
-
-为了提升训练效率，在开始训练之前，需要使用mxnet的`recordio`首先把数据转换成二进制格式：
-
-```makefile
-DATA_ROOT_DIR = data/sample-data
-REC_DATA_ROOT_DIR = data/sample-data-lst
-
-# `EMB_MODEL_TYPE` 可取值：['conv', 'conv-lite-rnn', 'densenet', 'densenet-lite']
-EMB_MODEL_TYPE = densenet-lite
-# `SEQ_MODEL_TYPE` 可取值：['lstm', 'gru', 'fc']
-SEQ_MODEL_TYPE = fc
-MODEL_NAME = $(EMB_MODEL_TYPE)-$(SEQ_MODEL_TYPE)
-
-# 产生 *.lst 文件
-gen-lst:
-    python scripts/im2rec.py --list --num-label 20 --chunks 1 \
-        --train-idx-fp $(DATA_ROOT_DIR)/train.txt --test-idx-fp $(DATA_ROOT_DIR)/test.txt --prefix $(REC_DATA_ROOT_DIR)/sample-data
-
-# 利用 *.lst 文件产生 *.idx 和 *.rec 文件。
-# 真正的图片文件存储在 `examples` 目录，可通过 `--root` 指定。
-gen-rec:
-    python scripts/im2rec.py --pack-label --color 1 --num-thread 1 --prefix $(REC_DATA_ROOT_DIR) --root examples
-```
+**cnocr** 包含了几个命令行工具，安装 **cnocr** 后即可使用。
 
 
 
-#### （二）训练模型
+#### 预测单个文件或文件夹中所有图片
 
-利用下面命令在CPU上训练模型：
-
-```makefile
-# 训练模型
-train:
-    python scripts/cnocr_train.py --gpu 0 --emb_model_type $(EMB_MODEL_TYPE) --seq_model_type $(SEQ_MODEL_TYPE) \
-        --optimizer adam --epoch 20 --lr 1e-4 \
-        --train_file $(REC_DATA_ROOT_DIR)/sample-data_train --test_file $(REC_DATA_ROOT_DIR)/sample-data_test
-```
-
-如果需要在GPU上训练，把上面命令中的参数 `--gpu 0`改为`--gpu <num_gpu>`，其中的`<num_gpu>` 为使用的GPU数量。注意，使用GPU训练需要安装mxnet的GPU版本，如`mxnet-cu101`。
+使用命令 **`cnocr predict`** 预测单个文件或文件夹中所有图片，以下是使用说明：
 
 
-
-#### （三）评估模型
-
-评估模型的代码依赖一些额外的python包，使用下面命令安装这些额外的包：
 
 ```bash
-pip install cnocr[dev]
+(venv) ➜  cnocr git:(pytorch) ✗ cnocr predict -h
+Usage: cnocr predict [OPTIONS]
+
+Options:
+  -m, --model-name [densenet-s-lstm|densenet-s-gru|densenet-s-fc]
+                                  模型名称。默认值为 densenet-s-fc
+  --model_epoch INTEGER           model epoch。默认为 `None`，表示使用系统自带的预训练模型
+  -p, --pretrained-model-fp TEXT  使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型
+  --context TEXT                  使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为
+                                  `cpu`
+
+  -i, --img-file-or-dir TEXT      输入图片的文件路径或者指定的文件夹  [required]
+  -s, --single-line               是否输入图片只包含单行文字。对包含单行文字的图片，不做按行切分；否则会先对图片按行分割后
+                                  再进行识别
+
+  -h, --help                      Show this message and exit.
 ```
 
 
 
-训练好的模型，可以使用脚本 [scripts/cnocr_evaluate.py](scripts/cnocr_evaluate.py) 评估在测试集上的效果：
+例如可以使用以下命令对图片 `examples/rand_cn1.png` 进行文字识别：
 
-```makefile
-# 在测试集上评估模型，所有badcases的具体信息会存放到文件夹 `evaluate/$(MODEL_NAME)` 中
-evaluate:
-    python scripts/cnocr_evaluate.py --model-name $(MODEL_NAME) --model-epoch 1 -v -i $(DATA_ROOT_DIR)/test.txt \
-        --image-prefix-dir examples --batch-size 128 -o evaluate/$(MODEL_NAME)
+```bash
+cnstd predict -i examples/rand_cn1.png -s
 ```
 
 
 
-当然，也可以查看模型在单个文件上的预测效果：
+具体使用也可参考文件 [Makefile](./Makefile) 。
 
-```makefile
-predict:
-    python scripts/cnocr_predict.py --model_name $(MODEL_NAME) --file examples/rand_cn1.png
+
+
+#### 模型训练
+
+使用命令 **`cnocr train`**  训练文本检测模型，以下是使用说明：
+
+```bash
+(venv) ➜  cnocr git:(pytorch) ✗ cnocr train -h
+Usage: cnocr train [OPTIONS]
+
+Options:
+  -m, --model-name [densenet-s-fc|densenet-s-lstm|densenet-s-gru]
+                                  模型名称。默认值为 densenet-s-fc
+  -i, --index-dir TEXT            索引文件所在的文件夹，会读取文件夹中的 train.tsv 和 dev.tsv 文件
+                                  [required]
+
+  --train-config-fp TEXT          训练使用的json配置文件，参考 `example/train_config.json`
+                                  [required]
+
+  -r, --resume-from-checkpoint TEXT
+                                  恢复此前中断的训练状态，继续训练。默认为 `None`
+  -p, --pretrained-model-fp TEXT  导入的训练好的模型，作为初始模型。优先级低于"--restore-training-
+                                  fp"，当传入"--restore-training-fp"时，此传入失效。默认为
+                                  `None`
+
+  -h, --help                      Show this message and exit.
 ```
 
 
 
-上面所有代码均可在文件 [Makefile](./Makefile) 中找到。
+例如可以使用以下命令进行训练：
+
+```bash
+cnocr train -m densenet-s-fc --index-dir data/test --train-config-fp examples/train_config.json
+```
+
+
+
+训练数据的格式见文件夹 [data/test](./data/test) 中的  [train.tsv](./data/test/train.tsv) 和 [dev.tsv](./data/test/dev.tsv) 文件。
+
+
+
+具体使用也可参考文件 [Makefile](./Makefile) 。
+
+
+
+#### 模型转存
+
+训练好的模型会存储训练状态，使用命令 **`cnocr resave`**  去掉与预测无关的数据，降低模型大小。
+
+```bash
+(venv) ➜  cnocr git:(pytorch) ✗ cnocr resave -h
+Usage: cnocr resave [OPTIONS]
+
+  训练好的模型会存储训练状态，使用此命令去掉预测时无关的数据，降低模型大小
+
+Options:
+  -i, --input-model-fp TEXT   输入的模型文件路径  [required]
+  -o, --output-model-fp TEXT  输出的模型文件路径  [required]
+  -h, --help                  Show this message and exit.
+```
+
+
+
+
 
 
 
@@ -423,6 +441,7 @@ predict:
 * [x] 支持`空格`识别（since `V1.1.0`）
 * [x] 尝试新模型，如 DenseNet，进一步提升识别准确率（since `V1.1.0`）
 * [x] 优化训练集，去掉不合理的样本；在此基础上，重新训练各个模型
-* [x] 由 MXNet 改为 PyTorch 架构（since v2.0.0）
+* [x] 由 MXNet 改为 PyTorch 架构（since `V2.0.0`）
 * [ ] 基于 PyTorch 训练更高效的模型
+* [ ] 支持列格式的文字识别
 
