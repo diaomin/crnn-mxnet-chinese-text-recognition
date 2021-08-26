@@ -275,7 +275,7 @@ Predicted Chars: (['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼'
 import numpy as np
 
 from cnocr.utils import read_img
-from cnocr import CnOcr
+from cnocr import CnOcr, line_split
 
 ocr = CnOcr()
 img_fp = 'examples/multi-line_cn1.png'
