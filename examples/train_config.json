@@ -1,6 +1,4 @@
 {
-    "version": "2.0.0",
-
     "vocab_fp": "label_cn.txt",
     "img_folder": "data/images",
 

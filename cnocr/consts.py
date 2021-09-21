@@ -60,8 +60,8 @@ root_url = (
 )
 # name: (epochs, url)
 AVAILABLE_MODELS = {
-    'densenet-s-fc': (39, root_url + 'densenet-s-fc.zip'),
-    'densenet-s-gru': (11, root_url + 'densenet-s-gru.zip'),
+    'densenet-s-fc': (8, root_url + 'densenet-s-fc-v2.0.1.zip'),
+    'densenet-s-gru': (14, root_url + 'densenet-s-gru-v2.0.1.zip'),
 }
 
 # 候选字符集合

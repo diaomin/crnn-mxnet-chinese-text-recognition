@@ -63,7 +63,6 @@ class CnOcr(object):
     def __init__(
         self,
         model_name: str = 'densenet-s-fc',
-        model_epoch: Optional[int] = None,
         *,
         cand_alphabet: Optional[Union[Collection, str]] = None,
         context: str = 'cpu',  # ['cpu', 'gpu', 'cuda']
@@ -73,13 +72,12 @@ class CnOcr(object):
     ):
         """
 
-        :param model_name: 模型名称
-        :param model_epoch: 模型迭代次数。默认为 None，表示使用系统自带的模型对应的迭代次数
+        :param model_name: 模型名称。默认为 `densenet-s-fc`
         :param cand_alphabet: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围
-        :param context: 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为CPU。
+        :param context: 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为 `cpu`
         :param model_fp: 如果不使用系统自带的模型，可以通过此参数直接指定所使用的模型文件（'.ckpt' 文件）
         :param root: 模型文件所在的根目录。
-            Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/1.2.0/densenet-lite-fc`。
+            Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.0/densenet-s-fc`。
             Windows下默认值为 `C:/Users/<username>/AppData/Roaming/cnocr`。
         """
         if 'name' in kwargs:
@@ -95,15 +93,12 @@ class CnOcr(object):
         self.context = context
 
         self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
-        self._model_epoch = (
-            model_epoch
-            if model_epoch is not None
-            else AVAILABLE_MODELS.get(model_name, [None])[0]
-        )
-        if self._model_epoch is not None:
+        model_epoch = AVAILABLE_MODELS.get(model_name, [None])[0]
+
+        if model_epoch is not None:
             self._model_file_prefix = '%s-epoch=%03d' % (
                 self._model_file_prefix,
-                self._model_epoch,
+                model_epoch,
             )
 
         self._assert_and_prepare_model_files(model_fp, root)
@@ -192,7 +187,7 @@ class CnOcr(object):
         return line_chars_list
 
     def _prepare_img(
-            self, img_fp: Union[str, Path, torch.Tensor, np.ndarray]
+        self, img_fp: Union[str, Path, torch.Tensor, np.ndarray]
     ) -> np.ndarray:
         """
         :param img: image array with type torch.Tensor or np.ndarray,
@@ -217,8 +212,10 @@ class CnOcr(object):
                 # color to gray
                 img = np.expand_dims(np.array(Image.fromarray(img).convert('L')), -1)
             elif img.shape[2] != 1:
-                raise ValueError('only images with shape [height, width, 1] (gray images), '
-                                 'or [height, width, 3] (RGB-formated color images) are supported')
+                raise ValueError(
+                    'only images with shape [height, width, 1] (gray images), '
+                    'or [height, width, 3] (RGB-formated color images) are supported'
+                )
 
         if img.dtype != np.dtype('uint8'):
             img = img.astype('uint8')
@@ -239,7 +236,9 @@ class CnOcr(object):
         return res[0]
 
     def ocr_for_single_lines(
-        self, img_list: List[Union[str, Path, torch.Tensor, np.ndarray]]
+        self,
+        img_list: List[Union[str, Path, torch.Tensor, np.ndarray]],
+        batch_size: int = 1,
     ) -> List[Tuple[List[str], float]]:
         """
         Batch recognize characters from a list of one-line-characters images.
@@ -248,6 +247,7 @@ class CnOcr(object):
             Each element should be a tensor with values ranging from 0 to 255,
             and with shape [height, width] or [height, width, channel].
             The optional channel should be 1 (gray image) or 3 (color image).
+        :param batch_size: 待处理图片很多时，需要分批处理，每批图片的数量由此参数指定。默认为 `1`。
         :return: list of (list of chars, prob), such as
             [(['第', '一', '行'], 0.80), (['第', '二', '行'], 0.75), (['第', '三', '行'], 0.9)]
         """
@@ -256,19 +256,23 @@ class CnOcr(object):
         img_list = [self._prepare_img(img) for img in img_list]
         img_list = [self._transform_img(img) for img in img_list]
 
-        out = self._predict(img_list)
+        idx = 0
+        out = []
+        while idx * batch_size < len(img_list):
+            imgs = img_list[idx * batch_size : (idx + 1) * batch_size]
+            batch_out = self._predict(imgs)
+            out.extend(batch_out['preds'])
+            idx += 1
 
         res = []
-        for line in out['preds']:
+        for line in out:
             chars, prob = line
             chars = [c if c != '<space>' else ' ' for c in chars]
             res.append((chars, prob))
 
         return res
 
-    def _transform_img(
-        self, img: np.ndarray
-    ) -> torch.Tensor:
+    def _transform_img(self, img: np.ndarray) -> torch.Tensor:
         """
         :param img: image array with type torch.Tensor or np.ndarray,
         with shape [height, width] or [height, width, channel].

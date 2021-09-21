@@ -25,7 +25,7 @@ import click
 import json
 import glob
 
-from torchvision import transforms
+from torchvision import transforms as T
 
 from cnocr.consts import MODEL_VERSION, ENCODER_CONFIGS, DECODER_CONFIGS
 from cnocr.utils import set_logger, load_model_params, check_model_name
@@ -90,14 +90,18 @@ def train(
     model_name, index_dir, train_config_fp, resume_from_checkpoint, pretrained_model_fp
 ):
     check_model_name(model_name)
-    train_transform = transforms.Compose(
+    train_transform = T.Compose(
         [
-            transforms.RandomInvert(p=0.5),
-            # transforms.RandomErasing(p=0.05, scale=(0.01, 0.05)),
-            transforms.RandomRotation(degrees=2),
-            transforms.RandomAutocontrast(p=0.05),
+            T.RandomInvert(p=0.5),
+            T.RandomRotation(degrees=2),
+            # T.RandomAutocontrast(p=0.05),
+            # T.RandomPosterize(bits=4, p=0.3),
+            # T.RandomAdjustSharpness(sharpness_factor=0.5, p=0.3),
+            # T.RandomEqualize(p=0.3),
+            # T.RandomApply([T.GaussianBlur(kernel_size=3)], p=0.5),
             NormalizeAug(),
-            RandomPaddingAug(p=0.5, max_pad_len=72),
+            # RandomPaddingAug(p=0.5, max_pad_len=72),
+
         ]
     )
     val_transform = NormalizeAug()

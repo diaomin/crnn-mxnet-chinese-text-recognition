@@ -2,7 +2,7 @@ English [README](./README_en.md) (`out-dated`).
 
 # cnocr
 
-**cnocr** 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**中文**、**英文**的常见字符识别，自带了多个训练好的检测模型，安装后即可直接使用。欢迎扫码加入QQ交流群：
+**cnocr** 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**中文**、**英文**的常见字符识别，自带了多个训练好的识别模型，安装后即可直接使用。欢迎扫码加入QQ交流群：
 
 ![QQ群二维码](./docs/cnocr-qq.jpg)
 
@@ -87,7 +87,7 @@ cnocr的ocr模型可以分为两阶段：第一阶段是获得ocr图片的局部
 
 
 
-cnocr **V2.0** 目前包含以下可直接使用的模型，训练好的模型都放在 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 项目中，可免费下载使用：
+cnocr **V2.0** 目前包含以下可直接使用的模型，训练好的模型都放在 **[cnstd-cnocr-models](https://github.com/breezedeus/cnstd-cnocr-models)** 项目中，可免费下载使用：
 
 | 模型名称 | 局部编码模型 | 序列编码模型 | 模型大小 | 迭代次数 | 测试集准确率  |
 | :------- | ------------ | ------------ | -------- | ------ | -------- |
@@ -105,7 +105,7 @@ cnocr **V2.0** 目前包含以下可直接使用的模型，训练好的模型�
 首次使用cnocr时，系统会**自动下载** zip格式的模型压缩文件，并存于 `~/.cnocr`目录（Windows下默认路径为 `C:\Users\<username>\AppData\Roaming\cnocr`）。
 下载后的zip文件代码会自动对其解压，然后把解压后的模型相关目录放于`~/.cnocr/2.0`目录中。
 
-如果系统无法自动成功下载zip文件，则需要手动从 **[cnocr-models](https://github.com/breezedeus/cnocr-models)** 下载此zip文件并把它放于 `~/.cnocr/2.0`目录。如果Github下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1c68zjHfTVeqiSMXBEPYMrg) 下载， 提取码为 ` 9768`。
+如果系统无法自动成功下载zip文件，则需要手动从 **[cnstd-cnocr-models](https://github.com/breezedeus/cnstd-cnocr-models)** 下载此zip文件并把它放于 `~/.cnocr/2.0`目录。如果Github下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1c68zjHfTVeqiSMXBEPYMrg) 下载， 提取码为 ` 9768`。
 
 放置好zip文件后，后面的事代码就会自动执行了。
 
@@ -120,7 +120,6 @@ class CnOcr(object):
     def __init__(
         self,
         model_name: str = 'densenet-s-fc'
-        model_epoch: Optional[int] = None,
         *,
         cand_alphabet: Optional[Union[Collection, str]] = None,
         context: str = 'cpu',  # ['cpu', 'gpu', 'cuda']
@@ -133,8 +132,6 @@ class CnOcr(object):
 其中的几个参数含义如下：
 
 * `model_name`: 模型名称，即上面表格第一列中的值。默认为 `densenet-s-fc`。
-
-* `model_epoch`: 模型迭代次数。默认为 `None`，表示使用默认的迭代次数值。对于模型名称 `densenet-s-fc`就是 `39`。
 
 * `cand_alphabet`: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围。取值可以是字符串，如 `"0123456789"`，或者字符列表，如 `["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]`。
   
@@ -266,7 +263,7 @@ Predicted Chars: (['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼'
 
 
 
-#### 3. 函数`CnOcr.ocr_for_single_lines(img_list)`
+#### 3. 函数`CnOcr.ocr_for_single_lines(img_list, batch_size=1)`
 
 函数`CnOcr.ocr_for_single_lines(img_list)`可以**对多个单行文字图片进行批量预测**。函数`CnOcr.ocr(img_fp)`和`CnOcr.ocr_for_single_line(img_fp)`内部其实都是调用的函数`CnOcr.ocr_for_single_lines(img_list)`。
 
@@ -275,6 +272,7 @@ Predicted Chars: (['笠', '淡', '嘿', '骅', '谧', '鼎', '皋', '姚', '歼'
 **函数说明**：
 
 - 输入参数` img_list`: 为一个`list`；其中每个元素可以是需要识别的图片文件路径（如下例）；或者是已经从图片文件中读入的数组，类型可以为 `torch.Tensor` 或  `np.ndarray`，取值应该是`[0，255]`的整数，维数应该是 `[height, width]` （灰度图片）或者 `[height, width, channel]`，`channel` 可以等于`1`（灰度图片）或者`3`（`RGB`格式的彩色图片）。
+- 输入参数 `batch_size`: 待处理图片很多时，需要分批处理，每批图片的数量由此参数指定。默认为 `1`。
 - 返回值：为一个嵌套的`list`，其中的每个元素存储了对一行文字的识别结果，其中也包含了识别概率值。类似这样`[(['第', '一', '行'], 0.80), (['第', '二', '行'], 0.75), (['第', '三', '行'], 0.9)]`，其中的数字为对应的识别概率值。
 
 

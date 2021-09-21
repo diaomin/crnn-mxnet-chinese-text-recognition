@@ -1,5 +1,13 @@
 # Release Notes
 
+### Update 2021.09.21: 发布 cnocr V2.0.1
+
+主要变更：
+
+* 重新训练了模型，模型识别精度略有提升；
+* 函数 `CnOcr.ocr_for_single_lines(img_list, batch_size=1)` 中加入了 `batch_size` 参数。
+
+
 ### Update 2021.08.26: 发布 cnocr V2.0.0
 
 主要变更：
