@@ -46,11 +46,20 @@ class DenseNet(densenet.DenseNet):
         )
 
         self.block_config = block_config
+
+        delattr(self, 'classifier')
         self.features.conv0 = nn.Conv2d(
             1, num_init_features, kernel_size=3, stride=1, padding=1, bias=False
         )
         self.features.pool0 = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
-        delattr(self, 'classifier')
+
+        for i in range(1, len(self.block_config)):
+            transition = getattr(self.features, 'transition%d' % i)
+            in_channels, out_channels = transition.conv.in_channels, transition.conv.out_channels
+            trans = _MaxPoolTransition(num_input_features=in_channels,
+                                       num_output_features=out_channels)
+            setattr(self.features, 'transition%d' % i, trans)
+
         self._post_init_weights()
 
     @property
@@ -71,3 +80,15 @@ class DenseNet(densenet.DenseNet):
     def forward(self, x: Tensor) -> Tensor:
         features = self.features(x)
         return features
+
+
+class _MaxPoolTransition(nn.Sequential):
+    def __init__(self, num_input_features: int, num_output_features: int) -> None:
+        super().__init__()
+        self.add_module('norm', nn.BatchNorm2d(num_input_features))
+        self.add_module('relu', nn.ReLU(inplace=True))
+        self.add_module('conv', nn.Conv2d(num_input_features, num_output_features,
+                                          kernel_size=1, stride=1, bias=False))
+        self.add_module('pool', nn.MaxPool2d(kernel_size=2, stride=2))
+
+

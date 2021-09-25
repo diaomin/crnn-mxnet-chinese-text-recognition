@@ -3,53 +3,29 @@ import os
 import sys
 from copy import deepcopy
 import pytest
-import mxnet as mx
-from mxnet import nd
+import torch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 
-from cnocr.consts import EMB_MODEL_TYPES, SEQ_MODEL_TYPES
 from cnocr.utils import set_logger
-from cnocr.hyperparams.cn_hyperparams import CnHyperparams
-from cnocr.symbols.densenet import _make_dense_layer, DenseNet, cal_num_params
-from cnocr.symbols.crnn import (
-    CRnn,
-    pipline,
-    gen_network,
-    get_infer_shape,
-    crnn_lstm,
-    crnn_lstm_lite,
-)
+from cnocr.consts import IMG_STANDARD_HEIGHT, ENCODER_CONFIGS, DECODER_CONFIGS
+from cnocr.models.densenet import DenseNet
+
 
 logger = set_logger('info')
-
-HP = CnHyperparams()
-
-
-def test_dense_layer():
-    x = nd.random.randn(128, 64, 32, 280)
-    net = _make_dense_layer(64, 2, 0.1)
-    net.initialize()
-    y = net(x)
-    logger.info(net)
-    logger.info(y.shape)
 
 
 def test_densenet():
     width = 280
-    x = nd.random.randn(128, 64, 32, width)
-    layer_channels = (64, 128, 256, 512)
-    for shorter in (False, True):
-        net = DenseNet(layer_channels, shorter=shorter)
-        net.initialize()
-        y = net(x)
-        logger.info(net)
-        logger.info(y.shape)  # (128, 512, 1, 70) or (128, 512, 1, 35)
-        assert y.shape[2] == 1
-        expected_seq_len = width // 8 if shorter else width // 4
-        assert y.shape[3] == expected_seq_len
-        logger.info('number of parameters: %d', cal_num_params(net))  # 1748224
+    img = torch.rand(4, 1, IMG_STANDARD_HEIGHT, width)
+    net = DenseNet(32, [2, 2, 2, 2], 64)
+    net.eval()
+    logger.info(net)
+    logger.info(img.shape)
+    res = net(img)
+    logger.info(res.shape)
+    assert tuple(res.shape) == (4, 128, 4, 35)
 
 
 def test_crnn():
@@ -107,8 +83,8 @@ def test_pipline():
 
 
 MODEL_NAMES = []
-for emb_model in EMB_MODEL_TYPES:
-    for seq_model in SEQ_MODEL_TYPES:
+for emb_model in ENCODER_CONFIGS:
+    for seq_model in DECODER_CONFIGS:
         MODEL_NAMES.append('%s-%s' % (emb_model, seq_model))
 
 
