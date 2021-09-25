@@ -26,16 +26,12 @@ import numpy as np
 import torch
 import torch.optim as optim
 from torch import nn
+from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
-from torch.optim.lr_scheduler import (
-    StepLR,
-    LambdaLR,
-    CyclicLR,
-    CosineAnnealingWarmRestarts,
-    MultiStepLR,
-)
-from torch.utils.data import DataLoader
+
+from .lr_scheduler import get_lr_scheduler
+
 
 logger = logging.getLogger(__name__)
 
@@ -65,37 +61,6 @@ def get_optimizer(name: str, model, learning_rate, weight_decay):
             model.parameters(), lr=learning_rate, weight_decay=weight_decay
         )
     return optimizer
-
-
-def get_lr_scheduler(config, optimizer):
-    orig_lr = config['learning_rate']
-    lr_sch_config = deepcopy(config['lr_scheduler'])
-    lr_sch_name = lr_sch_config.pop('name')
-
-    if lr_sch_name == 'multi_step':
-        return MultiStepLR(
-            optimizer,
-            milestones=lr_sch_config['milestones'],
-            gamma=lr_sch_config['gamma'],
-        )
-    elif lr_sch_name == 'cos_anneal':
-        return CosineAnnealingWarmRestarts(
-            optimizer, T_0=4, T_mult=1, eta_min=orig_lr / 10.0
-        )
-    elif lr_sch_name == 'cyclic':
-        return CyclicLR(
-            optimizer,
-            base_lr=orig_lr / 10.0,
-            max_lr=orig_lr,
-            step_size_up=2,
-            cycle_momentum=False,
-        )
-
-    step_size = lr_sch_config['step_size']
-    gamma = lr_sch_config['gamma']
-    if step_size is None or gamma is None:
-        return LambdaLR(optimizer, lr_lambda=lambda _: 1)
-    return StepLR(optimizer, step_size, gamma=gamma)
 
 
 class Accuracy(object):
@@ -144,6 +109,11 @@ class WrapperLightningModule(pl.LightningModule):
         else:
             setattr(self.model, 'current_epoch', self.current_epoch)
         res = self.model.calculate_loss(batch)
+
+        # update lr scheduler
+        sch = self.lr_schedulers()
+        sch.step()
+
         losses = res['loss']
         self.log(
             'train_loss',
