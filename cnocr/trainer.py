@@ -211,6 +211,12 @@ class PlTrainer(object):
                 no checkpoint file at the path, start from scratch. If resuming from mid-epoch checkpoint,
                 training will start from the beginning of the next epoch.
         """
+        steps_per_epoch = (
+            len(train_dataloader)
+            if train_dataloader is not None
+            else len(datamodule.train_dataloader())
+        )
+        self.config['steps_per_epoch'] = steps_per_epoch
         if resume_from_checkpoint is not None:
             pl_module = WrapperLightningModule.load_from_checkpoint(
                 resume_from_checkpoint, config=self.config, model=model
