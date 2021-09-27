@@ -25,6 +25,7 @@ import click
 import json
 import glob
 
+from cnocr.utils import save_img
 from torchvision import transforms as T
 
 from cnocr.consts import MODEL_VERSION, ENCODER_CONFIGS, DECODER_CONFIGS
@@ -119,6 +120,18 @@ def train(
         pin_memory=train_config['pin_memory'],
     )
 
+    # train_ds = data_mod.train
+    # for i in range(min(100, len(train_ds))):
+    #     visualize_example(train_ds[i], 'debugs/train-1-%d' % i)
+    #     visualize_example(train_ds[i], 'debugs/train-2-%d' % i)
+    #     visualize_example(train_ds[i], 'debugs/train-3-%d' % i)
+    # val_ds = data_mod.val
+    # for i in range(min(10, len(val_ds))):
+    #     visualize_example(val_ds[i], 'debugs/val-1-%d' % i)
+    #     visualize_example(val_ds[i], 'debugs/val-2-%d' % i)
+    #     visualize_example(val_ds[i], 'debugs/val-2-%d' % i)
+    # return
+
     trainer = PlTrainer(
         train_config, ckpt_fn=['cnocr', 'v%s' % MODEL_VERSION, model_name]
     )
@@ -131,6 +144,13 @@ def train(
     trainer.fit(
         model, datamodule=data_mod, resume_from_checkpoint=resume_from_checkpoint
     )
+
+
+def visualize_example(example, fp_prefix):
+    if not os.path.exists(os.path.dirname(fp_prefix)):
+        os.makedirs(os.path.dirname(fp_prefix))
+    image = example[0]
+    save_img(image, '%s-image.jpg' % fp_prefix)
 
 
 @cli.command('predict')

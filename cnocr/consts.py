@@ -36,22 +36,33 @@ ENCODER_CONFIGS = {
         'num_init_features': 64,
         'out_length': 512,  # 输出的向量长度为 4*128 = 512
     },
+    'densenet-lite': {  # 长度压缩至 1/8（seq_len == 35），输出的向量长度为 2*80 = 160
+        'growth_rate': 32,
+        'block_config': [2, 1, 1],
+        'num_init_features': 64,
+        'out_length': 160,  # 输出的向量长度为 2*80 = 160
+    },
 }
 
 DECODER_CONFIGS = {
     'lstm': {
-        'input_size': 512,  # 对应 encoder 的输出向量长度
+        # 'input_size': 512,  # 对应 encoder 的输出向量长度
         'rnn_units': 128,
     },
     'gru': {
-        'input_size': 512,  # 对应 encoder 的输出向量长度
+        # 'input_size': 512,  # 对应 encoder 的输出向量长度
         'rnn_units': 128,
     },
     'fc': {
-        'input_size': 512,  # 对应 encoder 的输出向量长度
+        # 'input_size': 512,  # 对应 encoder 的输出向量长度
         'hidden_size': 256,
         'dropout': 0.3,
-    }
+    },
+    'fclite': {
+        # 'input_size': 512,  # 对应 encoder 的输出向量长度
+        'hidden_size': 96,
+        'dropout': 0.1,
+    },
 }
 
 root_url = (

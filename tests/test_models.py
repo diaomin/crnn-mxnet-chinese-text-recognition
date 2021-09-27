@@ -8,9 +8,9 @@ import torch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 
-from cnocr.utils import set_logger
+from cnocr.utils import set_logger, get_model_size
 from cnocr.consts import IMG_STANDARD_HEIGHT, ENCODER_CONFIGS, DECODER_CONFIGS
-from cnocr.models.densenet import DenseNet
+from cnocr.models.densenet import DenseNet, DenseNetLite
 
 
 logger = set_logger('info')
@@ -22,10 +22,42 @@ def test_densenet():
     net = DenseNet(32, [2, 2, 2, 2], 64)
     net.eval()
     logger.info(net)
+    logger.info(f'model size: {get_model_size(net)}')  # 406464
     logger.info(img.shape)
     res = net(img)
     logger.info(res.shape)
     assert tuple(res.shape) == (4, 128, 4, 35)
+
+
+def test_densenet_lite():
+    width = 280
+    img = torch.rand(4, 1, IMG_STANDARD_HEIGHT, width)
+    net = DenseNetLite(32, [2, 2, 2], 64)
+    net.eval()
+    logger.info(net)
+    logger.info(f'model size: {get_model_size(net)}')  # 302976
+    logger.info(img.shape)
+    res = net(img)
+    logger.info(res.shape)
+    assert tuple(res.shape) == (4, 128, 2, 35)
+
+    net = DenseNetLite(32, [1, 1, 2], 64)
+    net.eval()
+    logger.info(net)
+    logger.info(f'model size: {get_model_size(net)}')  # 186672
+    logger.info(img.shape)
+    res = net(img)
+    logger.info(res.shape)
+    assert tuple(res.shape) == (4, 104, 2, 35)
+
+    net = DenseNetLite(32, [2, 1, 1], 64)
+    net.eval()
+    logger.info(net)
+    logger.info(f'model size: {get_model_size(net)}')  # 197952
+    logger.info(img.shape)
+    res = net(img)
+    logger.info(res.shape)
+    assert tuple(res.shape) == (4, 80, 2, 35)
 
 
 def test_crnn():

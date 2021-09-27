@@ -1,5 +1,5 @@
 {
-    "vocab_fp": "label_cn.txt",
+    "vocab_fp": "cnocr/label_cn.txt",
     "img_folder": "data/images",
 
     "gpus": 0,

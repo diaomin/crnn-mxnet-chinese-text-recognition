@@ -30,7 +30,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from .ctc import CTCPostProcessor
 from ..consts import ENCODER_CONFIGS, DECODER_CONFIGS
 from ..data_utils.utils import encode_sequences
-from .densenet import DenseNet
+from .densenet import DenseNet, DenseNetLite
 
 
 class EncoderManager(object):
@@ -48,6 +48,9 @@ class EncoderManager(object):
         if name.lower() == 'densenet-s':
             out_length = config.pop('out_length')
             encoder = DenseNet(**config)
+        elif name.lower() == 'densenet-lite':
+            out_length = config.pop('out_length')
+            encoder = DenseNetLite(**config)
         else:
             raise ValueError('not supported encoder name: %s' % name)
         return encoder, out_length
@@ -86,11 +89,11 @@ class DecoderManager(object):
                 bidirectional=True,
             )
             out_length = config['rnn_units'] * 2
-        elif name.lower() == 'fc':
+        elif name.lower() in ('fc', 'fclite'):
             decoder = nn.Sequential(
                 nn.Dropout(p=config['dropout']),
                 # nn.Tanh(),
-                nn.Linear(config['input_size'], config['hidden_size']),
+                nn.Linear(input_size, config['hidden_size']),
                 nn.Dropout(p=config['dropout']),
                 nn.Tanh(),
             )

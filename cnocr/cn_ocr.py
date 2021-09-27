@@ -48,11 +48,6 @@ logger = logging.getLogger(__name__)
 
 def gen_model(model_name, vocab):
     check_model_name(model_name)
-    if not model_name.startswith('densenet-s'):
-        logger.warning(
-            'only "densenet-s" is supported now, use "densenet-s-fc" by default'
-        )
-        model_name = 'densenet-s-fc'
     model = OcrModel.from_name(model_name, vocab)
     return model
 

@@ -1,7 +1,7 @@
 # 可取值：['densenet-s']
-ENCODER_NAME = densenet-s
+ENCODER_NAME = densenet-lite
 # 可取值：['fc', 'gru', 'lstm']
-DECODER_NAME = gru
+DECODER_NAME = fclite
 MODEL_NAME = $(ENCODER_NAME)-$(DECODER_NAME)
 EPOCH = 41
 
@@ -24,7 +24,7 @@ predict:
 package:
 	python setup.py sdist bdist_wheel
 
-VERSION = 2.0.1
+VERSION = 2.1.0
 upload:
 	python -m twine upload  dist/cnocr-$(VERSION)* --verbose
 

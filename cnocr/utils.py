@@ -362,3 +362,9 @@ def load_model_params(model, param_fp, device='cpu'):
             state_dict[k.split('.', maxsplit=1)[1]] = v
     model.load_state_dict(state_dict)
     return model
+
+
+def get_model_size(model, only_trainable=False):
+    if only_trainable:
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    return sum(p.numel() for p in model.parameters())
