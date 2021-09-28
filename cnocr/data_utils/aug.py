@@ -20,6 +20,7 @@
 import random
 
 import torch
+import torchvision.transforms.functional as F
 
 from ..utils import normalize_img_array
 
@@ -32,6 +33,7 @@ class FgBgFlipAug(object):
     p : float
         Probability to flip image horizontally
     """
+
     def __init__(self, p):
         self.p = p
 
@@ -45,6 +47,26 @@ class FgBgFlipAug(object):
 class NormalizeAug(object):
     def __call__(self, img):
         return normalize_img_array(img)
+
+
+class RandomStretchAug(object):
+    """对图片在宽度上做随机拉伸"""
+
+    def __init__(self, min_ratio=0.9, max_ratio=1.1):
+        self.min_ratio = min_ratio
+        self.max_ratio = max_ratio
+
+    def __call__(self, img: torch.Tensor):
+        """
+
+        :param img: [C, H, W]
+        :return:
+        """
+        _, h, w = img.shape
+        new_w_ratio = self.min_ratio + random.random() * (
+            self.max_ratio - self.min_ratio
+        )
+        return F.resize(img, [h, int(w * new_w_ratio)])
 
 
 class RandomPaddingAug(object):

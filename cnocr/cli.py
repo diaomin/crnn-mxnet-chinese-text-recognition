@@ -30,7 +30,7 @@ from torchvision import transforms as T
 
 from cnocr.consts import MODEL_VERSION, ENCODER_CONFIGS, DECODER_CONFIGS
 from cnocr.utils import set_logger, load_model_params, check_model_name
-from cnocr.data_utils.aug import NormalizeAug, RandomPaddingAug
+from cnocr.data_utils.aug import NormalizeAug, RandomPaddingAug, RandomStretchAug
 from cnocr.dataset import OcrDataModule
 from cnocr.trainer import PlTrainer, resave_model
 from cnocr import CnOcr, gen_model
@@ -93,8 +93,9 @@ def train(
     check_model_name(model_name)
     train_transform = T.Compose(
         [
-            T.RandomInvert(p=0.5),
-            T.RandomRotation(degrees=2),
+            RandomStretchAug(min_ratio=0.5, max_ratio=1.5),
+            T.RandomInvert(p=0.2),
+            T.RandomRotation(degrees=1),
             # T.RandomAutocontrast(p=0.05),
             # T.RandomPosterize(bits=4, p=0.3),
             # T.RandomAdjustSharpness(sharpness_factor=0.5, p=0.3),
@@ -122,14 +123,14 @@ def train(
 
     # train_ds = data_mod.train
     # for i in range(min(100, len(train_ds))):
-    #     visualize_example(train_ds[i], 'debugs/train-1-%d' % i)
-    #     visualize_example(train_ds[i], 'debugs/train-2-%d' % i)
-    #     visualize_example(train_ds[i], 'debugs/train-3-%d' % i)
+    #     visualize_example(train_transform(train_ds[i][0]), 'debugs/train-1-%d' % i)
+    #     visualize_example(train_transform(train_ds[i][0]), 'debugs/train-2-%d' % i)
+    #     visualize_example(train_transform(train_ds[i][0]), 'debugs/train-3-%d' % i)
     # val_ds = data_mod.val
     # for i in range(min(10, len(val_ds))):
-    #     visualize_example(val_ds[i], 'debugs/val-1-%d' % i)
-    #     visualize_example(val_ds[i], 'debugs/val-2-%d' % i)
-    #     visualize_example(val_ds[i], 'debugs/val-2-%d' % i)
+    #     visualize_example(val_transform(val_ds[i][0]), 'debugs/val-1-%d' % i)
+    #     visualize_example(val_transform(val_ds[i][0]), 'debugs/val-2-%d' % i)
+    #     visualize_example(val_transform(val_ds[i][0]), 'debugs/val-2-%d' % i)
     # return
 
     trainer = PlTrainer(
@@ -149,7 +150,7 @@ def train(
 def visualize_example(example, fp_prefix):
     if not os.path.exists(os.path.dirname(fp_prefix)):
         os.makedirs(os.path.dirname(fp_prefix))
-    image = example[0]
+    image = example
     save_img(image, '%s-image.jpg' % fp_prefix)
 
 
