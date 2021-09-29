@@ -59,9 +59,9 @@ def collate_fn(img_labels: List[Tuple[str, str]], transformers: Callable = None)
         img_list, labels_list = zip(*img_labels)
         label_lengths = torch.tensor([len(labels) for labels in labels_list])
 
-    img_lengths = torch.tensor([img.size(2) for img in img_list])
     if transformers is not None:
         img_list = [transformers(img) for img in img_list]
+    img_lengths = torch.tensor([img.size(2) for img in img_list])
     imgs = pad_img_seq(img_list)
     return imgs, img_lengths, labels_list, label_lengths
 
