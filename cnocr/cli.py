@@ -95,7 +95,7 @@ def train(
         [
             RandomStretchAug(min_ratio=0.5, max_ratio=1.5),
             T.RandomInvert(p=0.2),
-            T.RandomRotation(degrees=1),
+            T.RandomApply([T.RandomRotation(degrees=1)], p=0.4),
             # T.RandomAutocontrast(p=0.05),
             # T.RandomPosterize(bits=4, p=0.3),
             # T.RandomAdjustSharpness(sharpness_factor=0.5, p=0.3),
