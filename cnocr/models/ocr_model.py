@@ -45,10 +45,10 @@ class EncoderManager(object):
             assert config is not None and 'name' in config
             name = config.pop('name')
 
-        if name.lower() == 'densenet-s':
+        if name.lower().startswith('densenet-s'):
             out_length = config.pop('out_length')
             encoder = DenseNet(**config)
-        elif name.lower() == 'densenet-lite':
+        elif name.lower().startswith('densenet-lite'):
             out_length = config.pop('out_length')
             encoder = DenseNetLite(**config)
         else:
