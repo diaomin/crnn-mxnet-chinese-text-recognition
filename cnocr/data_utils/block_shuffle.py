@@ -41,7 +41,6 @@ class BlockShuffleDataLoader(DataLoader):
 
     def __iter__(self):
         self.block_shuffle2()
-        breakpoint()
         return super().__iter__()
 
     def block_shuffle2(self):
