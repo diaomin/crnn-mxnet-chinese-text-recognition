@@ -4,6 +4,7 @@ import sys
 from copy import deepcopy
 import pytest
 import torch
+from torch import nn
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
@@ -14,6 +15,13 @@ from cnocr.models.densenet import DenseNet, DenseNetLite
 
 
 logger = set_logger('info')
+
+
+def test_conv():
+    conv = nn.Conv2d(32, 32, kernel_size=5, stride=1, padding=2, bias=False)
+    input = torch.rand(1, 32, 10, 4)
+    res = conv(input)
+    logger.info(res.shape)
 
 
 def test_densenet():
@@ -28,6 +36,33 @@ def test_densenet():
     logger.info(res.shape)
     assert tuple(res.shape) == (4, 128, 4, 35)
 
+    net = DenseNet(32, [2, 2, 1, 1], 64)
+    net.eval()
+    logger.info(net)
+    logger.info(f'model size: {get_model_size(net)}')  # 301440
+    logger.info(img.shape)
+    res = net(img)
+    logger.info(res.shape)
+    assert tuple(res.shape) == (4, 80, 4, 35)
+
+    net = DenseNet(32, [2, 1, 1, 1], 64)
+    net.eval()
+    logger.info(net)
+    logger.info(f'model size: {get_model_size(net)}')  # 243616
+    logger.info(img.shape)
+    res = net(img)
+    logger.info(res.shape)
+    assert tuple(res.shape) == (4, 72, 4, 35)
+
+    net = DenseNet(32, [1, 1, 1, 2], 64)
+    net.eval()
+    logger.info(net)
+    logger.info(f'model size: {get_model_size(net)}')  # 230680
+    logger.info(img.shape)
+    res = net(img)
+    logger.info(res.shape)
+    assert tuple(res.shape) == (4, 100, 4, 35)
+
 
 def test_densenet_lite():
     width = 280
@@ -41,6 +76,15 @@ def test_densenet_lite():
     logger.info(res.shape)
     assert tuple(res.shape) == (4, 128, 2, 35)
 
+    # net = DenseNetLite(32, [2, 1, 1], 64)
+    # net.eval()
+    # logger.info(net)
+    # logger.info(f'model size: {get_model_size(net)}')  # 197952
+    # logger.info(img.shape)
+    # res = net(img)
+    # logger.info(res.shape)
+    # assert tuple(res.shape) == (4, 80, 2, 35)
+
     net = DenseNetLite(32, [1, 1, 2], 64)
     net.eval()
     logger.info(net)
@@ -50,14 +94,14 @@ def test_densenet_lite():
     logger.info(res.shape)
     assert tuple(res.shape) == (4, 104, 2, 35)
 
-    net = DenseNetLite(32, [2, 1, 1], 64)
+    net = DenseNetLite(32, [1, 2, 2], 64)
     net.eval()
     logger.info(net)
-    logger.info(f'model size: {get_model_size(net)}')  # 197952
+    logger.info(f'model size: {get_model_size(net)}')  #
     logger.info(img.shape)
     res = net(img)
     logger.info(res.shape)
-    assert tuple(res.shape) == (4, 80, 2, 35)
+    assert tuple(res.shape) == (4, 120, 2, 35)
 
 
 def test_crnn():

@@ -84,13 +84,13 @@ class DenseNet(densenet.DenseNet):
 
 class DenseNetLite(DenseNet):
     def __init__(
-            self,
-            growth_rate: int = 32,
-            block_config: Tuple[int, int, int, int] = (2, 2, 2),
-            num_init_features: int = 64,
-            bn_size: int = 4,
-            drop_rate: float = 0,
-            memory_efficient: bool = False,
+        self,
+        growth_rate: int = 32,
+        block_config: Tuple[int, int, int] = (2, 2, 2),
+        num_init_features: int = 64,
+        bn_size: int = 4,
+        drop_rate: float = 0,
+        memory_efficient: bool = False,
     ) -> None:
         super().__init__(
             growth_rate,
@@ -100,10 +100,17 @@ class DenseNetLite(DenseNet):
             drop_rate,
             memory_efficient=memory_efficient,
         )
-        self.features.pool0 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.features.pool0 = nn.AvgPool2d(kernel_size=2, stride=2)
 
+        conv = self.features.denseblock3.denselayer2.conv2
+        in_channels, out_channels = conv.in_channels, conv.out_channels
+        self.features.denseblock3.denselayer2.conv2 = nn.Conv2d(
+            in_channels, out_channels, kernel_size=5, stride=1, padding=2, bias=False
+        )
         # last max pool, pool 1/8 to 1/16 for height dimension
-        self.features.add_module('pool5', nn.MaxPool2d(kernel_size=(2, 1), stride=(2, 1)))
+        self.features.add_module(
+            'pool5', nn.AvgPool2d(kernel_size=(2, 1), stride=(2, 1))
+        )
 
     @property
     def compress_ratio(self):
@@ -115,8 +122,14 @@ class _MaxPoolTransition(nn.Sequential):
         super().__init__()
         self.add_module('norm', nn.BatchNorm2d(num_input_features))
         self.add_module('relu', nn.ReLU(inplace=True))
-        self.add_module('conv', nn.Conv2d(num_input_features, num_output_features,
-                                          kernel_size=1, stride=1, bias=False))
+        self.add_module(
+            'conv',
+            nn.Conv2d(
+                num_input_features,
+                num_output_features,
+                kernel_size=1,
+                stride=1,
+                bias=False,
+            ),
+        )
         self.add_module('pool', nn.MaxPool2d(kernel_size=2, stride=2))
-
-
