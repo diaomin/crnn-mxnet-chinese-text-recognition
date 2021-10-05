@@ -90,7 +90,8 @@ extra_javascript:
 
 # Page tree
 nav:
-  - Home:
+  - Home: index.md
+  - Docs:
       - 场景文字识别介绍: std_ocr.md
       - 安装: install.md
       - 使用方法: usage.md
