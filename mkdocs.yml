@@ -91,7 +91,14 @@ extra_javascript:
 # Page tree
 nav:
   - Home:
-      - CnOcr: ../README.md
-      - User Guide: README.md
-  - Reference:
-    - 文字识别: cnocr/cn_ocr.md
+      - 场景文字识别介绍: std_ocr.md
+      - 安装: install.md
+      - 使用方法: usage.md
+      - 在线 Demo: demo.md
+      - 自带模型: models.md
+      - 文本检测CnStd + 文字识别CnOcr: cnstd_cnocr.md
+      - 模型训练: train.md
+      - QQ交流群: contact.md
+      - RELEASE 文档: RELEASE.md
+  - References:
+    - CnOcr 类: cnocr/cn_ocr.md

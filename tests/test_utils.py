@@ -7,7 +7,7 @@ from mxnet.gluon.utils import download
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
-EXAMPLE_DIR = Path(__file__).parent.parent / 'examples'
+EXAMPLE_DIR = Path(__file__).parent.parent / 'docs/examples'
 
 from cnocr.utils import check_context, read_img
 

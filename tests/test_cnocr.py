@@ -33,7 +33,7 @@ from cnocr.consts import NUMBERS, AVAILABLE_MODELS
 from cnocr.line_split import line_split
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-example_dir = os.path.join(root_dir, 'examples')
+example_dir = os.path.join(root_dir, 'docs/examples')
 CNOCR = CnOcr(model_name='densenet-s-fc', model_epoch=None)
 
 SINGLE_LINE_CASES = [

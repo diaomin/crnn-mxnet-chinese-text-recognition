@@ -1,21 +1,55 @@
-# cnocr
+# CnOcr
 
-**cnocr** 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**中文**、**英文**的常见字符识别，自带了多个训练好的识别模型，安装后即可直接使用。欢迎扫码加入QQ交流群：
+**CnOcr** 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，
+支持**中文**、**英文**的常见字符识别，自带了多个[训练好的识别模型](models.md)，安装后即可直接使用。
+欢迎扫码加入[QQ交流群](contact.md)。
 
-![QQ群二维码](./cnocr-qq.jpg)
+CnOcr的目标是**用起来简单**。
+
+## 安装简单
+
+嗯，安装真的很简单。
+
+```bash
+pip install cnocr
+```
+
+更多说明可见 [安装文档](install.md)。
+
+## 使用简单
+
+使用 `CnOcr.ocr()` 识别下图：
+
+![多行文字图片](examples/multi-line_cn1.png)
+
+**调用示例**：
+
+```python
+from cnocr import CnOcr
+
+ocr = CnOcr()
+res = ocr.ocr('examples/multi-line_cn1.png')
+print("Predicted Chars:", res)
+```
+
+或：
+```python
+from cnocr.utils import read_img
+from cnocr import CnOcr
+
+ocr = CnOcr()
+img_fp = 'examples/multi-line_cn1.png'
+img = read_img(img_fp)
+res = ocr.ocr(img)
+print("Predicted Chars:", res)
+```
+
+更多说明可见 [使用方法](usage.md)。
 
 
+## 其他文档
 
-# 最近更新 【2021.08.26】：V2.0.0
-
-主要变更：
-
-* MXNet 越来越小众化，故从基于 MXNet 的实现转为基于 **PyTorch** 的实现；
-* 重新实现了识别模型，优化了训练数据，重新训练模型；
-* 优化了能识别的字符集合；
-* 优化了对英文的识别效果；
-* 优化了对场景文字的识别效果；
-* 使用接口略有调整。
-
-
+* [场景文字识别介绍](std_ocr.md)
+* [文本检测CnStd + 文字识别CnOcr](cnstd_cnocr.md)
+* [RELEASE文档](RELEASE.md)
 
