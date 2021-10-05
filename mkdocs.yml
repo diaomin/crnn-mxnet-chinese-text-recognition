@@ -22,8 +22,8 @@ extra:
 
 # Configuration
 theme:
-#  name: material
-  name: readthedocs
+  name: material
+#  name: readthedocs
   palette:
     primary: indigo
     accent: indigo

@@ -1,6 +1,6 @@
 # CnOcr
 
-**CnOcr** 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，
+**[CnOcr](https://github.com/breezedeus/cnocr)** 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，
 支持**中文**、**英文**的常见字符识别，自带了多个[训练好的识别模型](models.md)，安装后即可直接使用。
 欢迎扫码加入[QQ交流群](contact.md)。
 
