@@ -56,7 +56,7 @@ markdown_extensions:
       generic: true
   - pymdownx.tasklist:
       custom_checkbox: true
-      clickable_checkbox: true
+      clickable_checkbox: false
   - codehilite
   - pymdownx.highlight:
       use_pygments: true
@@ -92,14 +92,15 @@ extra_javascript:
 nav:
   - Home: index.md
   - Docs:
-      - 场景文字识别介绍: std_ocr.md
+      - 场景文字识别技术介绍: std_ocr.md
       - 安装: install.md
       - 使用方法: usage.md
+      - 命令行工具: command.md
       - 在线 Demo: demo.md
       - 自带模型: models.md
       - 文本检测CnStd + 文字识别CnOcr: cnstd_cnocr.md
       - 模型训练: train.md
       - QQ交流群: contact.md
       - RELEASE 文档: RELEASE.md
-  - References:
+  - Python API:
     - CnOcr 类: cnocr/cn_ocr.md

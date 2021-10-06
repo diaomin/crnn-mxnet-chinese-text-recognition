@@ -1,4 +1,4 @@
-# 场景文字识别介绍
+# 场景文字识别技术介绍
 
 为了识别一张图片中的文字，通常包含两个步骤：
 
@@ -19,7 +19,11 @@ cnocr 内置的文字检测和分行模块可以处理这种简单场景。
 ![文字截图图片](examples/multi-line_cn1.png)
 
 
-但如果用于其他复杂的场景文字图片的识别，cnocr 需要结合其他的场景文字检测引擎使用，例如文字检测引擎 **[cnstd](https://github.com/breezedeus/cnstd)** 。
+但如果用于其他复杂的场景文字图片（如下图）的识别，
+cnocr 需要结合其他的场景文字检测引擎使用，推荐文字检测引擎 **[CnStd](https://github.com/breezedeus/cnstd)** 。
+
+![复杂场景文字图片](examples/taobao4.jpg)
+
 
 具体使用方式，可参考 [文本检测CnStd + 文字识别CnOcr](cnstd_cnocr.md)。
 
