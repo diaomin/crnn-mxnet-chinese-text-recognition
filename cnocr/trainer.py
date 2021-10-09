@@ -184,7 +184,7 @@ class PlTrainer(object):
             max_epochs=self.config.get('epochs', 20),
             precision=self.config.get('precision', 32),
             callbacks=callbacks,
-            stochastic_weight_avg=True,
+            stochastic_weight_avg=False,
         )
 
     def fit(
