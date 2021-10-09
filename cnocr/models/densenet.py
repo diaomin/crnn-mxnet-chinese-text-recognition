@@ -53,6 +53,13 @@ class DenseNet(densenet.DenseNet):
         )
         self.features.pool0 = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
 
+        last_denselayer = self._get_last_denselayer(len(self.block_config))
+        conv = last_denselayer.conv2
+        in_channels, out_channels = conv.in_channels, conv.out_channels
+        last_denselayer.conv2 = nn.Conv2d(
+            in_channels, out_channels, kernel_size=5, stride=1, padding=2, bias=False
+        )
+
         # for i in range(1, len(self.block_config)):
         #     transition = getattr(self.features, 'transition%d' % i)
         #     in_channels, out_channels = transition.conv.in_channels, transition.conv.out_channels
@@ -61,6 +68,13 @@ class DenseNet(densenet.DenseNet):
         #     setattr(self.features, 'transition%d' % i, trans)
 
         self._post_init_weights()
+
+    def _get_last_denselayer(self, block_num):
+        denseblock = getattr(self.features, 'denseblock%d' % block_num)
+        i = 1
+        while hasattr(denseblock, 'denselayer%d' % i):
+            i += 1
+        return getattr(denseblock, 'denselayer%d' % (i-1))
 
     @property
     def compress_ratio(self):
@@ -102,11 +116,6 @@ class DenseNetLite(DenseNet):
         )
         self.features.pool0 = nn.AvgPool2d(kernel_size=2, stride=2)
 
-        conv = self.features.denseblock3.denselayer2.conv2
-        in_channels, out_channels = conv.in_channels, conv.out_channels
-        self.features.denseblock3.denselayer2.conv2 = nn.Conv2d(
-            in_channels, out_channels, kernel_size=5, stride=1, padding=2, bias=False
-        )
         # last max pool, pool 1/8 to 1/16 for height dimension
         self.features.add_module(
             'pool5', nn.AvgPool2d(kernel_size=(2, 1), stride=(2, 1))
