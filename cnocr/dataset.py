@@ -25,7 +25,6 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from .utils import read_charset, read_tsv_file, read_img, rescale_img, pad_img_seq
-from .data_utils.block_shuffle import BlockShuffleDataLoader
 
 
 class OcrDataset(Dataset):
@@ -107,7 +106,7 @@ class OcrDataModule(pt.LightningDataModule):
         pass
 
     def train_dataloader(self):
-        return BlockShuffleDataLoader(
+        return DataLoader(
             self.train,
             batch_size=self.batch_size,
             shuffle=True,
