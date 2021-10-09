@@ -278,6 +278,7 @@ class CnOcr(object):
                 Each element should be a tensor with values ranging from 0 to 255,
                 and with shape [height, width] or [height, width, channel].
                 The optional channel should be 1 (gray image) or 3 (color image).
+                注：img_list 不宜包含太多图片，否则同时导入这些图片会消耗很多内存。
             batch_size: 待处理图片很多时，需要分批处理，每批图片的数量由此参数指定。默认为 `1`。
 
         Returns:
@@ -286,12 +287,21 @@ class CnOcr(object):
         """
         if len(img_list) == 0:
             return []
+
         img_list = [self._prepare_img(img) for img in img_list]
         img_list = [self._transform_img(img) for img in img_list]
 
-        # 把图片按宽度从小到大排列，提升效率
-        sorted_idx_list = sorted(range(len(img_list)), key=lambda i: img_list[i].shape[2])
-        sorted_img_list = [img_list[i] for i in sorted_idx_list]
+        should_sort = batch_size > 1 and len(img_list) // batch_size > 1
+
+        if should_sort:
+            # 把图片按宽度从小到大排列，提升效率
+            sorted_idx_list = sorted(
+                range(len(img_list)), key=lambda i: img_list[i].shape[2]
+            )
+            sorted_img_list = [img_list[i] for i in sorted_idx_list]
+        else:
+            sorted_idx_list = range(len(img_list))
+            sorted_img_list = img_list
 
         idx = 0
         sorted_out = []

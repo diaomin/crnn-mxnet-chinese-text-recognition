@@ -242,7 +242,14 @@ def predict(model_name, pretrained_model_fp, context, img_file_or_dir, single_li
 @click.option("--img-folder", required=True, help="图片所在文件夹，相对于索引文件中记录的图片位置")
 @click.option("--batch-size", type=int, help="batch size", default=128)
 @click.option(
-    '-o', '--output-dir', type=str, default='eval_results', help='存放评估结果的文件夹',
+    '-o',
+    '--output-dir',
+    type=str,
+    default='eval_results',
+    help='存放评估结果的文件夹。默认值：`eval_results`',
+)
+@click.option(
+    "-v", "--verbose", is_flag=True, help="whether to print details to screen",
 )
 def evaluate(
     model_name,
@@ -252,34 +259,40 @@ def evaluate(
     img_folder,
     batch_size,
     output_dir,
+    verbose,
 ):
     ocr = CnOcr(model_name=model_name, model_fp=pretrained_model_fp, context=context)
 
     fn_labels_list = read_input_file(eval_index_fp)
-    img_fps = [os.path.join(img_folder, fn) for fn, _ in fn_labels_list]
-    reals = [labels for _, labels in fn_labels_list]
-
-    start_time = time.time()
-    outs = ocr.ocr_for_single_lines(img_fps, batch_size)
-    time_cost = time.time() - start_time
-    logger.info(
-        '%d images predicted, total time cost: %f, average time cost: %f'
-        % (len(outs), time_cost, time_cost / len(outs))
-    )
-    preds = [out[0] for out in outs]
 
     miss_cnt, redundant_cnt = Counter(), Counter()
+    total_time_cost = 0.0
     bad_cnt = 0
     badcases = []
 
-    for bad_info in compare_preds_to_reals(preds, reals, img_fps):
-        logger.info('\t'.join(bad_info))
-        distance = Levenshtein.distance(bad_info[1], bad_info[2])
-        bad_info.insert(0, distance)
-        badcases.append(bad_info)
-        miss_cnt.update(list(bad_info[-2]))
-        redundant_cnt.update(list(bad_info[-1]))
-        bad_cnt += 1
+    start_idx = 0
+    while start_idx < len(fn_labels_list):
+        logger.info('start_idx: %d', start_idx)
+        batch = fn_labels_list[start_idx : start_idx + batch_size]
+        img_fps = [os.path.join(img_folder, fn) for fn, _ in batch]
+        reals = [labels for _, labels in batch]
+
+        start_time = time.time()
+        outs = ocr.ocr_for_single_lines(img_fps, batch_size=1)
+        total_time_cost += time.time() - start_time
+
+        preds = [out[0] for out in outs]
+        for bad_info in compare_preds_to_reals(preds, reals, img_fps):
+            if verbose:
+                logger.info('\t'.join(bad_info))
+            distance = Levenshtein.distance(bad_info[1], bad_info[2])
+            bad_info.insert(0, distance)
+            badcases.append(bad_info)
+            miss_cnt.update(list(bad_info[-2]))
+            redundant_cnt.update(list(bad_info[-1]))
+            bad_cnt += 1
+
+        start_idx += batch_size
 
     badcases.sort(key=itemgetter(0), reverse=True)
 
@@ -315,7 +328,7 @@ def evaluate(
             len(fn_labels_list),
             bad_cnt,
             1.0 - bad_cnt / len(fn_labels_list),
-            time_cost / len(fn_labels_list),
+            total_time_cost / len(fn_labels_list),
         )
     )
 
