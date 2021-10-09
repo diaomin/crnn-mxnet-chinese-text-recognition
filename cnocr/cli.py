@@ -29,12 +29,10 @@ from pathlib import Path
 
 import click
 import Levenshtein
-
-from cnocr.utils import save_img
 from torchvision import transforms as T
 
 from cnocr.consts import MODEL_VERSION, ENCODER_CONFIGS, DECODER_CONFIGS
-from cnocr.utils import set_logger, load_model_params, check_model_name
+from cnocr.utils import set_logger, load_model_params, check_model_name, save_img, read_img
 from cnocr.data_utils.aug import NormalizeAug, RandomPaddingAug, RandomStretchAug
 from cnocr.dataset import OcrDataModule
 from cnocr.trainer import PlTrainer, resave_model
@@ -277,8 +275,9 @@ def evaluate(
         img_fps = [os.path.join(img_folder, fn) for fn, _ in batch]
         reals = [labels for _, labels in batch]
 
+        imgs = [read_img(img) for img in img_fps]
         start_time = time.time()
-        outs = ocr.ocr_for_single_lines(img_fps, batch_size=1)
+        outs = ocr.ocr_for_single_lines(imgs, batch_size=1)
         total_time_cost += time.time() - start_time
 
         preds = [out[0] for out in outs]
