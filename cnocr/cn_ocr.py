@@ -289,13 +289,20 @@ class CnOcr(object):
         img_list = [self._prepare_img(img) for img in img_list]
         img_list = [self._transform_img(img) for img in img_list]
 
+        # 把图片按宽度从小到大排列，提升效率
+        sorted_idx_list = sorted(range(len(img_list)), key=lambda i: img_list[i].shape[2])
+        sorted_img_list = [img_list[i] for i in sorted_idx_list]
+
         idx = 0
-        out = []
-        while idx * batch_size < len(img_list):
-            imgs = img_list[idx * batch_size : (idx + 1) * batch_size]
+        sorted_out = []
+        while idx * batch_size < len(sorted_img_list):
+            imgs = sorted_img_list[idx * batch_size : (idx + 1) * batch_size]
             batch_out = self._predict(imgs)
-            out.extend(batch_out['preds'])
+            sorted_out.extend(batch_out['preds'])
             idx += 1
+        out = [None] * len(sorted_out)
+        for idx, pred in zip(sorted_idx_list, sorted_out):
+            out[idx] = pred
 
         res = []
         for line in out:
