@@ -21,9 +21,14 @@ from __future__ import absolute_import, division, print_function
 import os
 import logging
 import time
-import click
+from collections import Counter
 import json
 import glob
+from operator import itemgetter
+from pathlib import Path
+
+import click
+import Levenshtein
 
 from cnocr.utils import save_img
 from torchvision import transforms as T
@@ -103,7 +108,6 @@ def train(
             # T.RandomApply([T.GaussianBlur(kernel_size=3)], p=0.5),
             NormalizeAug(),
             # RandomPaddingAug(p=0.5, max_pad_len=72),
-
         ]
     )
     val_transform = NormalizeAug()
@@ -163,12 +167,6 @@ def visualize_example(example, fp_prefix):
     help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
 @click.option(
-    "--model_epoch",
-    type=int,
-    default=None,
-    help="model epoch。默认为 `None`，表示使用系统自带的预训练模型",
-)
-@click.option(
     '-p',
     '--pretrained-model-fp',
     type=str,
@@ -176,6 +174,7 @@ def visualize_example(example, fp_prefix):
     help='使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
 )
 @click.option(
+    "-c",
     "--context",
     help="使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为 `cpu`",
     type=str,
@@ -188,15 +187,8 @@ def visualize_example(example, fp_prefix):
     is_flag=True,
     help="是否输入图片只包含单行文字。对包含单行文字的图片，不做按行切分；否则会先对图片按行分割后再进行识别",
 )
-def predict(
-    model_name, model_epoch, pretrained_model_fp, context, img_file_or_dir, single_line
-):
-    ocr = CnOcr(
-        model_name=model_name,
-        model_epoch=model_epoch,
-        model_fp=pretrained_model_fp,
-        context=context,
-    )
+def predict(model_name, pretrained_model_fp, context, img_file_or_dir, single_line):
+    ocr = CnOcr(model_name=model_name, model_fp=pretrained_model_fp, context=context)
     ocr_func = ocr.ocr_for_single_line if single_line else ocr.ocr
     fp_list = []
     if os.path.isfile(img_file_or_dir):
@@ -216,6 +208,144 @@ def predict(
         for line_res in res:
             preds, prob = line_res
             logger.info('\npred: %s, with probability %f' % (''.join(preds), prob))
+
+
+@cli.command('evaluate')
+@click.option(
+    '-m',
+    '--model-name',
+    type=click.Choice(LEGAL_MODEL_NAMES),
+    default=DEFAULT_MODEL_NAME,
+    help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
+)
+@click.option(
+    '-p',
+    '--pretrained-model-fp',
+    type=str,
+    default=None,
+    help='使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
+)
+@click.option(
+    "-c",
+    "--context",
+    help="使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为 `cpu`",
+    type=str,
+    default='cpu',
+)
+@click.option(
+    "-i",
+    "--eval-index-fp",
+    type=str,
+    help='待评估文件所在的索引文件，格式与训练时训练集索引文件相同，每行格式为 `<图片路径>\t<以空格分割的labels>`',
+    default='test.txt',
+)
+@click.option("--img-folder", required=True, help="图片所在文件夹，相对于索引文件中记录的图片位置")
+@click.option("--batch-size", type=int, help="batch size", default=128)
+@click.option(
+    '-o', '--output-dir', type=str, default='eval_results', help='存放评估结果的文件夹',
+)
+def evaluate(
+    model_name,
+    pretrained_model_fp,
+    context,
+    eval_index_fp,
+    img_folder,
+    batch_size,
+    output_dir,
+):
+    ocr = CnOcr(model_name=model_name, model_fp=pretrained_model_fp, context=context)
+
+    fn_labels_list = read_input_file(eval_index_fp)
+    img_fps = [os.path.join(img_folder, fn) for fn, _ in fn_labels_list]
+    reals = [labels for _, labels in fn_labels_list]
+
+    start_time = time.time()
+    outs = ocr.ocr_for_single_lines(img_fps, batch_size)
+    time_cost = time.time() - start_time
+    logger.info(
+        '%d images predicted, total time cost: %f, average time cost: %f'
+        % (len(outs), time_cost, time_cost / len(outs))
+    )
+    preds = [out[0] for out in outs]
+
+    miss_cnt, redundant_cnt = Counter(), Counter()
+    bad_cnt = 0
+    badcases = []
+
+    for bad_info in compare_preds_to_reals(preds, reals, img_fps):
+        logger.info('\t'.join(bad_info))
+        distance = Levenshtein.distance(bad_info[1], bad_info[2])
+        bad_info.insert(0, distance)
+        badcases.append(bad_info)
+        miss_cnt.update(list(bad_info[-2]))
+        redundant_cnt.update(list(bad_info[-1]))
+        bad_cnt += 1
+
+    badcases.sort(key=itemgetter(0), reverse=True)
+
+    output_dir = Path(output_dir)
+    if not output_dir.exists():
+        os.makedirs(output_dir)
+    with open(output_dir / 'badcases.txt', 'w') as f:
+        f.write(
+            '\t'.join(
+                [
+                    'distance',
+                    'image_fp',
+                    'real_words',
+                    'pred_words',
+                    'miss_words',
+                    'redundant_words',
+                ]
+            )
+            + '\n'
+        )
+        for bad_info in badcases:
+            f.write('\t'.join(map(str, bad_info)) + '\n')
+    with open(output_dir / 'miss_words_stat.txt', 'w') as f:
+        for word, num in miss_cnt.most_common():
+            f.write('\t'.join([word, str(num)]) + '\n')
+    with open(output_dir / 'redundant_words_stat.txt', 'w') as f:
+        for word, num in redundant_cnt.most_common():
+            f.write('\t'.join([word, str(num)]) + '\n')
+
+    logger.info(
+        "number of total cases: %d, number of bad cases: %d, acc: %.4f, time cost per image: %f"
+        % (
+            len(fn_labels_list),
+            bad_cnt,
+            1.0 - bad_cnt / len(fn_labels_list),
+            time_cost / len(fn_labels_list),
+        )
+    )
+
+
+def read_input_file(in_fp):
+    fn_labels_list = []
+    with open(in_fp) as f:
+        for line in f:
+            fields = line.strip().split('\t')
+            labels = fields[1].split(' ')
+            labels = [l if l != '<space>' else ' ' for l in labels]
+            fn_labels_list.append((fields[0], labels))
+    return fn_labels_list
+
+
+def compare_preds_to_reals(batch_preds, batch_reals, batch_img_fns):
+    for preds, reals, img_fn in zip(batch_preds, batch_reals, batch_img_fns):
+        if preds == reals:
+            continue
+        preds_set, reals_set = set(preds), set(reals)
+
+        miss_words = reals_set.difference(preds_set)
+        redundant_words = preds_set.difference(reals_set)
+        yield [
+            img_fn,
+            ''.join(reals),
+            ''.join(preds),
+            ''.join(miss_words),
+            ''.join(redundant_words),
+        ]
 
 
 @cli.command('resave')
