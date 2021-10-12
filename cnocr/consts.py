@@ -36,61 +36,70 @@ ENCODER_CONFIGS = {
         'num_init_features': 64,
         'out_length': 512,  # 输出的向量长度为 4*128 = 512
     },
-    'densenet-1112': {  # 长度压缩至 1/8（seq_len == 35）
+    'densenet_1112': {  # 长度压缩至 1/8（seq_len == 35）
         'growth_rate': 32,
         'block_config': [1, 1, 1, 2],
         'num_init_features': 64,
         'out_length': 400,
     },
-    'densenet-1114': {  # 长度压缩至 1/8（seq_len == 35）
+    'densenet_1114': {  # 长度压缩至 1/8（seq_len == 35）
         'growth_rate': 32,
         'block_config': [1, 1, 1, 4],
         'num_init_features': 64,
         'out_length': 656,
     },
-    'densenet-1122': {  # 长度压缩至 1/8（seq_len == 35）
+    'densenet_1122': {  # 长度压缩至 1/8（seq_len == 35）
         'growth_rate': 32,
         'block_config': [1, 1, 2, 2],
         'num_init_features': 64,
         'out_length': 464,
     },
-    'densenet-1124': {  # 长度压缩至 1/8（seq_len == 35）
+    'densenet_1124': {  # 长度压缩至 1/8（seq_len == 35）
         'growth_rate': 32,
         'block_config': [1, 1, 2, 4],
         'num_init_features': 64,
         'out_length': 720,
     },
 
-    'densenet-lite-113': {  # 长度压缩至 1/8（seq_len == 35），输出的向量长度为 2*136 = 272
+    'densenet_lite_113': {  # 长度压缩至 1/8（seq_len == 35），输出的向量长度为 2*136 = 272
         'growth_rate': 32,
         'block_config': [1, 1, 3],
         'num_init_features': 64,
         'out_length': 272,  # 输出的向量长度为 2*80 = 160
     },
-    'densenet-lite-114': {  # 长度压缩至 1/8（seq_len == 35）
+    'densenet_lite_114': {  # 长度压缩至 1/8（seq_len == 35）
         'growth_rate': 32,
         'block_config': [1, 1, 4],
         'num_init_features': 64,
         'out_length': 336,
     },
-    'densenet-lite-124': {  # 长度压缩至 1/8（seq_len == 35）
+    'densenet_lite_124': {  # 长度压缩至 1/8（seq_len == 35）
         'growth_rate': 32,
         'block_config': [1, 2, 4],
         'num_init_features': 64,
         'out_length': 368,
     },
-    'densenet-lite-134': {  # 长度压缩至 1/8（seq_len == 35）
+    'densenet_lite_134': {  # 长度压缩至 1/8（seq_len == 35）
         'growth_rate': 32,
         'block_config': [1, 3, 4],
         'num_init_features': 64,
         'out_length': 400,
     },
-    'densenet-lite-136': {  # 长度压缩至 1/8（seq_len == 35）
+    'densenet_lite_136': {  # 长度压缩至 1/8（seq_len == 35）
         'growth_rate': 32,
         'block_config': [1, 3, 6],
         'num_init_features': 64,
         'out_length': 528,
     },
+
+    'mobilenetv3_tiny': {
+        'arch': 'tiny',
+        'out_length': 384,
+    },
+    'mobilenetv3_small': {
+        'arch': 'small',
+        'out_length': 384,
+    }
 }
 
 DECODER_CONFIGS = {
@@ -102,12 +111,12 @@ DECODER_CONFIGS = {
         # 'input_size': 512,  # 对应 encoder 的输出向量长度
         'rnn_units': 128,
     },
-    'fc': {
+    'fcfull': {
         # 'input_size': 512,  # 对应 encoder 的输出向量长度
         'hidden_size': 256,
         'dropout': 0.3,
     },
-    'fclite': {
+    'fc': {
         # 'input_size': 512,  # 对应 encoder 的输出向量长度
         'hidden_size': 128,
         'dropout': 0.1,
@@ -120,13 +129,14 @@ root_url = (
 )
 # name: (epochs, url)
 AVAILABLE_MODELS = {
-    'densenet-s-fc': (8, root_url + 'densenet-s-fc-v2.0.1.zip'),
-    'densenet-s-gru': (14, root_url + 'densenet-s-gru-v2.0.1.zip'),
+    # 'densenet-s-fc': (8, root_url + 'densenet-s-fc-v2.0.1.zip'),
+    # 'densenet-s-gru': (14, root_url + 'densenet-s-gru-v2.0.1.zip'),
     # 'densenet-lite-113-fclite': (33, root_url + '.zip'),
-    'densenet-lite-114-fclite': (31, root_url + '.zip'),
-    'densenet-lite-124-fclite': (36, root_url + '.zip'),
-    'densenet-lite-134-fclite': (38, root_url + '.zip'),
-    'densenet-lite-136-fclite': (38, root_url + '.zip'),
+    'densenet_lite_114-fc': (31, root_url + '.zip'),
+    'densenet_lite_124-fc': (36, root_url + '.zip'),
+    'densenet_lite_134-fc': (38, root_url + '.zip'),
+    'densenet_lite_136-fc': (17, root_url + '.zip'),
+    'densenet_lite_136-fc-scene': (17, root_url + '.zip'),
 }
 
 # 候选字符集合

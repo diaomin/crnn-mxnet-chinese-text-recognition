@@ -1,7 +1,7 @@
 # 可取值：['densenet-s']
-ENCODER_NAME = densenet-lite-136
+ENCODER_NAME = mobilenetv3_tiny
 # 可取值：['fc', 'gru', 'lstm']
-DECODER_NAME = fclite
+DECODER_NAME = fc
 MODEL_NAME = $(ENCODER_NAME)-$(DECODER_NAME)
 EPOCH = 41
 

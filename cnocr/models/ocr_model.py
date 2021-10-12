@@ -31,6 +31,7 @@ from .ctc import CTCPostProcessor
 from ..consts import ENCODER_CONFIGS, DECODER_CONFIGS
 from ..data_utils.utils import encode_sequences
 from .densenet import DenseNet, DenseNetLite
+from .mobilenet import gen_mobilenet_v3
 
 
 class EncoderManager(object):
@@ -45,12 +46,16 @@ class EncoderManager(object):
             assert config is not None and 'name' in config
             name = config.pop('name')
 
-        if name.lower().startswith('densenet-lite'):
+        if name.lower().startswith('densenet_lite'):
             out_length = config.pop('out_length')
             encoder = DenseNetLite(**config)
         elif name.lower().startswith('densenet'):
             out_length = config.pop('out_length')
             encoder = DenseNet(**config)
+        elif name.lower().startswith('mobilenet'):
+            arch = config['arch']
+            out_length = config.pop('out_length')
+            encoder = gen_mobilenet_v3(arch)
         else:
             raise ValueError('not supported encoder name: %s' % name)
         return encoder, out_length
@@ -89,7 +94,7 @@ class DecoderManager(object):
                 bidirectional=True,
             )
             out_length = config['rnn_units'] * 2
-        elif name.lower() in ('fc', 'fclite'):
+        elif name.lower() in ('fc', 'fcfull'):
             decoder = nn.Sequential(
                 nn.Dropout(p=config['dropout']),
                 # nn.Tanh(),

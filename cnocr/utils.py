@@ -102,7 +102,7 @@ def data_dir():
 
 
 def check_model_name(model_name):
-    encoder_type, decoder_type = model_name.rsplit('-', maxsplit=1)
+    encoder_type, decoder_type = model_name.split('-')[:2]
     assert encoder_type in ENCODER_CONFIGS
     assert decoder_type in DECODER_CONFIGS
 
