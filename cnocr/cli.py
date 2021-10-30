@@ -33,7 +33,7 @@ from torchvision import transforms as T
 
 from cnocr.consts import MODEL_VERSION, ENCODER_CONFIGS, DECODER_CONFIGS
 from cnocr.utils import set_logger, load_model_params, check_model_name, save_img, read_img
-from cnocr.data_utils.aug import NormalizeAug, RandomPaddingAug, RandomStretchAug
+from cnocr.data_utils.aug import NormalizeAug, RandomPaddingAug, RandomStretchAug, RandomCrop
 from cnocr.dataset import OcrDataModule
 from cnocr.trainer import PlTrainer, resave_model
 from cnocr import CnOcr, gen_model
@@ -97,6 +97,7 @@ def train(
     train_transform = T.Compose(
         [
             RandomStretchAug(min_ratio=0.5, max_ratio=1.5),
+            RandomCrop((8, 10)),
             T.RandomInvert(p=0.2),
             T.RandomApply([T.RandomRotation(degrees=1)], p=0.4),
             # T.RandomAutocontrast(p=0.05),
