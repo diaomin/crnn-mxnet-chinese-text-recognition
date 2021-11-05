@@ -30,38 +30,89 @@ IMG_STANDARD_HEIGHT = 32
 VOCAB_FP = Path(__file__).parent / 'label_cn.txt'
 
 ENCODER_CONFIGS = {
-    'densenet-s': {  # 长度压缩至 1/8（seq_len == 35），输出的向量长度为 4*128 = 512
+    'densenet': {  # 长度压缩至 1/8（seq_len == 35），输出的向量长度为 4*128 = 512
         'growth_rate': 32,
         'block_config': [2, 2, 2, 2],
         'num_init_features': 64,
         'out_length': 512,  # 输出的向量长度为 4*128 = 512
     },
+    'densenet_1112': {  # 长度压缩至 1/8（seq_len == 35）
+        'growth_rate': 32,
+        'block_config': [1, 1, 1, 2],
+        'num_init_features': 64,
+        'out_length': 400,
+    },
+    'densenet_1114': {  # 长度压缩至 1/8（seq_len == 35）
+        'growth_rate': 32,
+        'block_config': [1, 1, 1, 4],
+        'num_init_features': 64,
+        'out_length': 656,
+    },
+    'densenet_1122': {  # 长度压缩至 1/8（seq_len == 35）
+        'growth_rate': 32,
+        'block_config': [1, 1, 2, 2],
+        'num_init_features': 64,
+        'out_length': 464,
+    },
+    'densenet_1124': {  # 长度压缩至 1/8（seq_len == 35）
+        'growth_rate': 32,
+        'block_config': [1, 1, 2, 4],
+        'num_init_features': 64,
+        'out_length': 720,
+    },
+    'densenet_lite_113': {  # 长度压缩至 1/8（seq_len == 35），输出的向量长度为 2*136 = 272
+        'growth_rate': 32,
+        'block_config': [1, 1, 3],
+        'num_init_features': 64,
+        'out_length': 272,  # 输出的向量长度为 2*80 = 160
+    },
+    'densenet_lite_114': {  # 长度压缩至 1/8（seq_len == 35）
+        'growth_rate': 32,
+        'block_config': [1, 1, 4],
+        'num_init_features': 64,
+        'out_length': 336,
+    },
+    'densenet_lite_124': {  # 长度压缩至 1/8（seq_len == 35）
+        'growth_rate': 32,
+        'block_config': [1, 2, 4],
+        'num_init_features': 64,
+        'out_length': 368,
+    },
+    'densenet_lite_134': {  # 长度压缩至 1/8（seq_len == 35）
+        'growth_rate': 32,
+        'block_config': [1, 3, 4],
+        'num_init_features': 64,
+        'out_length': 400,
+    },
+    'densenet_lite_136': {  # 长度压缩至 1/8（seq_len == 35）
+        'growth_rate': 32,
+        'block_config': [1, 3, 6],
+        'num_init_features': 64,
+        'out_length': 528,
+    },
+    'mobilenetv3_tiny': {'arch': 'tiny', 'out_length': 384,},
+    'mobilenetv3_small': {'arch': 'small', 'out_length': 384,},
 }
 
 DECODER_CONFIGS = {
-    'lstm': {
-        'input_size': 512,  # 对应 encoder 的输出向量长度
-        'rnn_units': 128,
-    },
-    'gru': {
-        'input_size': 512,  # 对应 encoder 的输出向量长度
-        'rnn_units': 128,
-    },
-    'fc': {
-        'input_size': 512,  # 对应 encoder 的输出向量长度
-        'hidden_size': 256,
-        'dropout': 0.3,
-    }
+    'lstm': {'rnn_units': 128,},
+    'gru': {'rnn_units': 128,},
+    'fc': {'hidden_size': 128, 'dropout': 0.1,},
+    'fcfull': {'hidden_size': 256, 'dropout': 0.3,},
 }
 
 root_url = (
-    'https://beiye-model.oss-cn-beijing.aliyuncs.com/models/cnocr/%s/'
+    'https://huggingface.co/breezedeus/cnstd-cnocr-models/resolve/main/models/cnocr/%s/'
     % MODEL_VERSION
 )
-# name: (epochs, url)
+# name: (epoch, url)
 AVAILABLE_MODELS = {
-    'densenet-s-fc': (8, root_url + 'densenet-s-fc-v2.0.1.zip'),
-    'densenet-s-gru': (14, root_url + 'densenet-s-gru-v2.0.1.zip'),
+    'densenet_lite_114-fc': (37, root_url + 'densenet_lite_114-fc.zip'),
+    'densenet_lite_124-fc': (39, root_url + 'densenet_lite_124-fc.zip'),
+    'densenet_lite_134-fc': (34, root_url + 'densenet_lite_134-fc.zip'),
+    'densenet_lite_136-fc': (39, root_url + 'densenet_lite_136-fc.zip'),
+    'densenet_lite_134-gru': (2, root_url + 'densenet_lite_134-gru.zip'),
+    'densenet_lite_136-gru': (2, root_url + 'densenet_lite_136-gru.zip'),
 }
 
 # 候选字符集合

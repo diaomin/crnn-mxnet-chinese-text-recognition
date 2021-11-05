@@ -39,11 +39,12 @@ exec(
 required = [
     "click",
     "tqdm",
-    "torch>=1.7.0",
-    "torchvision",
+    "torch>=1.8.0",
+    "torchvision>=0.9.0",
     'numpy',
     "pytorch-lightning",
     "pillow>=5.3.0",
+    "python-Levenshtein",
 ]
 extras_require = {
     "dev": ["pip-tools", "pytest", "python-Levenshtein"],

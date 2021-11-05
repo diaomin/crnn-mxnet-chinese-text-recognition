@@ -1,12 +1,12 @@
-# 可取值：['densenet-s']
-ENCODER_NAME = densenet-s
+# 可取值：['densenet_lite_136']
+ENCODER_NAME = densenet_lite_136
 # 可取值：['fc', 'gru', 'lstm']
-DECODER_NAME = gru
+DECODER_NAME = fc
 MODEL_NAME = $(ENCODER_NAME)-$(DECODER_NAME)
 EPOCH = 41
 
 INDEX_DIR = data/test
-TRAIN_CONFIG_FP = examples/train_config.json
+TRAIN_CONFIG_FP = docs/examples/train_config.json
 
 # 训练模型
 train:
@@ -14,19 +14,28 @@ train:
 
 # 在测试集上评估模型，所有badcases的具体信息会存放到文件夹 `evaluate/$(MODEL_NAME)` 中
 evaluate:
-	python scripts/cnocr_evaluate.py --model-name $(MODEL_NAME) --model-epoch 1 -v -i $(DATA_ROOT_DIR)/test.txt \
-		--image-prefix-dir examples --batch-size 128 -o evaluate/$(MODEL_NAME)
+	cnocr evaluate --model-name $(MODEL_NAME) -i data/test/dev.tsv \
+		--image-folder data/images --batch-size 128 -o eval_results/$(MODEL_NAME)
 
 predict:
-	cnocr predict -m $(MODEL_NAME) -i examples/rand_cn1.png
+	cnocr predict -m $(MODEL_NAME) -i docs/examples/rand_cn1.png
+
+
+doc:
+#	pip install mkdocs
+#	pip install mkdocs-macros-plugin
+#	pip install mkdocs-material
+#	pip install mkdocstrings
+	python -m mkdocs serve
+#	python -m mkdocs build
 
 
 package:
 	python setup.py sdist bdist_wheel
 
-VERSION = 2.0.1
+VERSION = 2.1.0
 upload:
 	python -m twine upload  dist/cnocr-$(VERSION)* --verbose
 
 
-.PHONY: train evaluate predict package upload
+.PHONY: train evaluate predict doc package upload

@@ -1,17 +1,19 @@
 {
-    "vocab_fp": "label_cn.txt",
-    "img_folder": "data/images",
+    "vocab_fp": "cnocr/label_cn.txt",
+    "img_folder": "data/output_normal",
 
     "gpus": [0],
     "epochs": 40,
-    "batch_size": 200,
+    "batch_size": 100,
     "num_workers": 12,
     "pin_memory": true,
     "optimizer": "adam",
     "learning_rate": 3e-3,
     "weight_decay": 0,
     "lr_scheduler": {
-        "name": "multi_step",
+        "name": "cos_warmup",
+        "min_lr_mult_factor": 0.01,
+        "warmup_epochs": 0.2,
         "milestones": [5, 10, 16, 22, 30],
         "gamma": 0.5
     },

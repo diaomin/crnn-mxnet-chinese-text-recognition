@@ -21,15 +21,19 @@ from __future__ import absolute_import, division, print_function
 import os
 import logging
 import time
-import click
+from collections import Counter
 import json
 import glob
+from operator import itemgetter
+from pathlib import Path
 
+import click
+import Levenshtein
 from torchvision import transforms as T
 
 from cnocr.consts import MODEL_VERSION, ENCODER_CONFIGS, DECODER_CONFIGS
-from cnocr.utils import set_logger, load_model_params, check_model_name
-from cnocr.data_utils.aug import NormalizeAug, RandomPaddingAug
+from cnocr.utils import set_logger, load_model_params, check_model_name, save_img, read_img
+from cnocr.data_utils.aug import NormalizeAug, RandomPaddingAug, RandomStretchAug, RandomCrop
 from cnocr.dataset import OcrDataModule
 from cnocr.trainer import PlTrainer, resave_model
 from cnocr import CnOcr, gen_model
@@ -37,7 +41,7 @@ from cnocr import CnOcr, gen_model
 _CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help']}
 logger = set_logger(log_level=logging.INFO)
 
-DEFAULT_MODEL_NAME = 'densenet-s-fc'
+DEFAULT_MODEL_NAME = 'densenet_lite_136-fc'
 LEGAL_MODEL_NAMES = {
     enc_name + '-' + dec_name
     for enc_name in ENCODER_CONFIGS.keys()
@@ -54,7 +58,7 @@ def cli():
 @click.option(
     '-m',
     '--model-name',
-    type=click.Choice(LEGAL_MODEL_NAMES),
+    type=str,
     default=DEFAULT_MODEL_NAME,
     help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
@@ -69,7 +73,7 @@ def cli():
     '--train-config-fp',
     type=str,
     required=True,
-    help='训练使用的json配置文件，参考 `example/train_config.json`',
+    help='训练使用的json配置文件，参考 `docs/examples/train_config.json`',
 )
 @click.option(
     '-r',
@@ -92,8 +96,10 @@ def train(
     check_model_name(model_name)
     train_transform = T.Compose(
         [
-            T.RandomInvert(p=0.5),
-            T.RandomRotation(degrees=2),
+            RandomStretchAug(min_ratio=0.5, max_ratio=1.5),
+            # RandomCrop((8, 10)),
+            T.RandomInvert(p=0.2),
+            T.RandomApply([T.RandomRotation(degrees=1)], p=0.4),
             # T.RandomAutocontrast(p=0.05),
             # T.RandomPosterize(bits=4, p=0.3),
             # T.RandomAdjustSharpness(sharpness_factor=0.5, p=0.3),
@@ -101,7 +107,6 @@ def train(
             # T.RandomApply([T.GaussianBlur(kernel_size=3)], p=0.5),
             NormalizeAug(),
             # RandomPaddingAug(p=0.5, max_pad_len=72),
-
         ]
     )
     val_transform = NormalizeAug()
@@ -119,6 +124,18 @@ def train(
         pin_memory=train_config['pin_memory'],
     )
 
+    # train_ds = data_mod.train
+    # for i in range(min(100, len(train_ds))):
+    #     visualize_example(train_transform(train_ds[i][0]), 'debugs/train-1-%d' % i)
+    #     visualize_example(train_transform(train_ds[i][0]), 'debugs/train-2-%d' % i)
+    #     visualize_example(train_transform(train_ds[i][0]), 'debugs/train-3-%d' % i)
+    # val_ds = data_mod.val
+    # for i in range(min(10, len(val_ds))):
+    #     visualize_example(val_transform(val_ds[i][0]), 'debugs/val-1-%d' % i)
+    #     visualize_example(val_transform(val_ds[i][0]), 'debugs/val-2-%d' % i)
+    #     visualize_example(val_transform(val_ds[i][0]), 'debugs/val-2-%d' % i)
+    # return
+
     trainer = PlTrainer(
         train_config, ckpt_fn=['cnocr', 'v%s' % MODEL_VERSION, model_name]
     )
@@ -133,19 +150,20 @@ def train(
     )
 
 
+def visualize_example(example, fp_prefix):
+    if not os.path.exists(os.path.dirname(fp_prefix)):
+        os.makedirs(os.path.dirname(fp_prefix))
+    image = example
+    save_img(image, '%s-image.jpg' % fp_prefix)
+
+
 @cli.command('predict')
 @click.option(
     '-m',
     '--model-name',
-    type=click.Choice(LEGAL_MODEL_NAMES),
+    type=str,
     default=DEFAULT_MODEL_NAME,
     help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
-)
-@click.option(
-    "--model_epoch",
-    type=int,
-    default=None,
-    help="model epoch。默认为 `None`，表示使用系统自带的预训练模型",
 )
 @click.option(
     '-p',
@@ -155,6 +173,7 @@ def train(
     help='使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
 )
 @click.option(
+    "-c",
     "--context",
     help="使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为 `cpu`",
     type=str,
@@ -167,15 +186,8 @@ def train(
     is_flag=True,
     help="是否输入图片只包含单行文字。对包含单行文字的图片，不做按行切分；否则会先对图片按行分割后再进行识别",
 )
-def predict(
-    model_name, model_epoch, pretrained_model_fp, context, img_file_or_dir, single_line
-):
-    ocr = CnOcr(
-        model_name=model_name,
-        model_epoch=model_epoch,
-        model_fp=pretrained_model_fp,
-        context=context,
-    )
+def predict(model_name, pretrained_model_fp, context, img_file_or_dir, single_line):
+    ocr = CnOcr(model_name=model_name, model_fp=pretrained_model_fp, context=context)
     ocr_func = ocr.ocr_for_single_line if single_line else ocr.ocr
     fp_list = []
     if os.path.isfile(img_file_or_dir):
@@ -195,6 +207,158 @@ def predict(
         for line_res in res:
             preds, prob = line_res
             logger.info('\npred: %s, with probability %f' % (''.join(preds), prob))
+
+
+@cli.command('evaluate')
+@click.option(
+    '-m',
+    '--model-name',
+    type=str,
+    default=DEFAULT_MODEL_NAME,
+    help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
+)
+@click.option(
+    '-p',
+    '--pretrained-model-fp',
+    type=str,
+    default=None,
+    help='使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
+)
+@click.option(
+    "-c",
+    "--context",
+    help="使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为 `cpu`",
+    type=str,
+    default='cpu',
+)
+@click.option(
+    "-i",
+    "--eval-index-fp",
+    type=str,
+    help='待评估文件所在的索引文件，格式与训练时训练集索引文件相同，每行格式为 `<图片路径>\t<以空格分割的labels>`',
+    default='test.txt',
+)
+@click.option("--img-folder", required=True, help="图片所在文件夹，相对于索引文件中记录的图片位置")
+@click.option("--batch-size", type=int, help="batch size. 默认值：128", default=128)
+@click.option(
+    '-o',
+    '--output-dir',
+    type=str,
+    default='eval_results',
+    help='存放评估结果的文件夹。默认值：`eval_results`',
+)
+@click.option(
+    "-v", "--verbose", is_flag=True, help="whether to print details to screen",
+)
+def evaluate(
+    model_name,
+    pretrained_model_fp,
+    context,
+    eval_index_fp,
+    img_folder,
+    batch_size,
+    output_dir,
+    verbose,
+):
+    ocr = CnOcr(model_name=model_name, model_fp=pretrained_model_fp, context=context)
+
+    fn_labels_list = read_input_file(eval_index_fp)
+
+    miss_cnt, redundant_cnt = Counter(), Counter()
+    total_time_cost = 0.0
+    bad_cnt = 0
+    badcases = []
+
+    start_idx = 0
+    while start_idx < len(fn_labels_list):
+        logger.info('start_idx: %d', start_idx)
+        batch = fn_labels_list[start_idx : start_idx + batch_size]
+        img_fps = [os.path.join(img_folder, fn) for fn, _ in batch]
+        reals = [labels for _, labels in batch]
+
+        imgs = [read_img(img) for img in img_fps]
+        start_time = time.time()
+        outs = ocr.ocr_for_single_lines(imgs, batch_size=1)
+        total_time_cost += time.time() - start_time
+
+        preds = [out[0] for out in outs]
+        for bad_info in compare_preds_to_reals(preds, reals, img_fps):
+            if verbose:
+                logger.info('\t'.join(bad_info))
+            distance = Levenshtein.distance(bad_info[1], bad_info[2])
+            bad_info.insert(0, distance)
+            badcases.append(bad_info)
+            miss_cnt.update(list(bad_info[-2]))
+            redundant_cnt.update(list(bad_info[-1]))
+            bad_cnt += 1
+
+        start_idx += batch_size
+
+    badcases.sort(key=itemgetter(0), reverse=True)
+
+    output_dir = Path(output_dir)
+    if not output_dir.exists():
+        os.makedirs(output_dir)
+    with open(output_dir / 'badcases.txt', 'w') as f:
+        f.write(
+            '\t'.join(
+                [
+                    'distance',
+                    'image_fp',
+                    'real_words',
+                    'pred_words',
+                    'miss_words',
+                    'redundant_words',
+                ]
+            )
+            + '\n'
+        )
+        for bad_info in badcases:
+            f.write('\t'.join(map(str, bad_info)) + '\n')
+    with open(output_dir / 'miss_words_stat.txt', 'w') as f:
+        for word, num in miss_cnt.most_common():
+            f.write('\t'.join([word, str(num)]) + '\n')
+    with open(output_dir / 'redundant_words_stat.txt', 'w') as f:
+        for word, num in redundant_cnt.most_common():
+            f.write('\t'.join([word, str(num)]) + '\n')
+
+    logger.info(
+        "number of total cases: %d, number of bad cases: %d, acc: %.4f, time cost per image: %f"
+        % (
+            len(fn_labels_list),
+            bad_cnt,
+            1.0 - bad_cnt / len(fn_labels_list),
+            total_time_cost / len(fn_labels_list),
+        )
+    )
+
+
+def read_input_file(in_fp):
+    fn_labels_list = []
+    with open(in_fp) as f:
+        for line in f:
+            fields = line.strip().split('\t')
+            labels = fields[1].split(' ')
+            labels = [l if l != '<space>' else ' ' for l in labels]
+            fn_labels_list.append((fields[0], labels))
+    return fn_labels_list
+
+
+def compare_preds_to_reals(batch_preds, batch_reals, batch_img_fns):
+    for preds, reals, img_fn in zip(batch_preds, batch_reals, batch_img_fns):
+        if preds == reals:
+            continue
+        preds_set, reals_set = set(preds), set(reals)
+
+        miss_words = reals_set.difference(preds_set)
+        redundant_words = preds_set.difference(reals_set)
+        yield [
+            img_fn,
+            ''.join(reals),
+            ''.join(preds),
+            ''.join(miss_words),
+            ''.join(redundant_words),
+        ]
 
 
 @cli.command('resave')

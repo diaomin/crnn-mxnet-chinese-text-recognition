@@ -102,7 +102,7 @@ def data_dir():
 
 
 def check_model_name(model_name):
-    encoder_type, decoder_type = model_name.rsplit('-', maxsplit=1)
+    encoder_type, decoder_type = model_name.split('-')[:2]
     assert encoder_type in ENCODER_CONFIGS
     assert decoder_type in DECODER_CONFIGS
 
@@ -362,3 +362,9 @@ def load_model_params(model, param_fp, device='cpu'):
             state_dict[k.split('.', maxsplit=1)[1]] = v
     model.load_state_dict(state_dict)
     return model
+
+
+def get_model_size(model, only_trainable=False):
+    if only_trainable:
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    return sum(p.numel() for p in model.parameters())
