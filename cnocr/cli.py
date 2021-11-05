@@ -73,7 +73,7 @@ def cli():
     '--train-config-fp',
     type=str,
     required=True,
-    help='训练使用的json配置文件，参考 `example/train_config.json`',
+    help='训练使用的json配置文件，参考 `docs/examples/train_config.json`',
 )
 @click.option(
     '-r',
@@ -239,7 +239,7 @@ def predict(model_name, pretrained_model_fp, context, img_file_or_dir, single_li
     default='test.txt',
 )
 @click.option("--img-folder", required=True, help="图片所在文件夹，相对于索引文件中记录的图片位置")
-@click.option("--batch-size", type=int, help="batch size", default=128)
+@click.option("--batch-size", type=int, help="batch size. 默认值：128", default=128)
 @click.option(
     '-o',
     '--output-dir',

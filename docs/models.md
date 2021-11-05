@@ -14,11 +14,6 @@ cnocr的ocr模型可以分为两阶段：第一阶段是获得ocr图片的局部
 
 cnocr **V2.1** 目前包含以下可直接使用的模型，训练好的模型都放在 **[cnstd-cnocr-models](https://github.com/breezedeus/cnstd-cnocr-models)** 项目中，可免费下载使用：
 
-| 模型名称 | 局部编码模型 | 序列编码模型 | 模型大小 | 迭代次数 | 测试集准确率  |
-| :------- | ------------ | ------------ | -------- | ------ | -------- |
-| densenet-s-gru | densenet-s | gru | 11 M | 11 | 95.5% |
-| densenet-s-fc | densenet-s | fc | 8.7 M | 39 | 91.9% |
-
 | Name | 参数规模 | 模型文件大小 | 准确度 | 平均推断耗时（毫秒/图） |
 | --- | --- | --- | --- | --- |
 | densenet\_lite\_114-fc | 1.3 M | 4.9 M | 0.9274 | 9.229 |

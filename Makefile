@@ -15,7 +15,7 @@ train:
 # 在测试集上评估模型，所有badcases的具体信息会存放到文件夹 `evaluate/$(MODEL_NAME)` 中
 evaluate:
 	cnocr evaluate --model-name $(MODEL_NAME) -i data/test/dev.tsv \
-		--image-folder examples --batch-size 128 -o eval_results/$(MODEL_NAME)
+		--image-folder data/images --batch-size 128 -o eval_results/$(MODEL_NAME)
 
 predict:
 	cnocr predict -m $(MODEL_NAME) -i docs/examples/rand_cn1.png

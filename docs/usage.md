@@ -2,9 +2,9 @@
 
 ## 模型文件自动下载
 首次使用cnocr时，系统会**自动下载** zip格式的模型压缩文件，并存于 `~/.cnocr`目录（Windows下默认路径为 `C:\Users\<username>\AppData\Roaming\cnocr`）。
-下载后的zip文件代码会自动对其解压，然后把解压后的模型相关目录放于`~/.cnocr/2.0`目录中。
+下载后的zip文件代码会自动对其解压，然后把解压后的模型相关目录放于`~/.cnocr/2.1`目录中。
 
-如果系统无法自动成功下载zip文件，则需要手动从 **[cnstd-cnocr-models](https://github.com/breezedeus/cnstd-cnocr-models)** 下载此zip文件并把它放于 `~/.cnocr/2.0`目录。如果Github下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1c68zjHfTVeqiSMXBEPYMrg) 下载， 提取码为 ` 9768`。
+如果系统无法自动成功下载zip文件，则需要手动从 **[cnstd-cnocr-models](https://huggingface.co/breezedeus/cnstd-cnocr-models/tree/main)** 下载此zip文件并把它放于 `~/.cnocr/2.1`目录。如果下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1N6HoYearUzU0U8NTL3K35A) 下载， 提取码为 ` gcig`。
 
 放置好zip文件后，后面的事代码就会自动执行了。
 
@@ -22,7 +22,7 @@
 from cnocr import CnOcr
 
 ocr = CnOcr()
-res = ocr.ocr('examples/multi-line_cn1.png')
+res = ocr.ocr('docs/examples/multi-line_cn1.png')
 print("Predicted Chars:", res)
 ```
 
@@ -32,7 +32,7 @@ from cnocr.utils import read_img
 from cnocr import CnOcr
 
 ocr = CnOcr()
-img_fp = 'examples/multi-line_cn1.png'
+img_fp = 'docs/examples/multi-line_cn1.png'
 img = read_img(img_fp)
 res = ocr.ocr(img)
 print("Predicted Chars:", res)
@@ -50,7 +50,7 @@ print("Predicted Chars:", res)
 from cnocr import CnOcr
 
 ocr = CnOcr()
-res = ocr.ocr_for_single_line('examples/helloworld.jpg')
+res = ocr.ocr_for_single_line('docs/examples/helloworld.jpg')
 print("Predicted Chars:", res)
 ```
 
@@ -61,7 +61,7 @@ from cnocr.utils import read_img
 from cnocr import CnOcr
 
 ocr = CnOcr()
-img_fp = 'examples/helloworld.jpg'
+img_fp = 'docs/examples/helloworld.jpg'
 img = read_img(img_fp)
 res = ocr.ocr_for_single_line(img)
 print("Predicted Chars:", res)
@@ -97,7 +97,7 @@ print("Predicted Chars:", res)
 class CnOcr(object):
     def __init__(
         self,
-        model_name: str = 'densenet-s-fc'
+        model_name: str = 'densenet_lite_136-fc'
         *,
         cand_alphabet: Optional[Union[Collection, str]] = None,
         context: str = 'cpu',  # ['cpu', 'gpu', 'cuda']
@@ -109,7 +109,7 @@ class CnOcr(object):
 
 其中的几个参数含义如下：
 
-* `model_name`: 模型名称，即上面表格第一列中的值。默认为 `densenet-s-fc`。
+* `model_name`: 模型名称，即上面表格第一列中的值。默认为 `densenet_lite_136-fc`。
 
 * `cand_alphabet`: 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围。取值可以是字符串，如 `"0123456789"`，或者字符列表，如 `["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]`。
   
@@ -121,7 +121,7 @@ class CnOcr(object):
 
 * `root`:  模型文件所在的根目录。
 
-   * Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.0/densenet-s-fc`。
+   * Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.1/densenet_lite_136-fc`。
    * Windows下默认值为 `C:\Users\<username>\AppData\Roaming\cnocr`。
 
    
@@ -175,7 +175,7 @@ print("Predicted Chars:", res)
 
 
 
-上面使用的图片文件 [examples/multi-line_cn1.png](./examples/multi-line_cn1.png)内容如下：
+上面使用的图片文件 [docs/examples/multi-line_cn1.png](./examples/multi-line_cn1.png)内容如下：
 
 ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png)
 
@@ -231,7 +231,7 @@ print("Predicted Chars:", res)
 ```
 
 
-对图片文件 [examples/rand_cn1.png](./examples/rand_cn1.png)：
+对图片文件 [docs/examples/rand_cn1.png](./examples/rand_cn1.png)：
 
 ![examples/rand_cn1.png](./examples/rand_cn1.png)
 
@@ -277,5 +277,4 @@ print("Predicted Chars:", res)
 
 
 更详细的使用方法，可参考 [tests/test_cnocr.py](https://github.com/breezedeus/cnocr/blob/master/tests/test_cnocr.py) 中提供的测试用例。
-
 

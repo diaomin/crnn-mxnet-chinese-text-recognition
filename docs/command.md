@@ -11,15 +11,13 @@
 
 
 ```bash
-(venv) ➜  cnocr git:(pytorch) ✗ cnocr predict -h
+(venv) ➜  cnocr git:(dev) ✗ cnocr predict -h
 Usage: cnocr predict [OPTIONS]
 
 Options:
-  -m, --model-name [densenet-s-lstm|densenet-s-gru|densenet-s-fc]
-                                  模型名称。默认值为 densenet-s-fc
-  --model_epoch INTEGER           model epoch。默认为 `None`，表示使用系统自带的预训练模型
+  -m, --model-name TEXT           模型名称。默认值为 densenet_lite_136-fc
   -p, --pretrained-model-fp TEXT  使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型
-  --context TEXT                  使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为
+  -c, --context TEXT              使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为
                                   `cpu`
 
   -i, --img-file-or-dir TEXT      输入图片的文件路径或者指定的文件夹  [required]
@@ -43,21 +41,62 @@ cnstd predict -i docs/examples/rand_cn1.png -s
 
 
 
+
+## 模型评估
+
+使用命令 **`cnocr evaluate`** 在指定的数据集上评估模型效果，以下是使用说明：
+
+
+
+```bash
+(venv) ➜  cnocr git:(dev) ✗ cnocr evaluate -h
+Usage: cnocr evaluate [OPTIONS]
+
+Options:
+  -m, --model-name TEXT           模型名称。默认值为 densenet_lite_136-fc
+  -p, --pretrained-model-fp TEXT  使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型
+  -c, --context TEXT              使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为
+                                  `cpu`
+
+  -i, --eval-index-fp TEXT        待评估文件所在的索引文件，格式与训练时训练集索引文件相同，每行格式为 `<图片路径>
+                                  <以空格分割的labels>`
+
+  --img-folder TEXT               图片所在文件夹，相对于索引文件中记录的图片位置  [required]
+  --batch-size INTEGER            batch size. 默认值：`128`
+  -o, --output-dir TEXT           存放评估结果的文件夹。默认值：`eval_results`
+  -v, --verbose                   whether to print details to screen
+  -h, --help                      Show this message and exit.
+```
+
+
+
+例如可以使用以下命令评估 `data/test/dev.tsv` 中指定的所有样本：
+
+```bash
+cnocr evaluate -i data/test/dev.tsv --image-folder data/images 
+```
+
+
+
+具体使用也可参考文件 [Makefile](https://github.com/breezedeus/cnocr/blob/master/Makefile) 。
+
+
+
 ## 模型训练
 
 使用命令 **`cnocr train`**  训练文本检测模型，以下是使用说明：
 
 ```bash
-(venv) ➜  cnocr git:(pytorch) ✗ cnocr train -h
+(venv) ➜  cnocr git:(dev) ✗ cnocr train -h
 Usage: cnocr train [OPTIONS]
 
 Options:
-  -m, --model-name [densenet-s-fc|densenet-s-lstm|densenet-s-gru]
-                                  模型名称。默认值为 densenet-s-fc
+  -m, --model-name TEXT           模型名称。默认值为 densenet_lite_136-fc
   -i, --index-dir TEXT            索引文件所在的文件夹，会读取文件夹中的 train.tsv 和 dev.tsv 文件
                                   [required]
 
-  --train-config-fp TEXT          训练使用的json配置文件，参考 `example/train_config.json`
+  --train-config-fp TEXT          训练使用的json配置文件，参考
+                                  `docs/examples/train_config.json`
                                   [required]
 
   -r, --resume-from-checkpoint TEXT
@@ -74,14 +113,12 @@ Options:
 例如可以使用以下命令进行训练：
 
 ```bash
-cnocr train -m densenet-s-fc --index-dir data/test --train-config-fp docs/examples/train_config.json
+cnocr train -m densenet_lite_136-fc --index-dir data/test --train-config-fp docs/examples/train_config.json
 ```
 
 
 
-训练数据的格式见文件夹 [data/test](https://github.com/breezedeus/cnocr/blob/master/data/test) 中的 
-[train.tsv](https://github.com/breezedeus/cnocr/blob/master/data/test/train.tsv) 
-和 [dev.tsv](https://github.com/breezedeus/cnocr/blob/master/data/test/dev.tsv) 文件。
+训练数据的格式见文件夹 [data/test](https://github.com/breezedeus/cnocr/blob/master/data/test) 中的 [train.tsv](https://github.com/breezedeus/cnocr/blob/master/data/test/train.tsv) 和 [dev.tsv](https://github.com/breezedeus/cnocr/blob/master/data/test/dev.tsv) 文件。
 
 
 

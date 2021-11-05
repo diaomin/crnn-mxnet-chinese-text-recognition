@@ -13,9 +13,7 @@
     "lr_scheduler": {
         "name": "cos_warmup",
         "min_lr_mult_factor": 0.01,
-        "warmup_epochs": 0,
-        "milestones": [5, 10, 16, 22, 30],
-        "gamma": 0.5
+        "warmup_epochs": 0.2
     },
     "precision": 32,
     "limit_train_batches": 1.0,
