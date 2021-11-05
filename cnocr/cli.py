@@ -41,7 +41,7 @@ from cnocr import CnOcr, gen_model
 _CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help']}
 logger = set_logger(log_level=logging.INFO)
 
-DEFAULT_MODEL_NAME = 'densenet-s-fc'
+DEFAULT_MODEL_NAME = 'densenet_lite_136-fc'
 LEGAL_MODEL_NAMES = {
     enc_name + '-' + dec_name
     for enc_name in ENCODER_CONFIGS.keys()
@@ -58,7 +58,7 @@ def cli():
 @click.option(
     '-m',
     '--model-name',
-    type=click.Choice(LEGAL_MODEL_NAMES),
+    type=str,
     default=DEFAULT_MODEL_NAME,
     help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
@@ -97,7 +97,7 @@ def train(
     train_transform = T.Compose(
         [
             RandomStretchAug(min_ratio=0.5, max_ratio=1.5),
-            RandomCrop((8, 10)),
+            # RandomCrop((8, 10)),
             T.RandomInvert(p=0.2),
             T.RandomApply([T.RandomRotation(degrees=1)], p=0.4),
             # T.RandomAutocontrast(p=0.05),
@@ -161,7 +161,7 @@ def visualize_example(example, fp_prefix):
 @click.option(
     '-m',
     '--model-name',
-    type=click.Choice(LEGAL_MODEL_NAMES),
+    type=str,
     default=DEFAULT_MODEL_NAME,
     help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
@@ -213,7 +213,7 @@ def predict(model_name, pretrained_model_fp, context, img_file_or_dir, single_li
 @click.option(
     '-m',
     '--model-name',
-    type=click.Choice(LEGAL_MODEL_NAMES),
+    type=str,
     default=DEFAULT_MODEL_NAME,
     help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )

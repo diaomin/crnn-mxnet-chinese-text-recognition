@@ -1,5 +1,5 @@
-# 可取值：['densenet-s']
-ENCODER_NAME = mobilenetv3_tiny
+# 可取值：['densenet_lite_136']
+ENCODER_NAME = densenet_lite_136
 # 可取值：['fc', 'gru', 'lstm']
 DECODER_NAME = fc
 MODEL_NAME = $(ENCODER_NAME)-$(DECODER_NAME)

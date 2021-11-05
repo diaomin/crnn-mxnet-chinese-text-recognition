@@ -57,7 +57,7 @@ class CnOcr(object):
 
     def __init__(
         self,
-        model_name: str = 'densenet_lite_124-fc',
+        model_name: str = 'densenet_lite_136-fc',
         *,
         cand_alphabet: Optional[Union[Collection, str]] = None,
         context: str = 'cpu',  # ['cpu', 'gpu', 'cuda']
@@ -69,12 +69,12 @@ class CnOcr(object):
         识别模型初始化函数。
 
         Args:
-            model_name (str): 模型名称。默认为 `densenet_lite_124-fc`
+            model_name (str): 模型名称。默认为 `densenet_lite_136-fc`
             cand_alphabet (Optional[Union[Collection, str]]): 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围
             context (str): 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为 `cpu`
             model_fp (Optional[str]): 如果不使用系统自带的模型，可以通过此参数直接指定所使用的模型文件（'.ckpt' 文件）
             root (Union[str, Path]): 模型文件所在的根目录。
-                Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.0/densenet-s-fc`。
+                Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.1/densenet_lite_136-fc`。
                 Windows下默认值为 `C:/Users/<username>/AppData/Roaming/cnocr`。
             **kwargs: 目前未被使用。
 
@@ -83,10 +83,10 @@ class CnOcr(object):
             >>> ocr = CnOcr()
 
             使用指定模型：
-            >>> ocr = CnOcr(model_name='densenet_lite_124-fc')
+            >>> ocr = CnOcr(model_name='densenet_lite_136-fc')
 
             识别时只考虑数字：
-            >>> ocr = CnOcr(model_name='densenet_lite_124-fc', cand_alphabet='0123456789')
+            >>> ocr = CnOcr(model_name='densenet_lite_136-fc', cand_alphabet='0123456789')
 
         """
         if 'name' in kwargs:

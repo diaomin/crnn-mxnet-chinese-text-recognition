@@ -60,7 +60,6 @@ ENCODER_CONFIGS = {
         'num_init_features': 64,
         'out_length': 720,
     },
-
     'densenet_lite_113': {  # 长度压缩至 1/8（seq_len == 35），输出的向量长度为 2*136 = 272
         'growth_rate': 32,
         'block_config': [1, 1, 3],
@@ -91,52 +90,29 @@ ENCODER_CONFIGS = {
         'num_init_features': 64,
         'out_length': 528,
     },
-
-    'mobilenetv3_tiny': {
-        'arch': 'tiny',
-        'out_length': 384,
-    },
-    'mobilenetv3_small': {
-        'arch': 'small',
-        'out_length': 384,
-    }
+    'mobilenetv3_tiny': {'arch': 'tiny', 'out_length': 384,},
+    'mobilenetv3_small': {'arch': 'small', 'out_length': 384,},
 }
 
 DECODER_CONFIGS = {
-    'lstm': {
-        # 'input_size': 512,  # 对应 encoder 的输出向量长度
-        'rnn_units': 128,
-    },
-    'gru': {
-        # 'input_size': 512,  # 对应 encoder 的输出向量长度
-        'rnn_units': 128,
-    },
-    'fcfull': {
-        # 'input_size': 512,  # 对应 encoder 的输出向量长度
-        'hidden_size': 256,
-        'dropout': 0.3,
-    },
-    'fc': {
-        # 'input_size': 512,  # 对应 encoder 的输出向量长度
-        'hidden_size': 128,
-        'dropout': 0.1,
-    },
+    'lstm': {'rnn_units': 128,},
+    'gru': {'rnn_units': 128,},
+    'fc': {'hidden_size': 128, 'dropout': 0.1,},
+    'fcfull': {'hidden_size': 256, 'dropout': 0.3,},
 }
 
 root_url = (
-    'https://beiye-model.oss-cn-beijing.aliyuncs.com/models/cnocr/%s/'
+    'https://huggingface.co/breezedeus/cnstd-cnocr-models/resolve/main/models/cnocr/%s/'
     % MODEL_VERSION
 )
-# name: (epochs, url)
+# name: (epoch, url)
 AVAILABLE_MODELS = {
-    # 'densenet-s-fc': (8, root_url + 'densenet-s-fc-v2.0.1.zip'),
-    # 'densenet-s-gru': (14, root_url + 'densenet-s-gru-v2.0.1.zip'),
-    # 'densenet-lite-113-fclite': (33, root_url + '.zip'),
-    'densenet_lite_114-fc': (31, root_url + '.zip'),
-    'densenet_lite_124-fc': (36, root_url + '.zip'),
-    'densenet_lite_134-fc': (38, root_url + '.zip'),
-    'densenet_lite_136-fc': (17, root_url + '.zip'),
-    'densenet_lite_136-fc-scene': (17, root_url + '.zip'),
+    'densenet_lite_114-fc': (37, root_url + 'densenet_lite_114-fc.zip'),
+    'densenet_lite_124-fc': (39, root_url + 'densenet_lite_124-fc.zip'),
+    'densenet_lite_134-fc': (34, root_url + 'densenet_lite_134-fc.zip'),
+    'densenet_lite_136-fc': (39, root_url + 'densenet_lite_136-fc.zip'),
+    'densenet_lite_134-gru': (2, root_url + 'densenet_lite_134-gru.zip'),
+    'densenet_lite_136-gru': (2, root_url + 'densenet_lite_136-gru.zip'),
 }
 
 # 候选字符集合

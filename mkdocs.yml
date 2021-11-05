@@ -107,6 +107,7 @@ nav:
       - 文本检测CnStd + 文字识别CnOcr: cnstd_cnocr.md
       - 模型训练: train.md
       - QQ交流群: contact.md
+      - 常见问题（FAQ）: faq.md
       - RELEASE 文档: RELEASE.md
   - Python API:
     - CnOcr 类: cnocr/cn_ocr.md
