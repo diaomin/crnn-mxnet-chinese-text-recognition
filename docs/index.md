@@ -95,6 +95,6 @@ print("Predicted Chars:", res)
 * [x] 尝试新模型，如 DenseNet，进一步提升识别准确率（since `V1.1.0`）
 * [x] 优化训练集，去掉不合理的样本；在此基础上，重新训练各个模型
 * [x] 由 MXNet 改为 PyTorch 架构（since `V2.0.0`）
-* [ ] 基于 PyTorch 训练更高效的模型
+* [x] 基于 PyTorch 训练更高效的模型
 * [ ] 支持列格式的文字识别
 
