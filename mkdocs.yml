@@ -28,8 +28,8 @@ extra:
 theme:
   name: material
 #  name: readthedocs
-  logo: figs/jinlong.png
-  favicon: figs/jinlong.ico
+  logo: figs/breezedeus.png
+  favicon: figs/breezedeus.ico
   palette:
     primary: indigo
     accent: indigo
