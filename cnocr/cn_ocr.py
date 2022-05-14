@@ -75,13 +75,16 @@ class CnOcr(object):
         Args:
             model_name (str): 模型名称。默认为 `densenet_lite_136-fc`
             cand_alphabet (Optional[Union[Collection, str]]): 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围
-            context (str): 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为 `cpu`
+            context (str): 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为 `cpu`。
+                此参数仅在 `model_backend=='pytorch'` 时有效。
             model_fp (Optional[str]): 如果不使用系统自带的模型，可以通过此参数直接指定所使用的模型文件（'.ckpt' 文件）
-            model_backend (str): 'pytorch', or 'onnx'。表明预测时是使用是使用 PyTorch 模型，还是使用 ONNX 模型。默认为 `pytorch`
+            model_backend (str): 'pytorch', or 'onnx'。表明预测时是使用 PyTorch 版本模型，还是使用 ONNX 版本模型。
+                同样的模型，ONNX 版本的预测速度一般是 PyTorch 版本的2倍左右。默认为 'onnx'。
             root (Union[str, Path]): 模型文件所在的根目录。
                 Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.1/densenet_lite_136-fc`。
                 Windows下默认值为 `C:/Users/<username>/AppData/Roaming/cnocr`。
-            vocab_fp (Union[str, Path]): 字符集合的文件路径，即 `label_cn.txt` 文件路径
+            vocab_fp (Union[str, Path]): 字符集合的文件路径，即 `label_cn.txt` 文件路径。
+                若训练的自有模型更改了字符集，看通过此参数传入新的字符集文件路径。
             **kwargs: 目前未被使用。
 
         Examples:
