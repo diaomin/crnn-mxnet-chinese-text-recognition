@@ -39,9 +39,11 @@ from cnocr.utils import (
     load_model_params,
     rescale_img,
     pad_img_seq,
+    to_numpy,
 )
 from .data_utils.aug import NormalizeAug
 from .line_split import line_split
+from .models.ctc import CTCPostProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +64,9 @@ class CnOcr(object):
         cand_alphabet: Optional[Union[Collection, str]] = None,
         context: str = 'cpu',  # ['cpu', 'gpu', 'cuda']
         model_fp: Optional[str] = None,
+        model_backend: str = 'onnx',  # ['pytorch', 'onnx']
         root: Union[str, Path] = data_dir(),
+        vocab_fp: Union[str, Path] = VOCAB_FP,
         **kwargs,
     ):
         """
@@ -71,11 +75,16 @@ class CnOcr(object):
         Args:
             model_name (str): 模型名称。默认为 `densenet_lite_136-fc`
             cand_alphabet (Optional[Union[Collection, str]]): 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围
-            context (str): 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为 `cpu`
+            context (str): 'cpu', or 'gpu'。表明预测时是使用CPU还是GPU。默认为 `cpu`。
+                此参数仅在 `model_backend=='pytorch'` 时有效。
             model_fp (Optional[str]): 如果不使用系统自带的模型，可以通过此参数直接指定所使用的模型文件（'.ckpt' 文件）
+            model_backend (str): 'pytorch', or 'onnx'。表明预测时是使用 PyTorch 版本模型，还是使用 ONNX 版本模型。
+                同样的模型，ONNX 版本的预测速度一般是 PyTorch 版本的2倍左右。默认为 'onnx'。
             root (Union[str, Path]): 模型文件所在的根目录。
                 Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.1/densenet_lite_136-fc`。
                 Windows下默认值为 `C:/Users/<username>/AppData/Roaming/cnocr`。
+            vocab_fp (Union[str, Path]): 字符集合的文件路径，即 `label_cn.txt` 文件路径。
+                若训练的自有模型更改了字符集，看通过此参数传入新的字符集文件路径。
             **kwargs: 目前未被使用。
 
         Examples:
@@ -89,6 +98,8 @@ class CnOcr(object):
             >>> ocr = CnOcr(model_name='densenet_lite_136-fc', cand_alphabet='0123456789')
 
         """
+        model_backend = model_backend.lower()
+        assert model_backend in ('pytorch', 'onnx')
         if 'name' in kwargs:
             logger.warning(
                 'param `name` is useless and deprecated since version %s'
@@ -96,22 +107,31 @@ class CnOcr(object):
             )
         check_model_name(model_name)
         check_context(context)
+
         self._model_name = model_name
+        self._model_backend = model_backend
         if context == 'gpu':
             context = 'cuda'
         self.context = context
 
-        self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, model_name)
-        model_epoch = AVAILABLE_MODELS.get(model_name, [None])[0]
-
-        if model_epoch is not None:
-            self._model_file_prefix = '%s-epoch=%03d' % (
-                self._model_file_prefix,
-                model_epoch,
+        try:
+            self._assert_and_prepare_model_files(model_fp, root)
+        except NotImplementedError:
+            logger.warning(
+                'no available model is found for name %s and backend %s'
+                % (self._model_name, self._model_backend)
             )
+            self._model_backend = (
+                'onnx' if self._model_backend == 'pytorch' else 'pytorch'
+            )
+            logger.warning(
+                'trying to use name %s and backend %s'
+                % (self._model_name, self._model_backend)
+            )
+            self._assert_and_prepare_model_files(model_fp, root)
 
-        self._assert_and_prepare_model_files(model_fp, root)
-        self._vocab, self._letter2id = read_charset(VOCAB_FP)
+        self._vocab, self._letter2id = read_charset(vocab_fp)
+        self.postprocessor = CTCPostProcessor(vocab=self._vocab)
 
         self._candidates = None
         self.set_cand_alphabet(cand_alphabet)
@@ -119,6 +139,15 @@ class CnOcr(object):
         self._model = self._get_model(context)
 
     def _assert_and_prepare_model_files(self, model_fp, root):
+        self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, self._model_name)
+        model_epoch = AVAILABLE_MODELS.get((self._model_name, self._model_backend), [None])[0]
+
+        if model_epoch is not None:
+            self._model_file_prefix = '%s-epoch=%03d' % (
+                self._model_file_prefix,
+                model_epoch,
+            )
+
         if model_fp is not None and not os.path.isfile(model_fp):
             raise FileNotFoundError('can not find model file %s' % model_fp)
 
@@ -128,25 +157,37 @@ class CnOcr(object):
 
         root = os.path.join(root, MODEL_VERSION)
         self._model_dir = os.path.join(root, self._model_name)
-        fps = glob('%s/%s*.ckpt' % (self._model_dir, self._model_file_prefix))
+        model_ext = 'ckpt' if self._model_backend == 'pytorch' else 'onnx'
+        fps = glob('%s/%s*.%s' % (self._model_dir, self._model_file_prefix, model_ext))
         if len(fps) > 1:
             raise ValueError(
-                'multiple ckpt files are found in %s, not sure which one should be used'
-                % self._model_dir
+                'multiple %s files are found in %s, not sure which one should be used'
+                % (model_ext, self._model_dir)
             )
         elif len(fps) < 1:
-            logger.warning('no ckpt file is found in %s' % self._model_dir)
-            get_model_file(self._model_dir)  # download the .zip file and unzip
-            fps = glob('%s/%s*.ckpt' % (self._model_dir, self._model_file_prefix))
+            logger.warning('no %s file is found in %s' % (model_ext, self._model_dir))
+            get_model_file(
+                self._model_name, self._model_backend, self._model_dir
+            )  # download the .zip file and unzip
+            fps = glob(
+                '%s/%s*.%s' % (self._model_dir, self._model_file_prefix, model_ext)
+            )
 
         self._model_fp = fps[0]
 
     def _get_model(self, context):
         logger.info('use model: %s' % self._model_fp)
-        model = gen_model(self._model_name, self._vocab)
-        model.eval()
-        model.to(self.context)
-        model = load_model_params(model, self._model_fp, context)
+        if self._model_backend == 'pytorch':
+            model = gen_model(self._model_name, self._vocab)
+            model.eval()
+            model.to(self.context)
+            model = load_model_params(model, self._model_fp, context)
+        elif self._model_backend == 'onnx':
+            import onnxruntime
+
+            model = onnxruntime.InferenceSession(self._model_fp)
+        else:
+            raise NotImplementedError(f'{self._model_backend} is not supported yet')
 
         return model
 
@@ -335,11 +376,33 @@ class CnOcr(object):
         img = rescale_img(img.transpose((2, 0, 1)))  # res: [C, H, W]
         return NormalizeAug()(img).to(device=torch.device(self.context))
 
-    @torch.no_grad()
     def _predict(self, img_list: List[torch.Tensor]):
         img_lengths = torch.tensor([img.shape[2] for img in img_list])
         imgs = pad_img_seq(img_list)
-        out = self._model(
-            imgs, img_lengths, candidates=self._candidates, return_preds=True
+        if self._model_backend == 'pytorch':
+            with torch.no_grad():
+                out = self._model(
+                    imgs, img_lengths, candidates=self._candidates, return_preds=True
+                )
+        else:  # onnx
+            out = self._onnx_predict(imgs, img_lengths)
+
+        return out
+
+    def _onnx_predict(self, imgs, img_lengths):
+        ort_session = self._model
+        ort_inputs = {
+            ort_session.get_inputs()[0].name: to_numpy(imgs),
+            ort_session.get_inputs()[1].name: to_numpy(img_lengths),
+        }
+        ort_outs = ort_session.run(None, ort_inputs)
+        out = {
+            'logits': torch.from_numpy(ort_outs[0]),
+            'output_lengths': torch.from_numpy(ort_outs[1]),
+        }
+        out['logits'] = OcrModel.mask_by_candidates(
+            out['logits'], self._candidates, self._vocab, self._letter2id
         )
+
+        out["preds"] = self.postprocessor(out['logits'], out['output_lengths'])
         return out

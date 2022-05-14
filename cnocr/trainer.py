@@ -242,6 +242,7 @@ def resave_model(module_fp, output_model_fp, map_location=None):
     """PlTrainer存储的文件对应其 `pl_module` 模块，需利用此函数转存为 `model` 对应的模型文件。"""
     checkpoint = torch.load(module_fp, map_location=map_location)
     state_dict = {}
-    for k, v in checkpoint['state_dict'].items():
-        state_dict[k.split('.', maxsplit=1)[1]] = v
+    if all([k.startswith('model.') for k in checkpoint['state_dict'].keys()]):
+        for k, v in checkpoint['state_dict'].items():
+            state_dict[k.split('.', maxsplit=1)[1]] = v
     torch.save({'state_dict': state_dict}, output_model_fp)

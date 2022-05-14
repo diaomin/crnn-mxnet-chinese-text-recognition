@@ -107,6 +107,12 @@ def check_model_name(model_name):
     assert decoder_type in DECODER_CONFIGS
 
 
+def to_numpy(tensor: torch.Tensor) -> np.ndarray:
+    return (
+        tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+    )
+
+
 def check_sha1(filename, sha1_hash):
     """Check whether the sha1 hash of the file content matches the expected hash.
     Parameters
@@ -202,7 +208,7 @@ def download(url, path=None, overwrite=False, sha1_hash=None):
     return fname
 
 
-def get_model_file(model_dir):
+def get_model_file(model_name, model_backend, model_dir):
     r"""Return location for the downloaded models on local file system.
 
     This function will download from online model zoo when model cannot be found or has mismatch.
@@ -210,6 +216,8 @@ def get_model_file(model_dir):
 
     Parameters
     ----------
+    model_name : str
+    model_backend : str
     model_dir : str, default $CNOCR_HOME
         Location for keeping the model parameters.
 
@@ -222,14 +230,12 @@ def get_model_file(model_dir):
     par_dir = os.path.dirname(model_dir)
     os.makedirs(par_dir, exist_ok=True)
 
-    zip_file_path = model_dir + '.zip'
+    if (model_name, model_backend) not in AVAILABLE_MODELS:
+        raise NotImplementedError('%s is not a downloadable model' % model_name)
+    url = AVAILABLE_MODELS[(model_name, model_backend)][1]
+
+    zip_file_path = os.path.join(par_dir, os.path.basename(url))
     if not os.path.exists(zip_file_path):
-        model_name = os.path.basename(model_dir)
-        if model_name not in AVAILABLE_MODELS:
-            raise NotImplementedError(
-                '%s is not an available downloaded model' % model_name
-            )
-        url = AVAILABLE_MODELS[model_name][1]
         download(url, path=zip_file_path, overwrite=True)
     with zipfile.ZipFile(zip_file_path) as zf:
         zf.extractall(par_dir)
