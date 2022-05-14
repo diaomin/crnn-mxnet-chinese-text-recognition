@@ -19,7 +19,10 @@
 
 import os
 import sys
+import logging
+import time
 import pytest
+
 import numpy as np
 from PIL import Image
 import Levenshtein
@@ -28,13 +31,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 
 from cnocr import CnOcr
-from cnocr.utils import read_img
+from cnocr.utils import set_logger, read_img
 from cnocr.consts import NUMBERS, AVAILABLE_MODELS
 from cnocr.line_split import line_split
 
+logger = set_logger(log_level=logging.INFO)
+
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 example_dir = os.path.join(root_dir, 'docs/examples')
-CNOCR = CnOcr(model_name='densenet-s-fc', model_epoch=None)
+CNOCR = CnOcr(model_name='densenet_lite_136-fc', model_epoch=None)
 
 SINGLE_LINE_CASES = [
     ('20457890_2399557098.jpg', ['就会哈哈大笑。3.0']),
@@ -110,8 +115,7 @@ def cal_score(preds, expected):
 @pytest.mark.parametrize('img_fp, expected', CASES)
 def test_ocr(img_fp, expected):
     ocr = CNOCR
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    img_fp = os.path.join(root_dir, 'examples', img_fp)
+    img_fp = os.path.join(example_dir, img_fp)
 
     pred = ocr.ocr(img_fp)
     print('\n')
@@ -132,8 +136,7 @@ def test_ocr(img_fp, expected):
 @pytest.mark.parametrize('img_fp, expected', SINGLE_LINE_CASES)
 def test_ocr_for_single_line(img_fp, expected):
     ocr = CNOCR
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    img_fp = os.path.join(root_dir, 'examples', img_fp)
+    img_fp = os.path.join(example_dir, img_fp)
     pred = ocr.ocr_for_single_line(img_fp)
     print('\n')
     print_preds([pred])
@@ -165,8 +168,7 @@ def test_ocr_for_single_line(img_fp, expected):
 @pytest.mark.parametrize('img_fp, expected', MULTIPLE_LINE_CASES)
 def test_ocr_for_single_lines(img_fp, expected):
     ocr = CNOCR
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    img_fp = os.path.join(root_dir, 'examples', img_fp)
+    img_fp = os.path.join(example_dir, img_fp)
     img = read_img(img_fp)
     if img.mean() < 145:  # 把黑底白字的图片对调为白底黑字
         img = 255 - img
@@ -186,26 +188,37 @@ def test_ocr_for_single_lines(img_fp, expected):
 def test_cand_alphabet():
     img_fp = os.path.join(example_dir, 'hybrid.png')
 
-    ocr = CnOcr(cand_alphabet=NUMBERS)
-    pred = ocr.ocr(img_fp)
-    pred = [''.join(line_p) for line_p, _ in pred]
+    ocr = CnOcr('densenet_lite_136-fc', cand_alphabet=NUMBERS)
+    pt_pred = ocr.ocr(img_fp)
+    pred = [''.join(line_p) for line_p, _ in pt_pred]
     print("Predicted Chars:", pred)
     assert len(pred) == 1 and pred[0] == '012345678'
 
+    ocr = CnOcr('densenet_lite_136-fc', model_backend='onnx', cand_alphabet=NUMBERS)
+    onnx_pred = ocr.ocr(img_fp)
+    pred = [''.join(line_p) for line_p, _ in onnx_pred]
+    print("Predicted Chars:", pred)
+    assert len(pred) == 1 and pred[0] == '012345678'
 
-INSTANCE_ID = 0
+    assert pt_pred[0][0] == onnx_pred[0][0]
+    assert abs(pt_pred[0][1] - onnx_pred[0][1]) < 1e-5
 
 
-@pytest.mark.parametrize('model_name', AVAILABLE_MODELS.keys())
-def test_multiple_instances(model_name):
-    global INSTANCE_ID
-    print('test multiple instances for model_name: %s' % model_name)
-    img_fp = os.path.join(example_dir, 'hybrid.png')
-    INSTANCE_ID += 1
-    print('instance id: %d' % INSTANCE_ID)
-    cnocr1 = CnOcr(model_name, name='instance-%d' % INSTANCE_ID)
-    print_preds(cnocr1.ocr(img_fp))
-    INSTANCE_ID += 1
-    print('instance id: %d' % INSTANCE_ID)
-    cnocr2 = CnOcr(model_name, name='instance-%d' % INSTANCE_ID, cand_alphabet=NUMBERS)
-    print_preds(cnocr2.ocr(img_fp))
+@pytest.mark.parametrize('img_fp, expected', SINGLE_LINE_CASES)
+def test_onnx(img_fp, expected):
+    img_fp = os.path.join(example_dir, img_fp)
+
+    pt_ocr = CnOcr('densenet_lite_136-fc', model_backend='pytorch')
+    start_time = time.time()
+    pt_preds = pt_ocr.ocr_for_single_line(img_fp)
+    end_time = time.time()
+    print(f'\npytorch time cost {end_time - start_time}', pt_preds)
+
+    onnx_ocr = CnOcr('densenet_lite_136-fc', model_backend='onnx')
+    start_time = time.time()
+    onnx_preds = onnx_ocr.ocr_for_single_line(img_fp)
+    end_time = time.time()
+    print(f'onnx time cost {end_time - start_time}', onnx_preds, '\n\n')
+
+    assert pt_preds[0] == onnx_preds[0]
+    assert abs(pt_preds[1] - onnx_preds[1]) < 1e-5

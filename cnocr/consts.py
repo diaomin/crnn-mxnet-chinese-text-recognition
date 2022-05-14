@@ -107,12 +107,16 @@ root_url = (
 )
 # name: (epoch, url)
 AVAILABLE_MODELS = {
-    'densenet_lite_114-fc': (37, root_url + 'densenet_lite_114-fc.zip'),
-    'densenet_lite_124-fc': (39, root_url + 'densenet_lite_124-fc.zip'),
-    'densenet_lite_134-fc': (34, root_url + 'densenet_lite_134-fc.zip'),
-    'densenet_lite_136-fc': (39, root_url + 'densenet_lite_136-fc.zip'),
-    'densenet_lite_134-gru': (2, root_url + 'densenet_lite_134-gru.zip'),
-    'densenet_lite_136-gru': (2, root_url + 'densenet_lite_136-gru.zip'),
+    ('densenet_lite_114-fc', 'pytorch'): (37, root_url + 'densenet_lite_114-fc.zip'),
+    ('densenet_lite_124-fc', 'pytorch'): (39, root_url + 'densenet_lite_124-fc.zip'),
+    ('densenet_lite_134-fc', 'pytorch'): (34, root_url + 'densenet_lite_134-fc.zip'),
+    ('densenet_lite_136-fc', 'pytorch'): (39, root_url + 'densenet_lite_136-fc.zip'),
+    ('densenet_lite_114-fc', 'onnx'): (37, root_url + 'densenet_lite_114-fc-onnx.zip'),
+    ('densenet_lite_124-fc', 'onnx'): (39, root_url + 'densenet_lite_124-fc-onnx.zip'),
+    ('densenet_lite_134-fc', 'onnx'): (34, root_url + 'densenet_lite_134-fc-onnx.zip'),
+    ('densenet_lite_136-fc', 'onnx'): (39, root_url + 'densenet_lite_136-fc-onnx.zip'),
+    ('densenet_lite_134-gru', 'pytorch'): (2, root_url + 'densenet_lite_134-gru.zip'),
+    ('densenet_lite_136-gru', 'pytorch'): (2, root_url + 'densenet_lite_136-gru.zip'),
 }
 
 # 候选字符集合
