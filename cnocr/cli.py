@@ -28,7 +28,6 @@ from operator import itemgetter
 from pathlib import Path
 
 import click
-import Levenshtein
 from torchvision import transforms as T
 import torch
 
@@ -275,6 +274,12 @@ def evaluate(
     verbose,
 ):
     """评估模型效果"""
+    try:
+        import Levenshtein
+    except Exception as e:
+        logger.error(e)
+        logger.error('try to install the package by using `pip install python-Levenshtein`')
+        return
     ocr = CnOcr(model_name=model_name, model_fp=pretrained_model_fp, context=context)
 
     fn_labels_list = read_input_file(eval_index_fp)

@@ -25,7 +25,6 @@ import pytest
 
 import numpy as np
 from PIL import Image
-import Levenshtein
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
@@ -99,6 +98,8 @@ def print_preds(pred):
 
 
 def cal_score(preds, expected):
+    import Levenshtein
+
     if len(preds) != len(expected):
         return 0
     total_cnt = 0
