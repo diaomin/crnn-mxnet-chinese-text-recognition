@@ -24,7 +24,7 @@ import pytorch_lightning as pt
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from .utils import read_charset, read_tsv_file, read_img, rescale_img, pad_img_seq
+from .utils import read_charset, read_tsv_file, read_img, resize_img, pad_img_seq
 
 
 class OcrDataset(Dataset):
@@ -41,7 +41,7 @@ class OcrDataset(Dataset):
     def __getitem__(self, item):
         img_fp = self.img_fp_list[item]
         img = read_img(img_fp).transpose((2, 0, 1))  # res: [1, H, W]
-        img = rescale_img(img)
+        img = resize_img(img)
 
         if self.mode != 'test':
             labels = self.labels_list[item]

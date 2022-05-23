@@ -9,7 +9,6 @@
 - 增加了 `cnocr export-onnx` 命令，把训练好的PyTorch模型导出为ONNX模型；
 - 去掉了对包 `python-Levenshtein` 的依赖。
 
-
 ### Update 2021.11.06: 发布 cnocr V2.1.0
 
 主要变更：

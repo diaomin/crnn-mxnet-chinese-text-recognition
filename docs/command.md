@@ -121,8 +121,6 @@ Options:
   -h, --help                  Show this message and exit.
 ```
 
-
-
 ## PyTorch 模型导出为 ONNX 模型
 
 把训练好的模型导出为 ONNX 格式。 当前无法导出 `*-gru` 模型， 具体说明见：[Exporting GRU RNN to ONNX - PyTorch Forums](https://discuss.pytorch.org/t/exporting-gru-rnn-to-onnx/27244) 。后续版本会修复此问题。
@@ -141,5 +139,3 @@ Options:
   -o, --output-model-fp TEXT  输出的模型文件路径（.onnx）  [required]
   -h, --help                  Show this message and exit.
 ```
-
-

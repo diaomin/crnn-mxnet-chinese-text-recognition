@@ -37,7 +37,7 @@ from cnocr.utils import (
     check_context,
     read_img,
     load_model_params,
-    rescale_img,
+    resize_img,
     pad_img_seq,
     to_numpy,
 )
@@ -140,7 +140,7 @@ class CnOcr(object):
 
     def _assert_and_prepare_model_files(self, model_fp, root):
         self._model_file_prefix = '{}-{}'.format(self.MODEL_FILE_PREFIX, self._model_name)
-        model_epoch = AVAILABLE_MODELS.get((self._model_name, self._model_backend), [None])[0]
+        model_epoch = AVAILABLE_MODELS.get_epoch(self._model_name, self._model_backend)
 
         if model_epoch is not None:
             self._model_file_prefix = '%s-epoch=%03d' % (
@@ -373,7 +373,7 @@ class CnOcr(object):
         Returns:
             torch.Tensor: with shape (1, height, width)
         """
-        img = rescale_img(img.transpose((2, 0, 1)))  # res: [C, H, W]
+        img = resize_img(img.transpose((2, 0, 1)))  # res: [C, H, W]
         return NormalizeAug()(img).to(device=torch.device(self.context))
 
     def _predict(self, img_list: List[torch.Tensor]):

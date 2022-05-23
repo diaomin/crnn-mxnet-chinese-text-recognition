@@ -24,7 +24,7 @@ import logging
 import platform
 import zipfile
 import requests
-from typing import Union, Any, Tuple, List
+from typing import Union, Any, Tuple, List, Optional, Dict
 
 from tqdm import tqdm
 from PIL import Image
@@ -231,8 +231,10 @@ def get_model_file(model_name, model_backend, model_dir):
     os.makedirs(par_dir, exist_ok=True)
 
     if (model_name, model_backend) not in AVAILABLE_MODELS:
-        raise NotImplementedError('%s is not a downloadable model' % model_name)
-    url = AVAILABLE_MODELS[(model_name, model_backend)][1]
+        raise NotImplementedError(
+            '%s is not a downloadable model' % ((model_name, model_backend),)
+        )
+    url = AVAILABLE_MODELS.get_url(model_name, model_backend)
 
     zip_file_path = os.path.join(par_dir, os.path.basename(url))
     if not os.path.exists(zip_file_path):
@@ -306,17 +308,29 @@ def save_img(img: Union[Tensor, np.ndarray], path):
     # Image.fromarray(img).save(path)
 
 
-def rescale_img(img: np.ndarray) -> torch.Tensor:
+def resize_img(
+    img: np.ndarray,
+    target_h_w: Optional[Tuple[int, int]] = None,
+    return_torch: bool = True,
+) -> Union[torch.Tensor, np.ndarray]:
     """
     rescale an image tensor with [Channel, Height, Width] to the given height value, and keep the ratio
     :param img: np.ndarray; should be [c, height, width]
+    :param target_h_w: (height, width) of the target image or None
+    :param return_torch: bool; whether to return a `torch.Tensor` or `np.ndarray`
     :return: image tensor with the given height. The resulting dim is [C, height, width]
     """
     ori_height, ori_width = img.shape[1:]
-    ratio = ori_height / IMG_STANDARD_HEIGHT
-    img = torch.from_numpy(img)
-    if img.size(1) != IMG_STANDARD_HEIGHT:
-        img = F.resize(img, [IMG_STANDARD_HEIGHT, int(ori_width / ratio)])
+    if target_h_w is None:
+        ratio = ori_height / IMG_STANDARD_HEIGHT
+        target_h_w = (IMG_STANDARD_HEIGHT, int(ori_width / ratio))
+
+    if (ori_height, ori_width) != target_h_w:
+        img = F.resize(torch.from_numpy(img), target_h_w)
+        if not return_torch:
+            img = img.numpy()
+    elif return_torch:
+        img = torch.from_numpy(img)
     return img
 
 
@@ -374,3 +388,29 @@ def get_model_size(model, only_trainable=False):
     if only_trainable:
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
     return sum(p.numel() for p in model.parameters())
+
+
+def mask_by_candidates(
+    logits: np.ndarray,
+    candidates: Optional[Union[str, List[str]]],
+    vocab: List[str],
+    letter2id: Dict[str, int],
+    ignored_tokens: List[int],
+):
+    if candidates is None:
+        return logits
+
+    _candidates = [letter2id[word] for word in candidates]
+    _candidates.sort()
+    _candidates = np.array(_candidates, dtype=int)
+
+    candidates = np.zeros((len(vocab),), dtype=bool)
+    candidates[_candidates] = True
+    # candidates[-1] = True  # for cnocr, 间隔符号/填充符号，必须为真
+    candidates[ignored_tokens] = True
+    candidates = np.expand_dims(candidates, axis=(0, 1))  # 1 x 1 x (vocab_size+1)
+    candidates = candidates.repeat(logits.shape[1], axis=1)
+
+    masked = np.ma.masked_array(data=logits, mask=~candidates, fill_value=-100.0)
+    logits = masked.filled()
+    return logits
