@@ -73,7 +73,7 @@ def test_ppocr(img_fp, expected):
     img = read_img(img_fp, gray=False)
     pred = ocr.recognize([img])[0]
     print_preds(pred)
-    assert cal_score(pred, expected) >= 0.8
+    assert cal_score([pred], expected) >= 0.8
 
 
 def test_cand_alphabet():
