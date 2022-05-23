@@ -25,11 +25,8 @@ import imghdr
 import math
 import logging
 
-# import cv2
 import numpy as np
-# import paddle
 from PIL import Image, ImageDraw, ImageFont
-# from paddle import inference
 
 logger = logging.getLogger(__name__)
 
