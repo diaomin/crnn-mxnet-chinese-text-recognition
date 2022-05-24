@@ -89,7 +89,7 @@ class BaseRecLabelDecode(object):
                 )
             candidates = [word for word in cand_alphabet if word in self.dict]
             self._candidates = None if len(candidates) == 0 else candidates
-            logger.info('candidate chars: %s' % self._candidates)
+            logger.debug('candidate chars: %s' % self._candidates)
 
     def add_special_char(self, dict_character):
         return dict_character

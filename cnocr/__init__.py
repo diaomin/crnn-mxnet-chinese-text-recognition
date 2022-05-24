@@ -18,5 +18,6 @@
 # under the License.
 
 from .consts import MODEL_VERSION, AVAILABLE_MODELS, NUMBERS, ENG_LETTERS
-from .cn_ocr import CnOcr, gen_model
+from .cn_ocr import CnOcr
+from .recognizer import gen_model
 from .line_split import line_split

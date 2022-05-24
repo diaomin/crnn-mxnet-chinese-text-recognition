@@ -27,9 +27,9 @@ import numpy as np
 from PIL import Image
 import torch
 
-from cnocr.consts import MODEL_VERSION, AVAILABLE_MODELS, VOCAB_FP
-from cnocr.models.ocr_model import OcrModel
-from cnocr.utils import (
+from .consts import MODEL_VERSION, AVAILABLE_MODELS, VOCAB_FP
+from .models.ocr_model import OcrModel
+from .utils import (
     data_dir,
     get_model_file,
     read_charset,
@@ -42,7 +42,6 @@ from cnocr.utils import (
     to_numpy,
 )
 from .data_utils.aug import NormalizeAug
-from .line_split import line_split
 from .models.ctc import CTCPostProcessor
 
 logger = logging.getLogger(__name__)
@@ -218,7 +217,7 @@ class Recognizer(object):
                 )
             candidates = [word for word in cand_alphabet if word in self._letter2id]
             self._candidates = None if len(candidates) == 0 else candidates
-            logger.info('candidate chars: %s' % self._candidates)
+            logger.debug('candidate chars: %s' % self._candidates)
 
     # def ocr(
     #     self, img_fp: Union[str, Path, torch.Tensor, np.ndarray]
@@ -308,7 +307,7 @@ class Recognizer(object):
         self,
         img_list: List[Union[str, Path, torch.Tensor, np.ndarray]],
         batch_size: int = 1,
-    ) -> List[Tuple[List[str], float]]:
+    ) -> List[Tuple[str, float]]:
         """
         Batch recognize characters from a list of one-line-characters images.
 
@@ -323,8 +322,8 @@ class Recognizer(object):
             batch_size: 待处理图片很多时，需要分批处理，每批图片的数量由此参数指定。默认为 `1`。
 
         Returns:
-            list: list of (list of chars, prob), such as
-            [(['第', '一', '行'], 0.80), (['第', '二', '行'], 0.75), (['第', '三', '行'], 0.9)]
+            list: list of (chars, prob), such as
+            [('第一行', 0.80), ('第二行', 0.75), ('第三行', 0.9)]
         """
         if len(img_list) == 0:
             return []
@@ -359,7 +358,7 @@ class Recognizer(object):
         for line in out:
             chars, prob = line
             chars = [c if c != '<space>' else ' ' for c in chars]
-            res.append((chars, prob))
+            res.append((''.join(chars), prob))
 
         return res
 

@@ -70,7 +70,16 @@ def test_ppocr(img_fp, expected):
     ocr = CNOCR
     img_fp = os.path.join(example_dir, img_fp)
 
+    pred = ocr.recognize([img_fp])[0]
+    print_preds(pred)
+    assert cal_score([pred], expected) >= 0.8
+
     img = read_img(img_fp, gray=False)
+    pred = ocr.recognize([img])[0]
+    print_preds(pred)
+    assert cal_score([pred], expected) >= 0.8
+
+    img = read_img(img_fp, gray=True)
     pred = ocr.recognize([img])[0]
     print_preds(pred)
     assert cal_score([pred], expected) >= 0.8
