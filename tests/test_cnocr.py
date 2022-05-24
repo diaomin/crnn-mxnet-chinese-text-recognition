@@ -39,6 +39,7 @@ logger = set_logger(log_level=logging.INFO)
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 example_dir = os.path.join(root_dir, 'docs/examples')
 CNOCR = CnOcr(model_name='densenet_lite_136-fc', model_epoch=None)
+# CNOCR = CnOcr(model_name='ch_ppocr_mobile_v2.0', model_epoch=None)
 
 SINGLE_LINE_CASES = [
     ('20457890_2399557098.jpg', ['就会哈哈大笑。3.0']),
@@ -93,8 +94,7 @@ CASES = SINGLE_LINE_CASES + MULTIPLE_LINE_CASES
 
 
 def print_preds(pred):
-    pred = [''.join(line_p) for line_p, _ in pred]
-    print("Predicted Chars:", pred)
+    print("Predicted Chars:", pred[0])
 
 
 def cal_score(preds, expected):
