@@ -20,7 +20,6 @@
 import torch
 
 from cnocr.consts import IMG_STANDARD_HEIGHT, ENG_LETTERS, VOCAB_FP
-from cnocr.utils import read_charset, pad_img_seq, load_model_params, read_img, rescale_img, normalize_img_array
 from cnocr.models.densenet import DenseNet
 from cnocr.models.ocr_model import OcrModel
 

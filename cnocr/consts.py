@@ -19,7 +19,13 @@
 
 import string
 from pathlib import Path
+from typing import Tuple, Set, Dict, Any, Optional, Union
+import logging
+from copy import deepcopy
+
 from .__version__ import __version__
+
+logger = logging.getLogger(__name__)
 
 
 # 模型版本只对应到第二层，第三层的改动表示模型兼容。
@@ -101,23 +107,87 @@ DECODER_CONFIGS = {
     'fcfull': {'hidden_size': 256, 'dropout': 0.3,},
 }
 
-root_url = (
-    'https://huggingface.co/breezedeus/cnstd-cnocr-models/resolve/main/models/cnocr/%s/'
-    % MODEL_VERSION
-)
-# name: (epoch, url)
-AVAILABLE_MODELS = {
-    ('densenet_lite_114-fc', 'pytorch'): (37, root_url + 'densenet_lite_114-fc.zip'),
-    ('densenet_lite_124-fc', 'pytorch'): (39, root_url + 'densenet_lite_124-fc.zip'),
-    ('densenet_lite_134-fc', 'pytorch'): (34, root_url + 'densenet_lite_134-fc.zip'),
-    ('densenet_lite_136-fc', 'pytorch'): (39, root_url + 'densenet_lite_136-fc.zip'),
-    ('densenet_lite_114-fc', 'onnx'): (37, root_url + 'densenet_lite_114-fc-onnx.zip'),
-    ('densenet_lite_124-fc', 'onnx'): (39, root_url + 'densenet_lite_124-fc-onnx.zip'),
-    ('densenet_lite_134-fc', 'onnx'): (34, root_url + 'densenet_lite_134-fc-onnx.zip'),
-    ('densenet_lite_136-fc', 'onnx'): (39, root_url + 'densenet_lite_136-fc-onnx.zip'),
-    ('densenet_lite_134-gru', 'pytorch'): (2, root_url + 'densenet_lite_134-gru.zip'),
-    ('densenet_lite_136-gru', 'pytorch'): (2, root_url + 'densenet_lite_136-gru.zip'),
-}
+
+class AvailableModels(object):
+    ROOT_URL = (
+        'https://huggingface.co/breezedeus/cnstd-cnocr-models/resolve/main/models/cnocr/%s/'
+        % MODEL_VERSION
+    )
+    CNOCR_SPACE = '__cnocr__'
+
+    # name: (epoch, url)
+    CNOCR_MODELS = {
+        ('densenet_lite_114-fc', 'pytorch'): (37, 'densenet_lite_114-fc.zip'),
+        ('densenet_lite_124-fc', 'pytorch'): (39, 'densenet_lite_124-fc.zip'),
+        ('densenet_lite_134-fc', 'pytorch'): (34, 'densenet_lite_134-fc.zip'),
+        ('densenet_lite_136-fc', 'pytorch'): (39, 'densenet_lite_136-fc.zip'),
+        ('densenet_lite_114-fc', 'onnx'): (37, 'densenet_lite_114-fc-onnx.zip'),
+        ('densenet_lite_124-fc', 'onnx'): (39, 'densenet_lite_124-fc-onnx.zip'),
+        ('densenet_lite_134-fc', 'onnx'): (34, 'densenet_lite_134-fc-onnx.zip'),
+        ('densenet_lite_136-fc', 'onnx'): (39, 'densenet_lite_136-fc-onnx.zip'),
+        ('densenet_lite_134-gru', 'pytorch'): (2, 'densenet_lite_134-gru.zip'),
+        ('densenet_lite_136-gru', 'pytorch'): (2, 'densenet_lite_136-gru.zip'),
+    }
+    OUTER_MODELS = {}
+
+    def all_models(self) -> Set[Tuple[str, str]]:
+        return set(self.CNOCR_MODELS.keys()) | set(self.OUTER_MODELS.keys())
+
+    def __contains__(self, model_name_backend: Tuple[str, str]) -> bool:
+        return model_name_backend in self.all_models()
+
+    def register_models(self, model_dict: Dict[Tuple[str, str], Any], space: str):
+        assert not space.startswith('__')
+        for key, val in model_dict.items():
+            if key in self.CNOCR_MODELS or key in self.OUTER_MODELS:
+                logger.warning(
+                    'model %s has already existed, and will be ignored' % key
+                )
+                continue
+            val = deepcopy(val)
+            val['space'] = space
+            self.OUTER_MODELS[key] = val
+
+    def get_space(self, model_name, model_backend) -> Optional[str]:
+        if (model_name, model_backend) in self.CNOCR_MODELS:
+            return self.CNOCR_SPACE
+        elif (model_name, model_backend) in self.OUTER_MODELS:
+            return self.OUTER_MODELS[(model_name, model_backend)]['space']
+        return None
+
+    def get_vocab_fp(
+        self, model_name: str, model_backend: str
+    ) -> Optional[Union[str, Path]]:
+        if (model_name, model_backend) in self.CNOCR_MODELS:
+            return VOCAB_FP
+        elif (model_name, model_backend) in self.OUTER_MODELS:
+            return self.OUTER_MODELS[(model_name, model_backend)]['vocab_fp']
+        else:
+            logger.warning(
+                'no url is found for model %s' % ((model_name, model_backend),)
+            )
+            return None
+
+    def get_epoch(self, model_name, model_backend) -> Optional[int]:
+        if (model_name, model_backend) in self.CNOCR_MODELS:
+            return self.CNOCR_MODELS[(model_name, model_backend)][0]
+        return None
+
+    def get_url(self, model_name, model_backend) -> Optional[str]:
+        if (model_name, model_backend) in self.CNOCR_MODELS:
+            url = self.CNOCR_MODELS[(model_name, model_backend)][1]
+        elif (model_name, model_backend) in self.OUTER_MODELS:
+            url = self.OUTER_MODELS[(model_name, model_backend)]['url']
+        else:
+            logger.warning(
+                'no url is found for model %s' % ((model_name, model_backend),)
+            )
+            return None
+        url = self.ROOT_URL + url
+        return url
+
+
+AVAILABLE_MODELS = AvailableModels()
 
 # 候选字符集合
 NUMBERS = string.digits + string.punctuation

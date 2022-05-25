@@ -1,5 +1,13 @@
 # Release Notes
 
+### Update 2022.05.25: 发布 cnocr V2.1.2
+
+主要变更：
+
+- 引入了对外部模型的支持，此版加入了对 PaddleOCR 模型的 **ONNX** 版本的支持，具体参见 [可用模型](models.md)；
+- 新引入的模型支持识别竖排文字、繁体中文（部分模型），具体参见 [可用模型](models.md)。
+- 模型输出结果的格式略有调整，具体参见 [使用方法](usage.md)。
+
 ### Update 2022.05.15: 发布 cnocr V2.1.1.1
 
 主要变更：
@@ -8,7 +16,6 @@
 - 类 `CnOcr` 的初始化中增加了参数 `model_backend` 和 `vocab_fp`，具体参见 [使用方法](usage.md) ；
 - 增加了 `cnocr export-onnx` 命令，把训练好的PyTorch模型导出为ONNX模型；
 - 去掉了对包 `python-Levenshtein` 的依赖。
-
 
 ### Update 2021.11.06: 发布 cnocr V2.1.0
 

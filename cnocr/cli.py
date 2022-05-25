@@ -178,6 +178,13 @@ def visualize_example(example, fp_prefix):
     help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
 @click.option(
+    '-b',
+    '--model-backend',
+    type=click.Choice(['pytorch', 'onnx']),
+    default='onnx',
+    help='模型类型。默认值为 `onnx`',
+)
+@click.option(
     '-p',
     '--pretrained-model-fp',
     type=str,
@@ -198,9 +205,21 @@ def visualize_example(example, fp_prefix):
     is_flag=True,
     help="是否输入图片只包含单行文字。对包含单行文字的图片，不做按行切分；否则会先对图片按行分割后再进行识别",
 )
-def predict(model_name, pretrained_model_fp, context, img_file_or_dir, single_line):
+def predict(
+    model_name,
+    model_backend,
+    pretrained_model_fp,
+    context,
+    img_file_or_dir,
+    single_line,
+):
     """模型预测"""
-    ocr = CnOcr(model_name=model_name, model_fp=pretrained_model_fp, context=context)
+    ocr = CnOcr(
+        model_name=model_name,
+        model_backend=model_backend,
+        model_fp=pretrained_model_fp,
+        context=context,
+    )
     ocr_func = ocr.ocr_for_single_line if single_line else ocr.ocr
     fp_list = []
     if os.path.isfile(img_file_or_dir):
@@ -229,6 +248,13 @@ def predict(model_name, pretrained_model_fp, context, img_file_or_dir, single_li
     type=str,
     default=DEFAULT_MODEL_NAME,
     help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
+)
+@click.option(
+    '-b',
+    '--model-backend',
+    type=click.Choice(['pytorch', 'onnx']),
+    default='onnx',
+    help='模型类型。默认值为 `onnx`',
 )
 @click.option(
     '-p',
@@ -265,6 +291,7 @@ def predict(model_name, pretrained_model_fp, context, img_file_or_dir, single_li
 )
 def evaluate(
     model_name,
+    model_backend,
     pretrained_model_fp,
     context,
     eval_index_fp,
@@ -278,9 +305,16 @@ def evaluate(
         import Levenshtein
     except Exception as e:
         logger.error(e)
-        logger.error('try to install the package by using `pip install python-Levenshtein`')
+        logger.error(
+            'try to install the package by using `pip install python-Levenshtein`'
+        )
         return
-    ocr = CnOcr(model_name=model_name, model_fp=pretrained_model_fp, context=context)
+    ocr = CnOcr(
+        model_name=model_name,
+        model_backend=model_backend,
+        model_fp=pretrained_model_fp,
+        context=context,
+    )
 
     fn_labels_list = read_input_file(eval_index_fp)
 

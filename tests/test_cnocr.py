@@ -39,6 +39,7 @@ logger = set_logger(log_level=logging.INFO)
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 example_dir = os.path.join(root_dir, 'docs/examples')
 CNOCR = CnOcr(model_name='densenet_lite_136-fc', model_epoch=None)
+# CNOCR = CnOcr(model_name='ch_ppocr_mobile_v2.0', model_epoch=None)
 
 SINGLE_LINE_CASES = [
     ('20457890_2399557098.jpg', ['就会哈哈大笑。3.0']),
@@ -93,8 +94,7 @@ CASES = SINGLE_LINE_CASES + MULTIPLE_LINE_CASES
 
 
 def print_preds(pred):
-    pred = [''.join(line_p) for line_p, _ in pred]
-    print("Predicted Chars:", pred)
+    print("Predicted Chars:", pred[0])
 
 
 def cal_score(preds, expected):
@@ -132,6 +132,31 @@ def test_ocr(img_fp, expected):
     pred = ocr.ocr(img)
     print_preds(pred)
     assert cal_score(pred, expected) >= 0.8
+
+
+@pytest.mark.parametrize('img_fp, expected', CASES)
+def test_all_models(img_fp, expected):
+    """测试各种模型是否可正常调用。"""
+    model_name_backend_sets = AVAILABLE_MODELS.all_models()
+    for model_name, model_backend in model_name_backend_sets:
+        print(f'{model_name=}, {model_backend}')
+        ocr = CnOcr(model_name=model_name, model_backend=model_backend)
+        img_fp = os.path.join(example_dir, img_fp)
+
+        pred = ocr.ocr(img_fp)
+        print('\n')
+        print_preds(pred)
+        # assert cal_score(pred, expected) >= 0.8
+
+        img = read_img(img_fp)
+        pred = ocr.ocr(img)
+        print_preds(pred)
+        # assert cal_score(pred, expected) >= 0.8
+
+        img = read_img(img_fp, gray=False)
+        pred = ocr.ocr(img)
+        print_preds(pred)
+        # assert cal_score(pred, expected) >= 0.8
 
 
 @pytest.mark.parametrize('img_fp, expected', SINGLE_LINE_CASES)
