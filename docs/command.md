@@ -2,7 +2,7 @@
 
 **cnocr** 包含了几个命令行工具，安装 **cnocr** 后即可使用。
 
-## 预测单个文件或文件夹中所有图片
+## 图片预测
 
 使用命令 **`cnocr predict`** 预测单个文件或文件夹中所有图片，以下是使用说明：
 
@@ -14,6 +14,8 @@ Usage: cnocr predict [OPTIONS]
 
 Options:
   -m, --model-name TEXT           模型名称。默认值为 densenet_lite_136-fc
+  -b, --model-backend [pytorch|onnx]
+                                  模型类型。默认值为 `onnx`
   -p, --pretrained-model-fp TEXT  使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型
   -c, --context TEXT              使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为
                                   `cpu`
@@ -45,6 +47,8 @@ Usage: cnocr evaluate [OPTIONS]
 
 Options:
   -m, --model-name TEXT           模型名称。默认值为 densenet_lite_136-fc
+  -b, --model-backend [pytorch|onnx]
+                                  模型类型。默认值为 `onnx`
   -p, --pretrained-model-fp TEXT  使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型
   -c, --context TEXT              使用cpu还是 `gpu` 运行代码，也可指定为特定gpu，如`cuda:0`。默认为
                                   `cpu`

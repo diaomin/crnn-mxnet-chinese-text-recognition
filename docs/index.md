@@ -1,14 +1,12 @@
 # CnOcr
 
-**[CnOcr](https://github.com/breezedeus/cnocr)** 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，
-支持**中文**、**英文**的常见字符识别，自带了多个[训练好的识别模型](models.md)，安装后即可直接使用。
-欢迎扫码加入[QQ交流群](contact.md)。
+[**CnOcr**](https://github.com/breezedeus/cnocr) 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**简体中文**、**繁体中文**（部分模型）、**英文**和**数字**的常见字符识别，支持竖排文字的识别。自带了**10+个** [训练好的识别模型](models.md)，安装后即可直接使用。欢迎扫码加入[QQ交流群](contact.md)。
 
 作者也维护 **知识星球** [**CnOCR/CnSTD私享群**](https://t.zsxq.com/FEYZRJQ) ，欢迎加入。**知识星球私享群**会陆续发布一些CnOCR/CnSTD相关的私有资料，包括**更详细的训练教程**，**未公开的模型**，使用过程中遇到的难题解答等。本群也会发布OCR/STD相关的最新研究资料。此外，**私享群中作者每月提供两次免费特有数据的训练服务**。
 
 CnOcr的目标是**使用简单**。
 
-可以使用 [在线 Demo](demo.md) 查看效果。
+可以使用 [**在线 Demo**](demo.md) 查看效果。
 
 ## 安装简单
 
@@ -47,6 +45,19 @@ img_fp = 'examples/multi-line_cn1.png'
 img = read_img(img_fp)
 res = ocr.ocr(img)
 print("Predicted Chars:", res)
+```
+
+返回结果如下：
+
+```bash
+Predicted Chars: [
+    ('网络支付并无本质的区别，因为', 0.996096134185791), 
+    ('每一个手机号码和邮件地址背后', 0.9903925061225891), 
+    ('都会对应着一个账户一一这个账', 0.6401291489601135), 
+    ('户可以是信用卡账户、借记卡账', 0.9446338415145874), 
+    ('户，也包括邮局汇款、手机代', 0.9997618794441223), 
+    ('收、电话代收、预付费卡和点卡', 0.7029080390930176), 
+    ('等多种形式。', 0.8814011812210083)]
 ```
 
 更多说明可见 [使用方法](usage.md)。
@@ -95,4 +106,11 @@ print("Predicted Chars:", res)
 * [x] 优化训练集，去掉不合理的样本；在此基础上，重新训练各个模型
 * [x] 由 MXNet 改为 PyTorch 架构（since `V2.0.0`）
 * [x] 基于 PyTorch 训练更高效的模型
-* [ ] 支持列格式的文字识别
+* [x] 支持列格式的文字识别
+- [ ] 支持与 [CnStd](https://github.com/breezedeus/cnstd) 的无缝衔接
+
+
+
+---
+
+官方代码库：[https://github.com/breezedeus/cnocr](https://github.com/breezedeus/cnocr)。
