@@ -62,4 +62,9 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 * [x] 优化训练集，去掉不合理的样本；在此基础上，重新训练各个模型
 * [x] 由 MXNet 改为 PyTorch 架构（since `V2.0.0`）
 * [x] 基于 PyTorch 训练更高效的模型
-* [ ] 支持列格式的文字识别
+* [x] 支持列格式的文字识别
+* [ ] 支持与 [CnStd](https://github.com/breezedeus/cnstd) 的无缝衔接
+
+---
+
+官方代码库：[https://github.com/breezedeus/cnocr](https://github.com/breezedeus/cnocr)。
