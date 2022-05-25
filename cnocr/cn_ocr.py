@@ -83,7 +83,7 @@ class CnOcr(object):
             rec_cls = Recognizer
         elif self.space == PP_SPACE:
             rec_cls = PPRecognizer
-            if vocab_fp is not None:
+            if vocab_fp is not None and vocab_fp != VOCAB_FP:
                 logger.warning('param `vocab_fp` is invalid for %s models' % PP_SPACE)
         else:
             raise NotImplementedError(
