@@ -69,7 +69,17 @@ setup(
     platforms=["Mac", "Linux", "Windows"],
     packages=find_packages(),
     include_package_data=True,
-    data_files=[('', ['cnocr/label_cn.txt'])],
+    data_files=[
+        (
+            '',
+            [
+                'cnocr/label_cn.txt',
+                'cnocr/ppocr/utils/ppocr_keys_v1.txt',
+                'cnocr/ppocr/utils/en_dict.txt',
+                'cnocr/ppocr/utils/chinese_cht_dict.txt',
+            ],
+        )
+    ],
     entry_points=entry_points,
     install_requires=required,
     extras_require=extras_require,
