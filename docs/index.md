@@ -109,8 +109,6 @@ Predicted Chars: [
 * [x] 支持列格式的文字识别
 - [ ] 支持与 [CnStd](https://github.com/breezedeus/cnstd) 的无缝衔接
 
-
-
 ---
 
 官方代码库：[https://github.com/breezedeus/cnocr](https://github.com/breezedeus/cnocr)。
