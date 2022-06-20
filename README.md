@@ -65,6 +65,10 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 * [x] 支持列格式的文字识别
 * [ ] 支持与 [CnStd](https://github.com/breezedeus/cnstd) 的无缝衔接
 
+## 给作者来杯咖啡
+
+开源不易，如果此项目对您有帮助，可以 [给作者来杯咖啡 ☕️](https://dun.mianbaoduo.com/@breezedeus) 。
+
 ---
 
 官方代码库：[https://github.com/breezedeus/cnocr](https://github.com/breezedeus/cnocr)。
