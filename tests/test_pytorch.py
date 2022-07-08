@@ -19,19 +19,20 @@
 
 import torch
 
-from cnocr.consts import IMG_STANDARD_HEIGHT, ENG_LETTERS, VOCAB_FP
-from cnocr.models.densenet import DenseNet
+from cnocr.consts import IMG_STANDARD_HEIGHT, ENG_LETTERS
 from cnocr.models.ocr_model import OcrModel
 
 
 def test_crnn():
     width = 280
     img = torch.rand(4, 1, IMG_STANDARD_HEIGHT, width)
-    net = DenseNet(32, [2, 2, 2, 2], 64)
+
+    crnn = OcrModel.from_name('densenet_lite_136-fc', ENG_LETTERS)
+    res2 = crnn(img, input_lengths=torch.tensor([width]))
+
+    net = crnn.encoder
     net.eval()
     res = net(img)
     print(res.shape)
 
-    crnn = OcrModel(net, vocab=ENG_LETTERS, lstm_features=512, rnn_units=128)
-    res2 = crnn(img)
     print(res2)

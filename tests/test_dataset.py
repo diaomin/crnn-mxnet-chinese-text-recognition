@@ -6,6 +6,8 @@ import pytest
 
 from torchvision import transforms
 
+from cnocr.consts import VOCAB_FP
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
 
@@ -51,7 +53,7 @@ def test_transformer():
 def test_ocr_data_module():
     data_mod = OcrDataModule(
         index_dir=INDEX_DIR,
-        vocab_fp=EXAMPLE_DIR / 'label_cn.txt',
+        vocab_fp=VOCAB_FP,
         img_folder=EXAMPLE_DIR,
         train_transforms=train_transform,
         val_transforms=val_transform,

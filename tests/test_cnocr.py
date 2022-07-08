@@ -21,6 +21,8 @@ import os
 import sys
 import logging
 import time
+from pprint import pformat
+
 import pytest
 
 import numpy as np
@@ -38,8 +40,7 @@ logger = set_logger(log_level=logging.INFO)
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 example_dir = os.path.join(root_dir, 'docs/examples')
-CNOCR = CnOcr(model_name='densenet_lite_136-fc', model_epoch=None)
-# CNOCR = CnOcr(model_name='ch_ppocr_mobile_v2.0', model_epoch=None)
+CNOCR = CnOcr(rec_model_name='densenet_lite_136-fc', det_model_name='naive_det')
 
 SINGLE_LINE_CASES = [
     ('20457890_2399557098.jpg', ['就会哈哈大笑。3.0']),
@@ -94,7 +95,7 @@ CASES = SINGLE_LINE_CASES + MULTIPLE_LINE_CASES
 
 
 def print_preds(pred):
-    print("Predicted Chars:", pred[0])
+    print("Predicted Chars:\n", pformat(pred))
 
 
 def cal_score(preds, expected):
@@ -104,8 +105,8 @@ def cal_score(preds, expected):
         return 0
     total_cnt = 0
     total_dist = 0
-    for real, (pred, _) in zip(expected, preds):
-        pred = ''.join(pred)
+    for real, _pred in zip(expected, preds):
+        pred = _pred['text']
         distance = Levenshtein.distance(real, pred)
         total_dist += distance
         total_cnt += len(real)
@@ -140,7 +141,11 @@ def test_all_models(img_fp, expected):
     model_name_backend_sets = AVAILABLE_MODELS.all_models()
     for model_name, model_backend in model_name_backend_sets:
         print(f'{model_name=}, {model_backend}')
-        ocr = CnOcr(model_name=model_name, model_backend=model_backend)
+        ocr = CnOcr(
+            rec_model_name=model_name,
+            rec_model_backend=model_backend,
+            det_model_name='naive_det',
+        )
         img_fp = os.path.join(example_dir, img_fp)
 
         pred = ocr.ocr(img_fp)
@@ -214,37 +219,69 @@ def test_ocr_for_single_lines(img_fp, expected):
 def test_cand_alphabet():
     img_fp = os.path.join(example_dir, 'hybrid.png')
 
-    ocr = CnOcr('densenet_lite_136-fc', cand_alphabet=NUMBERS)
+    ocr = CnOcr(
+        'densenet_lite_136-fc', det_model_name='naive_det', cand_alphabet=NUMBERS
+    )
     pt_pred = ocr.ocr(img_fp)
-    pred = [''.join(line_p) for line_p, _ in pt_pred]
+    pred = [line_p['text'] for line_p in pt_pred]
     print("Predicted Chars:", pred)
     assert len(pred) == 1 and pred[0] == '012345678'
 
-    ocr = CnOcr('densenet_lite_136-fc', model_backend='onnx', cand_alphabet=NUMBERS)
+    ocr = CnOcr(
+        'densenet_lite_136-fc',
+        rec_model_backend='onnx',
+        det_model_name='naive_det',
+        cand_alphabet=NUMBERS,
+    )
     onnx_pred = ocr.ocr(img_fp)
-    pred = [''.join(line_p) for line_p, _ in onnx_pred]
+    pred = [line_p['text'] for line_p in onnx_pred]
     print("Predicted Chars:", pred)
     assert len(pred) == 1 and pred[0] == '012345678'
 
-    assert pt_pred[0][0] == onnx_pred[0][0]
-    assert abs(pt_pred[0][1] - onnx_pred[0][1]) < 1e-5
+    assert pt_pred[0]['text'] == onnx_pred[0]['text']
+    assert abs(pt_pred[0]['score'] - onnx_pred[0]['score']) < 1e-5
 
 
 @pytest.mark.parametrize('img_fp, expected', SINGLE_LINE_CASES)
 def test_onnx(img_fp, expected):
     img_fp = os.path.join(example_dir, img_fp)
 
-    pt_ocr = CnOcr('densenet_lite_136-fc', model_backend='pytorch')
+    pt_ocr = CnOcr(
+        'densenet_lite_136-fc', rec_model_backend='pytorch', det_model_name='naive_det'
+    )
     start_time = time.time()
     pt_preds = pt_ocr.ocr_for_single_line(img_fp)
     end_time = time.time()
     print(f'\npytorch time cost {end_time - start_time}', pt_preds)
 
-    onnx_ocr = CnOcr('densenet_lite_136-fc', model_backend='onnx')
+    onnx_ocr = CnOcr(
+        'densenet_lite_136-fc', rec_model_backend='onnx', det_model_name='naive_det'
+    )
     start_time = time.time()
     onnx_preds = onnx_ocr.ocr_for_single_line(img_fp)
     end_time = time.time()
     print(f'onnx time cost {end_time - start_time}', onnx_preds, '\n\n')
 
-    assert pt_preds[0] == onnx_preds[0]
-    assert abs(pt_preds[1] - onnx_preds[1]) < 1e-5
+    assert pt_preds['text'] == onnx_preds['text']
+    assert abs(pt_preds['score'] - onnx_preds['score']) < 1e-5
+
+
+@pytest.mark.parametrize('img_fp, expected', MULTIPLE_LINE_CASES)
+def test_det_rec(img_fp, expected):
+    ocr = CnOcr()
+    img_fp = os.path.join(example_dir, img_fp)
+
+    pred = ocr.ocr(img_fp)
+    print('\n')
+    print_preds(pred)
+    # assert cal_score(pred, expected) >= 0.8
+
+    img = read_img(img_fp)
+    pred = ocr.ocr(img)
+    print_preds(pred)
+    # assert cal_score(pred, expected) >= 0.8
+
+    img = read_img(img_fp, gray=False)
+    pred = ocr.ocr(img)
+    print_preds(pred)
+    # assert cal_score(pred, expected) >= 0.8

@@ -14,6 +14,7 @@ INDEX_DIR = Path(__file__).parent.parent / 'data/test'
 IMAGE_DIR = Path(__file__).parent.parent / 'data/images'
 
 from cnocr import gen_model
+from cnocr.consts import VOCAB_FP
 from cnocr.data_utils.aug import NormalizeAug
 from cnocr.dataset import OcrDataModule
 from cnocr.trainer import PlTrainer
@@ -33,7 +34,7 @@ val_transform = NormalizeAug()
 def test_trainer():
     data_mod = OcrDataModule(
         index_dir=INDEX_DIR,
-        vocab_fp=EXAMPLE_DIR / 'label_cn.txt',
+        vocab_fp=VOCAB_FP,
         img_folder=IMAGE_DIR,
         train_transforms=train_transform,
         val_transforms=val_transform,
@@ -47,14 +48,14 @@ def test_trainer():
         'optimizer': 'adam',
         'learning_rate': 1e-5,
         "lr_scheduler": {
-            "name": "multi_step",
-            "step_size": 2,
-            "gamma": 0.5
+            "name": "cos_warmup",
+            "min_lr_mult_factor": 0.01,
+            "warmup_epochs": 0.2
         },
         "precision": 32,
         "pl_checkpoint_monitor": "complete_match_epoch",
         "pl_checkpoint_mode": "max",
     }
     trainer = PlTrainer(config)
-    model = gen_model('densenet-s-lstm', data_mod.vocab)
+    model = gen_model('densenet_lite_136-fc', data_mod.vocab)
     trainer.fit(model, datamodule=data_mod)
