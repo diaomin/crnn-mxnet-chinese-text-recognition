@@ -169,27 +169,56 @@ def visualize_example(example, fp_prefix):
     save_img(image, '%s-image.jpg' % fp_prefix)
 
 
+def draw_ocr_results(image_fp, ocr_outs, out_draw_fp, font_path):
+    import cv2
+    from PIL import Image
+    from cnocr.ppocr.utility import draw_ocr_box_txt
+
+    img = Image.open(image_fp).convert('RGB')
+
+    txts = []
+    scores = []
+    boxes = []
+    for _out in ocr_outs:
+        txts.append(_out['text'])
+        scores.append(_out['score'])
+        boxes.append(_out['position'])
+
+    draw_img = draw_ocr_box_txt(
+        img, boxes, txts, scores, drop_score=0.0, font_path=font_path
+    )
+
+    cv2.imwrite(out_draw_fp, draw_img[:, :, ::-1])
+    logger.info("The visualized image saved in {}".format(out_draw_fp))
+
+
 @cli.command('predict')
 @click.option(
     '-m',
-    '--model-name',
+    '--rec-model-name',
     type=str,
     default=DEFAULT_MODEL_NAME,
-    help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
+    help='识别模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
 @click.option(
     '-b',
-    '--model-backend',
+    '--rec-model-backend',
     type=click.Choice(['pytorch', 'onnx']),
     default='onnx',
-    help='模型类型。默认值为 `onnx`',
+    help='识别模型类型。默认值为 `onnx`',
+)
+@click.option(
+    '--det-model-name',
+    type=str,
+    default='ch_PP-OCRv3_det',
+    help='检测模型名称。默认值为 ch_PP-OCRv3_det',
 )
 @click.option(
     '-p',
     '--pretrained-model-fp',
     type=str,
     default=None,
-    help='使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
+    help='识别使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
 )
 @click.option(
     "-c",
@@ -205,20 +234,31 @@ def visualize_example(example, fp_prefix):
     is_flag=True,
     help="是否输入图片只包含单行文字。对包含单行文字的图片，不做按行切分；否则会先对图片按行分割后再进行识别",
 )
+@click.option(
+    "--draw-results-dir", default=None, help="画出的检测与识别效果图所存放的目录；取值为 `None` 表示不画图",
+)
+@click.option(
+    "--draw-font-path", default='./docs/fonts/simfang.ttf', help="画出检测与识别效果图时使用的字体文件",
+)
 def predict(
-    model_name,
-    model_backend,
+    rec_model_name,
+    rec_model_backend,
+    det_model_name,
     pretrained_model_fp,
     context,
     img_file_or_dir,
     single_line,
+    draw_results_dir,
+    draw_font_path,
 ):
     """模型预测"""
     ocr = CnOcr(
-        model_name=model_name,
-        model_backend=model_backend,
-        model_fp=pretrained_model_fp,
+        rec_model_name=rec_model_name,
+        rec_model_backend=rec_model_backend,
+        det_model_name=det_model_name,
+        rec_model_fp=pretrained_model_fp,
         context=context,
+        det_more_configs={'rotated_bbox': False},
     )
     ocr_func = ocr.ocr_for_single_line if single_line else ocr.ocr
     fp_list = []
@@ -236,9 +276,26 @@ def predict(
         logger.info(res)
         if single_line:
             res = [res]
-        for line_res in res:
-            preds, prob = line_res
-            logger.info('\npred: %s, with probability %f' % (''.join(preds), prob))
+
+        if not single_line and draw_results_dir is not None:
+            if not os.path.isfile(draw_font_path):
+                logger.error(
+                    'can not find the font file {}, so stop drawing ocr results'.format(
+                        draw_font_path
+                    )
+                )
+            else:
+                os.makedirs(draw_results_dir, exist_ok=True)
+                out_draw_fp = os.path.join(
+                    draw_results_dir, os.path.basename(fp) + '-result.jpg'
+                )
+                draw_ocr_results(
+                    fp, res, out_draw_fp=out_draw_fp, font_path=draw_font_path
+                )
+
+        # for line_res in res:
+        #     preds, prob = line_res['text'], line_res['score']
+        #     logger.info('\npred: %s, with score %f' % (''.join(preds), prob))
 
 
 @cli.command('evaluate')
@@ -247,21 +304,21 @@ def predict(
     '--model-name',
     type=str,
     default=DEFAULT_MODEL_NAME,
-    help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
+    help='识别模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
 @click.option(
     '-b',
     '--model-backend',
     type=click.Choice(['pytorch', 'onnx']),
     default='onnx',
-    help='模型类型。默认值为 `onnx`',
+    help='识别模型类型。默认值为 `onnx`',
 )
 @click.option(
     '-p',
     '--pretrained-model-fp',
     type=str,
     default=None,
-    help='使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
+    help='识别使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
 )
 @click.option(
     "-c",
@@ -310,9 +367,10 @@ def evaluate(
         )
         return
     ocr = CnOcr(
-        model_name=model_name,
-        model_backend=model_backend,
-        model_fp=pretrained_model_fp,
+        rec_model_name=model_name,
+        rec_model_backend=model_backend,
+        rec_model_fp=pretrained_model_fp,
+        det_model_name='naive_det',
         context=context,
     )
 
