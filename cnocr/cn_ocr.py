@@ -48,11 +48,14 @@ class OcrResult(object):
     text: str
     score: float
     position: Optional[np.ndarray] = None
+    cropped_img: np.ndarray = None
 
     def to_dict(self):
         res = deepcopy(self.__dict__)
         if self.position is None:
             res.pop('position')
+        if self.cropped_img is None:
+            res.pop('cropped_img')
         return res
 
 
@@ -173,18 +176,21 @@ class CnOcr(object):
 
     def ocr(
         self,
-        img_fp: Union[str, Path, torch.Tensor, np.ndarray],
+        img_fp: Union[str, Path, Image.Image, torch.Tensor, np.ndarray],
         rec_batch_size=1,
+        return_cropped_image=False,
         **det_kwargs,
     ) -> List[Dict[str, Any]]:
         """
         识别函数。
 
         Args:
-            img_fp (Union[str, Path, torch.Tensor, np.ndarray]): image file path; or color image torch.Tensor or np.ndarray,
-                with shape [height, width] or [height, width, channel].
-                channel should be 1 (gray image) or 3 (RGB formatted color image). scaled in [0, 255].
+            img_fp (Union[str, Path, Image.Image, torch.Tensor, np.ndarray]): image file path;
+                or loaded image by `Image.open()`; or color image torch.Tensor or np.ndarray,
+                    with shape [height, width] or [height, width, channel].
+                    channel should be 1 (gray image) or 3 (RGB formatted color image). scaled in [0, 255].
             rec_batch_size: `batch_size` when recognizing detected text boxes. Default: `1`.
+            return_cropped_image: 是否返回检测出的文本框图片.
             **det_kwargs: kwargs for the detector model when calling its `detect()` function.
               - resized_shape: `int` or `tuple`, `tuple` 含义为 (height, width), `int` 则表示高宽都为此值；
                     检测前，先把原始图片resize到接近此大小（只是接近，未必相等）。默认为 `(768, 768)`。
@@ -201,6 +207,9 @@ class CnOcr(object):
                 - 'score' (float): 识别结果的得分（置信度），取值范围为 `[0, 1]`；得分越高表示越可信
                 - 'position' (np.ndarray or None): 检测出的文字对应的矩形框；np.ndarray, shape: (4, 2)，对应 box 4个点的坐标值 (x, y) ;
                   注：此值只有使用检测模型时才会存在，未使用检测模型时无此值
+                - 'cropped_img' (np.ndarray): 当 `return_cropped_image==True` 时才会有此值。
+                          对应 `position` 中被检测出的图片（RGB格式），会把倾斜的图片旋转为水平。
+                          np.ndarray 类型，shape: (height, width, 3), 取值范围：[0, 255]；
 
             示例：
             ```
@@ -224,8 +233,13 @@ class CnOcr(object):
                'text': '第三行'},
             ```
         """
+        if isinstance(img_fp, Image.Image):  # Image to np.ndarray
+            img_fp = np.asarray(img_fp.convert('RGB'))
+
         if self.det_model is not None:
-            return self._ocr_with_det_model(img_fp, rec_batch_size, **det_kwargs)
+            return self._ocr_with_det_model(
+                img_fp, rec_batch_size, return_cropped_image, **det_kwargs
+            )
 
         img = self._prepare_img(img_fp)
 
@@ -240,13 +254,17 @@ class CnOcr(object):
         line_chars_list = self.ocr_for_single_lines(
             line_img_list, batch_size=rec_batch_size
         )
+        if return_cropped_image:
+            for _out, line_img in zip(line_chars_list, line_img_list):
+                _out['cropped_img'] = line_img
 
         return line_chars_list
 
     def _ocr_with_det_model(
         self,
         img: Union[str, Path, torch.Tensor, np.ndarray],
-        rec_batch_size=1,
+        rec_batch_size: int,
+        return_cropped_image: bool,
         **det_kwargs,
     ) -> List[Dict[str, Any]]:
         if isinstance(img, torch.Tensor):
@@ -271,6 +289,8 @@ class CnOcr(object):
         for box_info, ocr_out in zip(box_infos['detected_texts'], ocr_outs):
             _out = OcrResult(**ocr_out)
             _out.position = box_info['box']
+            if return_cropped_image:
+                _out.cropped_img = box_info['cropped_img']
             results.append(_out.to_dict())
 
         return results

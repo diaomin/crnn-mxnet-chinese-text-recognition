@@ -214,6 +214,12 @@ def draw_ocr_results(image_fp, ocr_outs, out_draw_fp, font_path):
     help='检测模型名称。默认值为 ch_PP-OCRv3_det',
 )
 @click.option(
+    '--det-model-backend',
+    type=click.Choice(['pytorch', 'onnx']),
+    default='onnx',
+    help='检测模型类型。默认值为 `onnx`',
+)
+@click.option(
     '-p',
     '--pretrained-model-fp',
     type=str,
@@ -244,6 +250,7 @@ def predict(
     rec_model_name,
     rec_model_backend,
     det_model_name,
+    det_model_backend,
     pretrained_model_fp,
     context,
     img_file_or_dir,
@@ -256,9 +263,10 @@ def predict(
         rec_model_name=rec_model_name,
         rec_model_backend=rec_model_backend,
         det_model_name=det_model_name,
+        det_model_backend=det_model_backend,
         rec_model_fp=pretrained_model_fp,
         context=context,
-        det_more_configs={'rotated_bbox': False},
+        # det_more_configs={'rotated_bbox': False},
     )
     ocr_func = ocr.ocr_for_single_line if single_line else ocr.ocr
     fp_list = []
@@ -271,7 +279,11 @@ def predict(
     for fp in fp_list:
         start_time = time.time()
         logger.info('\n' + '=' * 10 + fp + '=' * 10)
-        res = ocr_func(fp)
+        res = ocr_func(fp,
+                       # resized_shape=2280,
+                       # box_score_thresh=0.14,
+                       # min_box_size=20,
+                       )
         logger.info('time cost: %f' % (time.time() - start_time))
         logger.info(res)
         if single_line:
