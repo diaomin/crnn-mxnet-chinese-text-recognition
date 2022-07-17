@@ -69,6 +69,8 @@ print(out)
 <div align="center">
   <img src="./docs/predict-outputs/huochepiao.jpeg-result.jpg" alt="火车票识别" width="800px"/>
 </div>
+
+
 ### 排版简单的印刷体截图图片识别
 
 针对 **排版简单的印刷体文字图片**，如截图图片，扫描件图片等，可使用 `det_model_name='naive_det'`，相当于不使用文本检测模型，而使用简单的规则进行分行。
@@ -88,6 +90,8 @@ print(out)
 | 图片                                                                      | OCR结果                                                                                                                         |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | ![docs/examples/multi-line_cn1.png](./docs/examples/multi-line_cn1.png) | 网络支付并无本质的区别，因为<br />每一个手机号码和邮件地址背后<br />都会对应着一个账户--这个账<br />户可以是信用卡账户、借记卡账<br />户，也包括邮局汇款、手机代<br />收、电话代收、预付费卡和点卡<br />等多种形式。 |
+
+
 
 ### 竖排文字识别
 
@@ -128,6 +132,8 @@ print(out)
 <div align="center">
   <img src="./docs/predict-outputs/en_book1.jpeg-result.jpg" alt="英文识别" width="600px"/>
 </div>
+
+
 ### 繁体中文识别
 
 采用来自ppocr的繁体识别模型 `rec_model_name='chinese_cht_PP-OCRv3'` 进行识别。
