@@ -2,14 +2,13 @@
   <img src="./docs/figs/breezedeus.png" width="250px"/>
   <div>&nbsp;</div>
 
-[![Docs](https://readthedocs.org/projects/cnocr/badge/?version=latest)](https://cnocr.readthedocs.io/zh/latest/?badge=latest)
 [![license](https://img.shields.io/github/license/breezedeus/cnocr)](./LICENSE)
+[![Docs](https://readthedocs.org/projects/cnocr/badge/?version=latest)](https://cnocr.readthedocs.io/zh/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/cnocr.svg)](https://badge.fury.io/py/cnocr)
 [![forks](https://img.shields.io/github/forks/breezedeus/cnocr)](https://github.com/breezedeus/cnocr)
 [![stars](https://img.shields.io/github/stars/breezedeus/cnocr)](https://github.com/breezedeus/cnocr)
 ![last-releast](https://img.shields.io/github/release-date/breezedeus/cnocr)
 ![last-commit](https://img.shields.io/github/last-commit/breezedeus/cnocr)
-[![Percentage of issues still open](https://img.shields.io/github/issues/breezedeus/cnocr)](https://github.com/breezedeus/cnocr/issues)
 [![Twitter](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fbreezedeus)](https://twitter.com/breezedeus)
 
 [📖文档](https://cnocr.readthedocs.io/zh/latest/) |
