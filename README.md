@@ -202,7 +202,7 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 
 更多说明可见 [安装文档](https://cnocr.readthedocs.io/zh/latest/install/)。
 
-> **Note** 
+> **Warning** 
 >
 > 如果电脑中从未安装过 `PyTorch`，`OpenCV` python包，初次安装可能会遇到问题，但一般都是常见问题，可以自行百度/Google解决。
 
