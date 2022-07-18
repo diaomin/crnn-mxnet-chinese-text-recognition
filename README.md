@@ -25,7 +25,6 @@
 
 </div>
 
-
 # CnOCR
 
 [**CnOCR**](https://github.com/breezedeus/cnocr) 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**简体中文**、**繁体中文**（部分模型）、**英文**和**数字**的常见字符识别，支持竖排文字的识别。自带了**20+个** [训练好的识别模型](https://cnocr.readthedocs.io/zh/latest/models/)，适用于不同应用场景，安装后即可直接使用。欢迎扫码加入微信交流群：
@@ -102,7 +101,7 @@ print(out)
 from cnocr import CnOcr
 
 img_fp = './docs/examples/shupai.png'
-ocr = CnOcr(rec_model_name='ch_PP-OCRv3)
+ocr = CnOcr(rec_model_name='ch_PP-OCRv3')
 out = ocr.ocr(img_fp)
 
 print(out)
