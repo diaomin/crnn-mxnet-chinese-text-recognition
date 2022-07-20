@@ -94,7 +94,7 @@ class CnOcr(object):
                 若训练的自有模型更改了字符集，看通过此参数传入新的字符集文件路径。
             rec_more_configs (Optional[Dict[str, Any]]): 识别模型初始化时传入的其他参数。
             rec_root (Union[str, Path]): 识别模型文件所在的根目录。
-                Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.1/densenet_lite_136-fc`。
+                Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.2/densenet_lite_136-fc`。
                 Windows下默认值为 `C:/Users/<username>/AppData/Roaming/cnocr`。
             det_model_fp (Optional[str]): 如果不使用系统自带的检测模型，可以通过此参数直接指定所使用的模型文件（'.ckpt' 文件）
             det_model_backend (str): 'pytorch', or 'onnx'。表明检测时是使用 PyTorch 版本模型，还是使用 ONNX 版本模型。

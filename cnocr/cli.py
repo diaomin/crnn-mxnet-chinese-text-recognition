@@ -208,6 +208,7 @@ def draw_ocr_results(image_fp, ocr_outs, out_draw_fp, font_path):
     help='识别模型类型。默认值为 `onnx`',
 )
 @click.option(
+    '-d',
     '--det-model-name',
     type=str,
     default='ch_PP-OCRv3_det',

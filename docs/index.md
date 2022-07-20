@@ -1,6 +1,6 @@
-# CnOcr
+# CnOCR
 
-[**CnOcr**](https://github.com/breezedeus/cnocr) 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**简体中文**、**繁体中文**（部分模型）、**英文**和**数字**的常见字符识别，支持竖排文字的识别。自带了**10+个** [训练好的识别模型](models.md)，安装后即可直接使用。欢迎扫码加入[QQ交流群](contact.md)。
+[**CnOCR**](https://github.com/breezedeus/cnocr) 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**简体中文**、**繁体中文**（部分模型）、**英文**和**数字**的常见字符识别，支持竖排文字的识别。自带了**20+个** [训练好的识别模型](models.md)，适用于不同应用场景，安装后即可直接使用。欢迎扫码加入[QQ交流群](contact.md)。
 
 作者也维护 **知识星球** [**CnOCR/CnSTD私享群**](https://t.zsxq.com/FEYZRJQ) ，欢迎加入。**知识星球私享群**会陆续发布一些CnOCR/CnSTD相关的私有资料，包括**更详细的训练教程**，**未公开的模型**，使用过程中遇到的难题解答等。本群也会发布OCR/STD相关的最新研究资料。此外，**私享群中作者每月提供两次免费特有数据的训练服务**。
 
@@ -17,6 +17,8 @@ pip install cnocr
 ```
 
 更多说明可见 [安装文档](install.md)。
+
+> 如果电脑中从未安装过 `PyTorch`，`OpenCV` python包，初次安装可能会遇到问题，但一般都是常见问题，可以自行百度/Google解决。
 
 ## 使用简单
 

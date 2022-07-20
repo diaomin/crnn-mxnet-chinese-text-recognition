@@ -54,7 +54,8 @@ yarl==1.6.3               # via aiohttp
 # setuptools
 
 # for mkdocs
-mkdocs
-mkdocs-macros-plugin
-mkdocs-material
-mkdocstrings
+mkdocs==1.2.2
+mkdocs-macros-plugin==0.6.0
+mkdocs-material==7.3.0
+mkdocs-material-extensions==1.0.3
+mkdocstrings==0.16.1

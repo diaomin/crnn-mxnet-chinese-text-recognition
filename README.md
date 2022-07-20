@@ -14,7 +14,7 @@
 [📖文档](https://cnocr.readthedocs.io/zh/latest/) |
 [🛠️安装](https://cnocr.readthedocs.io/zh/latest/install/) |
 [🧳自带模型](https://cnocr.readthedocs.io/zh/latest/models/) |
-[🔔在线Demo](https://share.streamlit.io/breezedeus/cnstd/st-deploy/cnstd/app.py) |
+[📟在线Demo](https://share.streamlit.io/breezedeus/cnstd/st-deploy/cnstd/app.py) |
 [💬交流群](https://cnocr.readthedocs.io/zh/latest/contact/)
 
 </div>
@@ -162,6 +162,26 @@ print(out)
 </div>
 
 
+### 单行文字的图片识别
+
+如果明确知道待识别的图片是单行文字图片（如下图），可以使用类函数 `CnOcr.ocr_for_single_line()` 进行识别。这样就省掉了文字检测的时间，速度会快一倍以上。
+
+<div align="center">
+  <img src="./docs/examples/helloworld.jpg" alt="单行文本识别" width="300px"/>
+</div>
+调用代码如下：
+
+```python
+from cnocr import CnOcr
+
+img_fp = './docs/examples/helloworld.jpg'
+ocr = CnOcr()
+out = ocr.ocr_for_single_line(img_fp)
+print(out)
+```
+
+
+
 ### 更多应用示例
 
 * **核酸疫苗截图识别**
@@ -240,7 +260,7 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 | ch_PP-OCRv3               | X            | √         | ppocr        | 10 M         | 简体中文、英文、数字     | √                    |
 | ch_ppocr_mobile_v2.0      | X            | √         | ppocr        | 4.2 M        | 简体中文、英文、数字     | √                    |
 | **en_PP-OCRv3**           | X            | √         | ppocr        | 8.5 M        | **英文**、数字           | √                    |
-| **en_number_mobile_v2.0** | X            | √         | ppocr        | 1.8M         | **英文**、数字           | √                    |
+| **en_number_mobile_v2.0** | X            | √         | ppocr        | 1.8 M        | **英文**、数字           | √                    |
 | **chinese_cht_PP-OCRv3**  | X            | √         | ppocr        | 11 M         | **繁体中文**、英文、数字 | X                    |
 
 ## 未来工作
@@ -256,7 +276,7 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 * [x] 基于 PyTorch 训练更高效的模型
 * [x] 支持列格式的文字识别
 * [x] 打通与 [CnStd](https://github.com/breezedeus/cnstd) 的无缝衔接（since `V2.2`）
-- [ ] 支持更多的应用场景，如公式识别、表格识别、版面分析等
+* [ ] 支持更多的应用场景，如公式识别、表格识别、版面分析等
 
 ## 给作者来杯咖啡
 
