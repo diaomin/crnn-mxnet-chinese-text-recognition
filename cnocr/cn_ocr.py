@@ -186,27 +186,28 @@ class CnOcr(object):
 
         Args:
             img_fp (Union[str, Path, Image.Image, torch.Tensor, np.ndarray]): image file path;
-                or loaded image by `Image.open()`; or color image torch.Tensor or np.ndarray,
+                or loaded image by `Image.open()`;
+                or color image torch.Tensor or np.ndarray,
                     with shape [height, width] or [height, width, channel].
-                    channel should be 1 (gray image) or 3 (RGB formatted color image). scaled in [0, 255].
+                    channel should be 1 (gray image) or 3 (RGB formatted color image). scaled in [0, 255];
             rec_batch_size: `batch_size` when recognizing detected text boxes. Default: `1`.
-            return_cropped_image: 是否返回检测出的文本框图片.
+            return_cropped_image: 是否返回检测出的文本框图片数据.
             **det_kwargs: kwargs for the detector model when calling its `detect()` function.
-              - resized_shape: `int` or `tuple`, `tuple` 含义为 (height, width), `int` 则表示高宽都为此值；
-                    检测前，先把原始图片resize到接近此大小（只是接近，未必相等）。默认为 `(768, 768)`。
-                    注：这个取值对检测结果的影响较大，可以针对自己的应用多尝试几组值，再选出最优值。
-                        例如 (512, 768), (768, 768), (768, 1024)等。
-              - preserve_aspect_ratio: 对原始图片resize时是否保持高宽比不变。默认为 `True`。
-              - min_box_size: 如果检测出的文本框高度或者宽度低于此值，此文本框会被过滤掉。默认为 `8`，也即高或者宽低于 `8` 的文本框会被过滤去掉。
-              - box_score_thresh: 过滤掉得分低于此值的文本框。默认为 `0.3`。
-              - batch_size: 待处理图片很多时，需要分批处理，每批图片的数量由此参数指定。默认为 `20`。
+                - resized_shape: `int` or `tuple`, `tuple` 含义为 (height, width), `int` 则表示高宽都为此值；
+                      检测前，先把原始图片resize到接近此大小（只是接近，未必相等）。默认为 `(768, 768)`。
+                      注：这个取值对检测结果的影响较大，可以针对自己的应用多尝试几组值，再选出最优值。
+                          例如 (512, 768), (768, 768), (768, 1024)等。
+                - preserve_aspect_ratio: 对原始图片resize时是否保持高宽比不变。默认为 `True`。
+                - min_box_size: 如果检测出的文本框高度或者宽度低于此值，此文本框会被过滤掉。默认为 `8`，也即高或者宽低于 `8` 的文本框会被过滤去掉。
+                - box_score_thresh: 过滤掉得分低于此值的文本框。默认为 `0.3`。
+                - batch_size: 待处理图片很多时，需要分批处理，每批图片的数量由此参数指定。默认为 `20`。
 
         Returns:
             list of detected texts, which element is a dict, with keys:
                 - 'text' (str): 识别出的文本
                 - 'score' (float): 识别结果的得分（置信度），取值范围为 `[0, 1]`；得分越高表示越可信
                 - 'position' (np.ndarray or None): 检测出的文字对应的矩形框；np.ndarray, shape: (4, 2)，对应 box 4个点的坐标值 (x, y) ;
-                  注：此值只有使用检测模型时才会存在，未使用检测模型时无此值
+                  注：此值只有使用检测模型时才会存在，未使用检测模型（`det_model_name=='naive_det'`）时无此值
                 - 'cropped_img' (np.ndarray): 当 `return_cropped_image==True` 时才会有此值。
                           对应 `position` 中被检测出的图片（RGB格式），会把倾斜的图片旋转为水平。
                           np.ndarray 类型，shape: (height, width, 3), 取值范围：[0, 255]；
@@ -230,7 +231,8 @@ class CnOcr(object):
                     [541., 141.],
                     [ 28., 140.]], dtype=float32),
                'score': 0.7850906848907471,
-               'text': '第三行'},
+               'text': '第三行'}
+             ]
             ```
         """
         if isinstance(img_fp, Image.Image):  # Image to np.ndarray
@@ -347,7 +349,7 @@ class CnOcr(object):
             示例：
             ```
              {'score': 0.8812797665596008,
-              'text': '第一行'}
+              'text': '当前行'}
             ```
         """
         img = self._prepare_img(img_fp)
@@ -384,7 +386,8 @@ class CnOcr(object):
               {'score': 0.859879732131958,
                'text': '第二行'},
               {'score': 0.7850906848907471,
-               'text': '第三行'},
+               'text': '第三行'}
+             ]
             ```
         """
         if len(img_list) == 0:

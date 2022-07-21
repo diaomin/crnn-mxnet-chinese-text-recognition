@@ -196,7 +196,7 @@ print(out)
 
 * **饭店小票识别**
 <div align="center">
-  <img src="./docs/predict-outputs/fapiao.jpeg-result.jpg" alt="饭店识别" width="500px"/>
+  <img src="./docs/predict-outputs/fapiao.jpeg-result.jpg" alt="饭店小票识别" width="500px"/>
 </div>
   
 
@@ -228,9 +228,9 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 
 
 
-## 自带的模型
+## 可使用的模型
 
-### 自带的检测模型
+### 可使用的检测模型
 
 | `det_model_name`                                             | PyTorch 版本 | ONNX 版本 | 模型原始来源 | 模型文件大小 | 支持语言                       | 是否支持竖排文字识别 |
 | ------------------------------------------------------------ | ------------ | --------- | ------------ | ------------ | ------------------------------ | -------------------- |
@@ -247,7 +247,7 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 
 
 
-### 自带的识别模型
+### 可使用的识别模型
 
 | `rec_model_name`          | PyTorch 版本 | ONNX 版本 | 模型原始来源 | 模型文件大小 | 支持语言                 | 是否支持竖排文字识别 |
 | ------------------------- | ------------ | --------- | ------------ | ------------ | ------------------------ | -------------------- |
