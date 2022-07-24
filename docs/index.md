@@ -237,9 +237,9 @@ print(out)
 * [x] 打通与 [CnStd](https://github.com/breezedeus/cnstd) 的无缝衔接（since `V2.2`）
 * [ ] 支持更多的应用场景，如公式识别、表格识别、版面分析等
 
-## 给作者来杯咖啡
+## 给作者加油鼓气
 
-开源不易，如果此项目对您有帮助，可以考虑 [给作者来杯咖啡 ☕️](https://dun.mianbaoduo.com/@breezedeus) 。
+开源不易，如果此项目对您有帮助，可以考虑 [给作者加点油🥤，鼓鼓气💪🏻](buymeacoffee.md) 。
 
 ---
 
