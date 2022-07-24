@@ -49,10 +49,24 @@ class PPRecognizer(Recognizer):
         cand_alphabet: Optional[Union[Collection, str]] = None,
         model_fp: Optional[str] = None,
         root: Union[str, Path] = data_dir(),
-        rec_image_shape="3, 32, 320",
-        use_space_char=True,
+        rec_image_shape: str = "3, 32, 320",
+        use_space_char: bool = True,
         **kwargs
     ):
+        """
+        来自 ppocr 的文本识别器。
+
+        Args:
+            model_name (str): 模型名称。默认为 `ch_PP-OCRv3`
+            cand_alphabet (Optional[Union[Collection, str]]): 待识别字符所在的候选集合。默认为 `None`，表示不限定识别字符范围
+            model_fp (Optional[str]): 如果不使用系统自带的模型，可以通过此参数直接指定所使用的模型文件（'.ckpt' 文件）
+            root (Union[str, Path]): 模型文件所在的根目录
+                Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.1/densenet_lite_136-fc`
+                Windows下默认值为 `C:/Users/<username>/AppData/Roaming/cnocr`
+            rec_image_shape (str): 输入图片尺寸，无需更改使用默认值即可。默认值：`"3, 32, 320"`
+            use_space_char (bool): 是否使用空格字符，无需更改使用默认值即可。默认值：`True`
+            **kwargs: 目前未被使用。
+        """
         self.rec_image_shape = [int(v) for v in rec_image_shape.split(",")]
         self.rec_algorithm = 'CRNN'
         self._model_name = model_name
@@ -131,10 +145,24 @@ class PPRecognizer(Recognizer):
         return padding_im
 
     def recognize(
-            self,
-            img_list: List[Union[str, Path, np.ndarray]],
-            batch_size: int = 1,
+        self, img_list: List[Union[str, Path, np.ndarray]], batch_size: int = 1,
     ) -> List[Tuple[str, float]]:
+        """
+        Batch recognize characters from a list of one-line-characters images.
+
+        Args:
+            img_list (List[Union[str, Path, np.ndarray]]):
+                list of images, in which each element should be a line image array with np.ndarray.
+                Each element should be a tensor with values ranging from 0 to 255,
+                and with shape [height, width] or [height, width, channel].
+                The optional channel should be 1 (gray image) or 3 (RGB-format color image).
+                注：img_list 不宜包含太多图片，否则同时导入这些图片会消耗很多内存。
+            batch_size: 待处理图片很多时，需要分批处理，每批图片的数量由此参数指定。默认为 `1`。
+
+        Returns:
+            list: list of (chars, prob), such as
+            [('第一行', 0.80), ('第二行', 0.75), ('第三行', 0.9)]
+        """
         if len(img_list) == 0:
             return []
 
@@ -176,9 +204,7 @@ class PPRecognizer(Recognizer):
                 rec_res[indices[beg_img_no + rno]] = rec_result[rno]
         return rec_res
 
-    def _prepare_img(
-            self, img_fp: Union[str, Path, np.ndarray]
-    ) -> np.ndarray:
+    def _prepare_img(self, img_fp: Union[str, Path, np.ndarray]) -> np.ndarray:
         """
 
         Args:

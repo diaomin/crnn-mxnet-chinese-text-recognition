@@ -52,6 +52,7 @@ markdown_extensions:
   - pymdownx.details #  collapsible alerts
   - pymdownx.superfences # nest code and content inside alerts
   - attr_list # add HTML and CSS to Markdown elements
+  - md_in_html
   - pymdownx.inlinehilite # inline code highlights
   - pymdownx.keys # show keystroke symbols
   - pymdownx.snippets # insert content from other files
@@ -96,18 +97,19 @@ extra_javascript:
 
 # Page tree
 nav:
-  - Home: index.md
-  - Docs:
-      - 场景文字识别技术介绍: std_ocr.md
+  - 首页: index.md
+  - 详细文档:
       - 安装: install.md
-      - 使用方法: usage.md
-      - 命令行工具: command.md
+      - 使用说明: usage.md
       - 在线 Demo: demo.md
-      - 自带模型: models.md
-      - 文本检测CnStd + 文字识别CnOcr: cnstd_cnocr.md
+      - 命令行工具: command.md
+      - 可用模型: models.md
       - 模型训练: train.md
-      - QQ交流群: contact.md
+      - OCR技术介绍: std_ocr.md
+      - 交流群: contact.md
       - 常见问题（FAQ）: faq.md
       - RELEASE 文档: RELEASE.md
-  - Python API:
+  - 接口说明:
     - CnOcr 类: cnocr/cn_ocr.md
+    - Recognizer 类: cnocr/recognizer.md
+    - ppocr.PPRecognizer 类: cnocr/pp_recognizer.md

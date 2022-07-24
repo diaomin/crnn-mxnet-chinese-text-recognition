@@ -1,10 +1,10 @@
 # 可用的模型
 
-CnOCR 自 **V2.1.2** 之后，可直接使用的模型包含两类：1）CnOCR 自己训练的模型，通常会包含 PyTorch 和 ONNX 版本；2）从其他ocr引擎搬运过来的训练好的外部模型，ONNX化后用于 CnOCR 中。
-
 直接使用的模型都放在 [**cnstd-cnocr-models**](https://huggingface.co/breezedeus/cnstd-cnocr-models) 项目中，可免费下载使用。具体方法可参考 [使用方法](usage.md) 。
 
-模型又分为两大类，1）来自 **[CnSTD](https://github.com/breezedeus/cnstd)** 的检测模型；2）CnOCR 的识别模型。
+模型分为两大类，1）来自 **[CnSTD](https://github.com/breezedeus/cnstd)** 的**检测模型**；2）来自 CnOCR 的**识别模型**。
+
+
 
 ## 检测模型
 
@@ -29,6 +29,10 @@ CnOCR 自 **V2.1.2** 之后，可直接使用的模型包含两类：1）CnOCR �
 > 列 **`PyTorch 版本`** 为 `√` 表示此模型支持 `det_model_backend=='pytorch'`；列 **`ONNX 版本`** 为 `√` 表示此模型支持 `det_model_backend=='onnx'`；取值为 `X` 则表示不支持对应的取值。
 
 ## 识别模型
+
+CnOCR 自 **V2.1.2** 之后，可直接使用的识别模型包含两类：1）CnOCR 自己训练的模型，通常会包含 PyTorch 和 ONNX 版本；2）从其他ocr引擎搬运过来的训练好的外部模型，ONNX化后用于 CnOCR 中。
+
+
 
 ### 1) CnOCR 自己训练的模型
 

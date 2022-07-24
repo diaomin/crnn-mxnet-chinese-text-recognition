@@ -53,6 +53,8 @@ class CnOcr(object):
 
 * `rec_vocab_fp`：识别字符集合的文件路径，即 `label_cn.txt` 文件路径。若训练的自有模型更改了字符集，看通过此参数传入新的字符集文件路径。
 
+* `rec_more_configs`：`dict`，识别模型初始化时传入的其他参数。具体可参考 [Recognizer](cnocr/recognizer.md) 和 [PPRecognizer](cnocr/pp_recognizer.md) 中的 `__init__` 接口。
+	
 * `rec_root`:  识别模型文件所在的根目录。
 	* Linux/Mac下默认值为 `~/.cnocr`，表示模型文件所处文件夹类似 `~/.cnocr/2.2/densenet_lite_136-fc`。
 	* Windows下默认值为 `C:\Users\<username>\AppData\Roaming\cnocr`。
@@ -60,6 +62,8 @@ class CnOcr(object):
 * `det_model_fp`:  如果不使用系统自带的检测模型，可以通过此参数直接指定所使用的模型文件（`.ckpt` 或 `.onnx` 文件）。
 
 * `det_model_backend`：'pytorch', or 'onnx'。表明检测时是使用 `PyTorch` 版本模型，还是使用 `ONNX` 版本模型。 **同样的模型，ONNX 版本的预测速度一般是 PyTorch 版本的 2倍左右。** 默认为 'onnx'。
+
+* `det_more_configs`： `dict`，识别模型初始化时传入的其他参数。具体可参考 [CnSTD 文档](https://github.com/breezedeus/cnstd)，或者相关的源代码 [CnSTD/CnStd](https://github.com/breezedeus/cnstd/blob/master/cnstd/cn_std.py) 。
 
 * `det_root`:  检测模型文件所在的根目录。
 	* Linux/Mac下默认值为 `~/.cnstd`，表示模型文件所处文件夹类似 `~/.cnstd/1.2/db_resnet18`。
@@ -259,8 +263,9 @@ print(out)
 
 识别结果：
 
-![火车票识别](predict-outputs/huochepiao.jpeg-result.jpg)
-
+<figure markdown>
+![火车票识别](predict-outputs/huochepiao.jpeg-result.jpg){: style="width:700px"}
+</figure>
 
 
 
@@ -280,12 +285,15 @@ out = ocr.ocr(img_fp)
 print(out)
 ```
 
+识别结果：
 
+<figure markdown>
 
 | 图片                                                         | OCR结果                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png) | 网络支付并无本质的区别，因为<br />每一个手机号码和邮件地址背后<br />都会对应着一个账户--这个账<br />户可以是信用卡账户、借记卡账<br />户，也包括邮局汇款、手机代<br />收、电话代收、预付费卡和点卡<br />等多种形式。 |
 
+</figure>
 
 
 ### 竖排文字识别
@@ -303,9 +311,9 @@ print(out)
 ```
 
 识别结果：
-
-![竖排文字识别](./predict-outputs/shupai.png-result.jpg)
-
+<figure markdown>
+![竖排文字识别](./predict-outputs/shupai.png-result.jpg){: style="width:750px"}
+</figure>
 
 
 ### 英文识别
@@ -324,8 +332,9 @@ print(out)
 
 识别结果：
 
-![英文识别](./predict-outputs/en_book1.jpeg-result.jpg)
-
+<figure markdown>
+![英文识别](./predict-outputs/en_book1.jpeg-result.jpg){: style="width:670px"}
+</figure>
 
 
 ### 繁体中文识别
@@ -352,8 +361,9 @@ print(out)
 
 识别结果：
 
-![繁体中文识别](./predict-outputs/fanti.jpg-result.jpg)
-
+<figure markdown>
+![繁体中文识别](./predict-outputs/fanti.jpg-result.jpg){: style="width:700px"}
+</figure>
 
 
 
@@ -361,8 +371,9 @@ print(out)
 
 如果明确知道待识别的图片是单行文字图片（如下图），可以使用类函数 `CnOcr.ocr_for_single_line()` 进行识别。这样就省掉了文字检测的时间，速度会快一倍以上。
 
-![单行文本识别](./examples/helloworld.jpg)
-
+<figure markdown>
+![单行文本识别](./examples/helloworld.jpg){: style="width:270px"}
+</figure>
 
 调用代码如下：
 
@@ -380,20 +391,19 @@ print(out)
 ### 更多应用示例
 
 * **核酸疫苗截图识别**
-
-	![核酸疫苗截图识别](./predict-outputs/jiankangbao.jpeg-result.jpg)
-
+	<figure markdown>
+	![核酸疫苗截图识别](./predict-outputs/jiankangbao.jpeg-result.jpg){: style="width:600px"}
+	</figure>
 
 * **身份证识别**
-
-	![身份证识别](./predict-outputs/aobama.webp-result.jpg)
-
+	<figure markdown>
+	![身份证识别](./predict-outputs/aobama.webp-result.jpg){: style="width:700px"}
+	</figure>
 
 * **饭店小票识别**
+	<figure markdown>
+	![饭店小票识别](./predict-outputs/fapiao.jpeg-result.jpg){: style="width:550px"}
+	</figure>
 
-	![饭店小票识别](./predict-outputs/fapiao.jpeg-result.jpg)
 
 
-  
-
-  
