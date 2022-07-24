@@ -177,7 +177,7 @@ def download(url, path=None, overwrite=False, sha1_hash=None):
         if not os.path.exists(dirname):
             os.makedirs(dirname)
 
-        print('Downloading %s from %s...' % (fname, url))
+        logger.info('Downloading %s from %s...' % (fname, url))
         r = requests.get(url, stream=True)
         if r.status_code != 200:
             raise RuntimeError("Failed downloading url %s" % url)

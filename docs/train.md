@@ -38,7 +38,9 @@ Options:
 
 具体使用也可参考文件 [Makefile](https://github.com/breezedeus/cnocr/blob/master/Makefile) 。
 
-# 模型精调
+
+
+## 模型精调
 
 如果需要在已有模型的基础上精调模型，需要把训练配置中的学习率设置的较小，`lr_scheduler`的设置可参考以下：
 
@@ -54,6 +56,8 @@ Options:
 
 > 注：需要尽量避免过度精调！
 
-# 详细训练教程和训练过程作者答疑
+
+
+## 详细训练教程和训练过程作者答疑
 
 [**模型训练详细教程**](https://articles.zsxq.com/id_u6b4u0wrf46e.html) 见作者的 **知识星球** [CnOCR/CnSTD私享群](https://t.zsxq.com/FEYZRJQ) ，加入私享群后作者也会尽力解答训练过程中遇到的问题。此外，私享群中作者每月提供两次免费特有数据的训练服务。**抱歉的是，私享群不是免费的。**

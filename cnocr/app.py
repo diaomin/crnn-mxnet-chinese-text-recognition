@@ -27,9 +27,10 @@ import streamlit as st
 from cnstd.utils import pil_to_numpy, imsave
 
 from cnocr import CnOcr, DET_AVAILABLE_MODELS, REC_AVAILABLE_MODELS
-from cnocr.utils import draw_ocr_results, download
+from cnocr.utils import set_logger, draw_ocr_results, download
 
 
+logger = set_logger()
 st.set_page_config(layout="wide")
 
 

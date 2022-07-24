@@ -285,7 +285,7 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 
 ## 给作者来杯咖啡
 
-开源不易，如果此项目对您有帮助，可以考虑 [给作者来杯咖啡 ☕️](https://dun.mianbaoduo.com/@breezedeus) 。
+开源不易，如果此项目对您有帮助，可以考虑 [给作者加点油🥤，鼓鼓气💪🏻](https://cnocr.readthedocs.io/zh/latest/buymeacoffee/) 。
 
 ---
 
