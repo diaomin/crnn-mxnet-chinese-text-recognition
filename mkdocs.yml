@@ -99,16 +99,17 @@ extra_javascript:
 nav:
   - 首页: index.md
   - 详细文档:
-      - 安装: install.md
-      - 使用说明: usage.md
-      - 在线 Demo: demo.md
-      - 命令行工具: command.md
-      - 可用模型: models.md
-      - 模型训练: train.md
-      - OCR技术介绍: std_ocr.md
-      - 交流群: contact.md
-      - 常见问题（FAQ）: faq.md
-      - RELEASE 文档: RELEASE.md
+      - 🛠️ 安装: install.md
+      - 📖 使用说明: usage.md
+      - 🛀🏻 在线Demo: demo.md
+      - 🏄🏻 ‍️命令行工具: command.md
+      - 🧳 可用模型: models.md
+      - 🕹 模型训练: train.md
+      - 📡 OCR技术介绍: std_ocr.md
+      - 💬 交流群: contact.md
+      - 🥤 给作者加油: buymeacoffee.md
+      - 🙋🏽 常见问题（FAQ）: faq.md
+      - 🗒 RELEASE说明: RELEASE.md
   - 接口说明:
     - CnOcr 类: cnocr/cn_ocr.md
     - Recognizer 类: cnocr/recognizer.md

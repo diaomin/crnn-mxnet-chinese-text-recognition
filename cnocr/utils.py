@@ -418,8 +418,9 @@ def mask_by_candidates(
 
 
 def draw_ocr_results(image_fp: Union[str, Path, Image.Image], ocr_outs, out_draw_fp, font_path):
+    # Credits: adapted from https://github.com/PaddlePaddle/PaddleOCR
     import cv2
-    from cnocr.ppocr.utility import draw_ocr_box_txt
+    from .ppocr.utility import draw_ocr_box_txt
 
     if isinstance(image_fp, (str, Path)):
         img = Image.open(image_fp).convert('RGB')

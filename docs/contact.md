@@ -6,7 +6,7 @@
 
 作者维护 **知识星球** [**CnOCR/CnSTD私享群**](https://t.zsxq.com/FEYZRJQ) ，欢迎加入。**知识星球私享群**会陆续发布一些CnOCR/CnSTD相关的私有资料，包括[**更详细的训练教程**](https://articles.zsxq.com/id_u6b4u0wrf46e.html)，**未公开的模型**，使用过程中遇到的难题解答等。本群也会发布OCR/STD相关的最新研究资料。此外，**私享群中作者每月提供两次免费特有数据的训练服务**。
 <figure markdown>
-![QQ群二维码](./cnocr-zsxq.jpeg){: style="width:280px"}
+![知识星球二维码](./cnocr-zsxq.jpeg){: style="width:280px"}
 </figure>
 
 

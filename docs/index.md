@@ -1,12 +1,35 @@
-# CnOCR
+<figure markdown>
+![CnOCR](figs/cnocr-logo.jpg){: style="width:180px"}
+</figure>
 
-[**CnOCR**](https://github.com/breezedeus/cnocr) 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**简体中文**、**繁体中文**（部分模型）、**英文**和**数字**的常见字符识别，支持竖排文字的识别。自带了**20+个** [训练好的识别模型](models.md)，适用于不同应用场景，安装后即可直接使用。欢迎扫码加入[QQ交流群](contact.md)。
+# CnOCR
+[![license](https://img.shields.io/github/license/breezedeus/cnocr)](./LICENSE)
+[![PyPI version](https://badge.fury.io/py/cnocr.svg)](https://badge.fury.io/py/cnocr)
+[![forks](https://img.shields.io/github/forks/breezedeus/cnocr)](https://github.com/breezedeus/cnocr)
+[![stars](https://img.shields.io/github/stars/breezedeus/cnocr)](https://github.com/breezedeus/cnocr)
+![last-releast](https://img.shields.io/github/release-date/breezedeus/cnocr)
+![last-commit](https://img.shields.io/github/last-commit/breezedeus/cnocr)
+[![Twitter](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fbreezedeus)](https://twitter.com/breezedeus)
+
+<figure markdown>
+[📖使用](usage.md) |
+[🛠️安装](install.md) |
+[🧳可用模型](models.md) |
+[🕹模型训练](train.md) |
+[🛀🏻在线Demo](demo.md) |
+[💬交流群](contact.md)
+</figure>
+
+
+
+[**CnOCR**](https://github.com/breezedeus/cnocr) 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**简体中文**、**繁体中文**（部分模型）、**英文**和**数字**的常见字符识别，支持竖排文字的识别。自带了**20+个**[训练好的识别模型](models.md)，适用于不同应用场景，安装后即可直接使用。同时，CnOCR也提供简单的[训练命令](train.md)供使用者训练自己的模型。欢迎加入 [交流群](contact.md)。
 
 作者也维护 **知识星球** [**CnOCR/CnSTD私享群**](https://t.zsxq.com/FEYZRJQ) ，欢迎加入。**知识星球私享群**会陆续发布一些CnOCR/CnSTD相关的私有资料，包括**更详细的训练教程**，**未公开的模型**，使用过程中遇到的难题解答等。本群也会发布OCR/STD相关的最新研究资料。此外，**私享群中作者每月提供两次免费特有数据的训练服务**。
 
+可以使用 [**在线 Demo**](demo.md) 查看效果。
+
 CnOcr的目标是**使用简单**。
 
-可以使用 [**在线 Demo**](demo.md) 查看效果。
 
 ## 安装简单
 
@@ -18,84 +41,186 @@ pip install cnocr
 
 更多说明可见 [安装文档](install.md)。
 
-> 如果电脑中从未安装过 `PyTorch`，`OpenCV` python包，初次安装可能会遇到问题，但一般都是常见问题，可以自行百度/Google解决。
+> **注**：如果电脑中从未安装过 `PyTorch`，`OpenCV` python包，初次安装可能会遇到问题，但一般都是常见问题，可以自行百度/Google解决。
 
-## 使用简单
 
-使用 `CnOcr.ocr()` 识别下图：
 
-![多行文字图片](examples/multi-line_cn1.png)
+## 各种场景的调用示例
 
-**调用示例**：
+### 常见的图片识别
+
+所有参数都使用默认值即可。如果发现效果不够好，多调整下各个参数看效果，最终往往能获得比较理想的精度。
 
 ```python
 from cnocr import CnOcr
 
-ocr = CnOcr()
-res = ocr.ocr('examples/multi-line_cn1.png')
-print("Predicted Chars:", res)
+img_fp = './docs/examples/huochepiao.jpeg'
+ocr = CnOcr()  # 所有参数都使用默认值
+out = ocr.ocr(img_fp)
+
+print(out)
 ```
 
-或：
+识别结果：
+
+<figure markdown>
+![火车票识别](predict-outputs/huochepiao.jpeg-result.jpg){: style="width:700px"}
+</figure>
+
+
+
+
+### 排版简单的印刷体截图图片识别
+
+针对 **排版简单的印刷体文字图片**，如截图图片，扫描件图片等，可使用 `det_model_name='naive_det'`，相当于不使用文本检测模型，而使用简单的规则进行分行。
+
+使用 `det_model_name='naive_det'` 的最大优势是**速度快**，劣势是对图片比较挑剔。如何判断是否该使用此检测模型呢？最简单的方式就是拿应用图片试试效果，效果好就用，不好就不用。
 
 ```python
-from cnocr.utils import read_img
 from cnocr import CnOcr
 
+img_fp = './docs/examples/multi-line_cn1.png'
+ocr = CnOcr(det_model_name='naive_det') 
+out = ocr.ocr(img_fp)
+
+print(out)
+```
+
+识别结果：
+
+<figure markdown>
+
+
+| 图片                                                         | OCR结果                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png) | 网络支付并无本质的区别，因为<br />每一个手机号码和邮件地址背后<br />都会对应着一个账户--这个账<br />户可以是信用卡账户、借记卡账<br />户，也包括邮局汇款、手机代<br />收、电话代收、预付费卡和点卡<br />等多种形式。 |
+
+</figure>
+
+
+### 竖排文字识别
+
+采用来自 [**PaddleOCR**](https://github.com/PaddlePaddle/PaddleOCR)（之后简称 **ppocr**）的中文识别模型 `rec_model_name='ch_PP-OCRv3'` 进行识别。
+
+```python
+from cnocr import CnOcr
+
+img_fp = './docs/examples/shupai.png'
+ocr = CnOcr(rec_model_name='ch_PP-OCRv3')
+out = ocr.ocr(img_fp)
+
+print(out)
+```
+
+识别结果：
+
+<figure markdown>
+![竖排文字识别](./predict-outputs/shupai.png-result.jpg){: style="width:750px"}
+</figure>
+
+
+
+### 英文识别
+
+虽然中文检测和识别模型也能识别英文，但**专为英文文字训练的检测器和识别器往往精度更高**。如果是纯英文的应用场景，建议使用来自 **ppocr** 的英文检测模型 `det_model_name='en_PP-OCRv3_det'`， 和英文识别模型 `rec_model_name='en_PP-OCRv3'` 。
+
+```python
+from cnocr import CnOcr
+
+img_fp = './docs/examples/en_book1.jpeg'
+ocr = CnOcr(det_model_name='en_PP-OCRv3_det', rec_model_name='en_PP-OCRv3')
+out = ocr.ocr(img_fp)
+
+print(out)
+```
+
+识别结果：
+
+<figure markdown>
+![英文识别](./predict-outputs/en_book1.jpeg-result.jpg){: style="width:670px"}
+</figure>
+
+
+
+### 繁体中文识别
+
+采用来自ppocr的繁体识别模型 `rec_model_name='chinese_cht_PP-OCRv3'` 进行识别。
+
+```python
+from cnocr import CnOcr
+
+img_fp = './docs/examples/fanti.jpg'
+ocr = CnOcr(rec_model_name='chinese_cht_PP-OCRv3')  # 识别模型使用繁体识别模型
+out = ocr.ocr(img_fp)
+
+print(out)
+```
+
+使用此模型时请注意以下问题：
+
+* 识别精度一般，不是很好；
+
+* 除了繁体字，对标点、英文、数字的识别都不好；
+
+* 此模型不支持竖排文字的识别。
+
+识别结果：
+
+<figure markdown>
+![繁体中文识别](./predict-outputs/fanti.jpg-result.jpg){: style="width:700px"}
+</figure>
+
+
+
+
+### 单行文字的图片识别
+
+如果明确知道待识别的图片是单行文字图片（如下图），可以使用类函数 `CnOcr.ocr_for_single_line()` 进行识别。这样就省掉了文字检测的时间，速度会快一倍以上。
+
+<figure markdown>
+![单行文本识别](./examples/helloworld.jpg){: style="width:270px"}
+</figure>
+
+
+调用代码如下：
+
+```python
+from cnocr import CnOcr
+
+img_fp = './docs/examples/helloworld.jpg'
 ocr = CnOcr()
-img_fp = 'examples/multi-line_cn1.png'
-img = read_img(img_fp)
-res = ocr.ocr(img)
-print("Predicted Chars:", res)
+out = ocr.ocr_for_single_line(img_fp)
+print(out)
 ```
 
-返回结果如下：
+### 更多应用示例
+- **核酸疫苗截图识别**
+	<figure markdown>
 
-```bash
-Predicted Chars: [
-    ('网络支付并无本质的区别，因为', 0.996096134185791), 
-    ('每一个手机号码和邮件地址背后', 0.9903925061225891), 
-    ('都会对应着一个账户一一这个账', 0.6401291489601135), 
-    ('户可以是信用卡账户、借记卡账', 0.9446338415145874), 
-    ('户，也包括邮局汇款、手机代', 0.9997618794441223), 
-    ('收、电话代收、预付费卡和点卡', 0.7029080390930176), 
-    ('等多种形式。', 0.8814011812210083)]
-```
+ 	![核酸疫苗截图识别](./predict-outputs/jiankangbao.jpeg-result.jpg){: style="width:600px"}
+ 	</figure>
 
-更多说明可见 [使用方法](usage.md)。
+- **身份证识别**
+	<figure markdown>
 
-## 命令行工具
+ 	![身份证识别](./predict-outputs/aobama.webp-result.jpg){: style="width:700px"}
+ 	</figure>
 
-具体见 [命令行工具](command.md)。
+- **饭店小票识别**
+	<figure markdown>
+	![饭店小票识别](./predict-outputs/fapiao.jpeg-result.jpg){: style="width:550px"}
+	</figure>
 
-### 训练自己的模型
 
-具体见 [模型训练](train.md)。
-
-## 效果示例
-
-| 图片                                                                      | OCR结果                                                                                                                                                                                                                                                                                                                                                                                       |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ![examples/helloworld.jpg](./examples/helloworld.jpg)                   | Hello world!你好世界                                                                                                                                                                                                                                                                                                                                                                            |
-| ![examples/chn-00199989.jpg](./examples/chn-00199989.jpg)               | 铑泡胭释邑疫反隽寥缔                                                                                                                                                                                                                                                                                                                                                                                  |
-| ![examples/chn-00199980.jpg](./examples/chn-00199980.jpg)               | 拇箬遭才柄腾戮胖惬炫                                                                                                                                                                                                                                                                                                                                                                                  |
-| ![examples/chn-00199984.jpg](./examples/chn-00199984.jpg)               | 寿猿嗅髓孢刀谎弓供捣                                                                                                                                                                                                                                                                                                                                                                                  |
-| ![examples/chn-00199985.jpg](./examples/chn-00199985.jpg)               | 马靼蘑熨距额猬要藕萼                                                                                                                                                                                                                                                                                                                                                                                  |
-| ![examples/chn-00199981.jpg](./examples/chn-00199981.jpg)               | 掉江悟厉励.谌查门蠕坑                                                                                                                                                                                                                                                                                                                                                                                 |
-| ![examples/00199975.jpg](./examples/00199975.jpg)                       | nd-chips fructed ast                                                                                                                                                                                                                                                                                                                                                                        |
-| ![examples/00199978.jpg](./examples/00199978.jpg)                       | zouna unpayably Raqu                                                                                                                                                                                                                                                                                                                                                                        |
-| ![examples/00199979.jpg](./examples/00199979.jpg)                       | ape fissioning Senat                                                                                                                                                                                                                                                                                                                                                                        |
-| ![examples/00199971.jpg](./examples/00199971.jpg)                       | ling oughtlins near                                                                                                                                                                                                                                                                                                                                                                         |
-| ![examples/multi-line_cn1.png](./examples/multi-line_cn1.png)           | 网络支付并无本质的区别，因为<br />每一个手机号码和邮件地址背后<br />都会对应着一个账户--这个账<br />户可以是信用卡账户、借记卡账<br />户，也包括邮局汇款、手机代<br />收、电话代收、预付费卡和点卡<br />等多种形式。                                                                                                                                                                                                                                                               |
-| ![examples/multi-line_cn2.png](./examples/multi-line_cn2.png)           | 当然，在媒介越来越多的情形下,<br />意味着传播方式的变化。过去主流<br />的是大众传播,现在互动性和定制<br />性带来了新的挑战——如何让品牌<br />与消费者更加互动。                                                                                                                                                                                                                                                                                               |
-| ![examples/multi-line_en_white.png](./examples/multi-line_en_white.png) | This chapter is currently only available <br />in this web version. ebook and print will follow.<br />Convolutional neural networks learn abstract <br />features and concepts from raw image pixels. Feature<br />Visualization visualizes the learned features <br />by activation maximization. Network Dissection labels<br />neural network units (e.g. channels) with human concepts. |
-| ![examples/multi-line_en_black.png](./examples/multi-line_en_black.png) | transforms the image many times. First, the image <br />goes through many convolutional layers. In those<br />convolutional layers, the network learns new <br />and increasingly complex features in its layers. Then the <br />transformed image information goes through <br />the fully connected layers and turns into a classification<br />or prediction.                            |
 
 ## 其他文档
 
-* [场景文字识别技术介绍（PPT+视频）](std_ocr.md)
-* 对于通用场景的文字识别，使用 [文本检测CnStd + 文字识别CnOcr](cnstd_cnocr.md)
+* [自己训练模型](train.md)
+* [OCR技术介绍（PPT+视频）](std_ocr.md)
+* [给作者打气](buymeacoffee.md)
+* [FAQ](faq.md)
 * [RELEASE文档](RELEASE.md)
+
 
 ## 未来工作
 
@@ -109,7 +234,12 @@ Predicted Chars: [
 * [x] 由 MXNet 改为 PyTorch 架构（since `V2.0.0`）
 * [x] 基于 PyTorch 训练更高效的模型
 * [x] 支持列格式的文字识别
-- [ ] 支持与 [CnStd](https://github.com/breezedeus/cnstd) 的无缝衔接
+* [x] 打通与 [CnStd](https://github.com/breezedeus/cnstd) 的无缝衔接（since `V2.2`）
+* [ ] 支持更多的应用场景，如公式识别、表格识别、版面分析等
+
+## 给作者来杯咖啡
+
+开源不易，如果此项目对您有帮助，可以考虑 [给作者来杯咖啡 ☕️](https://dun.mianbaoduo.com/@breezedeus) 。
 
 ---
 
