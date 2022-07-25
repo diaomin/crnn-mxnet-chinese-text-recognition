@@ -277,7 +277,7 @@ More instructions can be found in the [installation documentation](https://cnocr
 * [x] Change from MXNet to PyTorch architecture (since `V2.0.0`)
 * [x] Train more efficient models based on PyTorch
 * [x] Support text recognition in column format  (since `V2.1.2`)
-* [x] Integration with [CnStd](https://github.com/breezedeus/cnstd) (since `V2.2`)
+* [x] Integration with [CnSTD](https://github.com/breezedeus/cnstd) (since `V2.2`)
 * [ ] Support more application scenarios, such as formula recognition, table recognition, layout analysis, etc.
 
 

@@ -234,7 +234,7 @@ print(out)
 * [x] 由 MXNet 改为 PyTorch 架构（since `V2.0.0`）
 * [x] 基于 PyTorch 训练更高效的模型
 * [x] 支持列格式的文字识别
-* [x] 打通与 [CnStd](https://github.com/breezedeus/cnstd) 的无缝衔接（since `V2.2`）
+* [x] 打通与 [CnSTD](https://github.com/breezedeus/cnstd) 的无缝衔接（since `V2.2`）
 * [ ] 支持更多的应用场景，如公式识别、表格识别、版面分析等
 
 ## 给作者加油鼓气
