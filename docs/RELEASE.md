@@ -1,5 +1,14 @@
 # Release Notes
 
+### Update 2022.07.25: 发布 cnocr V2.2
+
+主要变更：
+
+* CnOCR 内部集成 [CnSTD](https://github.com/breezedeus/cnstd) 进行文本检测，降低使用门槛，提升适用场景的范围。
+* 对诸多代码做了重构，同时也对文档进行了大幅度的优化。
+* 更新了测试用例，清理了过期的用例。
+
+
 ### Update 2022.05.27: 发布 cnocr V2.1.2.1
 
 主要变更：
