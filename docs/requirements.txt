@@ -220,6 +220,7 @@ zipp==3.8.1
 # setuptools
 
 # for mkdocs
+jinja2<3.1.0
 mkdocs==1.2.2
 mkdocs-macros-plugin==0.6.0
 mkdocs-material==7.3.0
