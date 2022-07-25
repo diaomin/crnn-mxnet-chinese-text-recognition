@@ -1,230 +1,290 @@
-中文版说明请见[中文README](./README.md)。
+<div align="center">
+  <img src="./docs/figs/cnocr-logo.jpg" width="250px"/>
+  <div>&nbsp;</div>
+
+[![license](https://img.shields.io/github/license/breezedeus/cnocr)](./LICENSE)
+[![Docs](https://readthedocs.org/projects/cnocr/badge/?version=latest)](https://cnocr.readthedocs.io/zh/latest/?badge=latest)
+[![PyPI version](https://badge.fury.io/py/cnocr.svg)](https://badge.fury.io/py/cnocr)
+[![forks](https://img.shields.io/github/forks/breezedeus/cnocr)](https://github.com/breezedeus/cnocr)
+[![stars](https://img.shields.io/github/stars/breezedeus/cnocr)](https://github.com/breezedeus/cnocr)
+![last-releast](https://img.shields.io/github/release-date/breezedeus/cnocr)
+![last-commit](https://img.shields.io/github/last-commit/breezedeus/cnocr)
+[![Twitter](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fbreezedeus)](https://twitter.com/breezedeus)
+
+[📖Doc](https://cnocr.readthedocs.io/zh/latest/) |
+[🛠️Install](https://cnocr.readthedocs.io/zh/latest/install/) |
+[🧳Models](https://cnocr.readthedocs.io/zh/latest/models/) |
+[🕹Training](https://cnocr.readthedocs.io/zh/latest/train/) |
+[🛀🏻Online Demo](https://share.streamlit.io/breezedeus/cnstd/st-deploy/cnstd/app.py) |
+[💬Contact](https://cnocr.readthedocs.io/zh/latest/contact/)
+
+</div>
+
+<div align="center">
+
+ [中文](./README.md) | English
+
+</div>
+
+# CnOCR
+
+[**CnOCR**](https://github.com/breezedeus/cnocr)  is an **Optical Character Recognition (OCR)** toolkit for **Python 3**. It supports recognition of common characters in **English and numbers**, **Simplified Chinese**, **Traditional Chinese** (some models), and **vertical text** recognition. It comes with [**20+ well-trained models**](https://cnocr.readthedocs.io/zh/latest/models/) for different application scenarios and can be used directly after installation. Also, CnOCR provides simple training [commands](https://cnocr.readthedocs.io/zh/latest/train/) for users to train their own models. Welcome to join the WeChat contact group.
+
+<div align="center">
+  <img src="https://huggingface.co/datasets/breezedeus/cnocr-wx-qr-code/resolve/main/wx-qr-code.JPG" alt="WeChat Group" width="300px"/>
+</div>
+
+The authors also maintain **Planet of Knowledge** [**CnOCR/CnSTD Private Group**](https://t.zsxq.com/FEYZRJQ), welcome to join. The **Planet of Knowledge Private Group** will release some CnOCR/CnSTD related private materials one after another, including **more detailed training tutorials**, **unpublic models**, answers to problems encountered during usage, etc. This group also releases the latest research materials related to OCR/STD. In addition, **the author in the private group provides free training services for unique data twice a month**.
+
+## Documentation
+
+See [CnOCR online documentation](https://cnocr.readthedocs.io/) , in Chinese.
+
+## Usage
+
+Starting from **V2.2**, **CnOCR** internally uses the text detection engine **[CnSTD](https://github.com/breezedeus/cnstd)** for text detection and positioning. So **CnOCR** V2.2 can recognize not only typographically simple printed text images, such as screenshot images, scanned copies, etc., but also **scene text in general images**.
+
+Here are some examples of usages for different scenarios.
+
+## Usages for Different Scenarios
+
+### Common image recognition
+
+Just use default values for all parameters. If you find that the result is not good enough, try different parameters more to see the effect, and usually you will end up with a more desirable accuracy.
+
+```python
+from cnocr import CnOcr
+
+img_fp = './docs/examples/huochepiao.jpeg'
+ocr = CnOcr()  # Use default values for all parameters
+out = ocr.ocr(img_fp)
+
+print(out)
+```
+
+Recognition results:
+
+<div align="center">
+  <img src="./docs/predict-outputs/huochepiao.jpeg-result.jpg" alt="Train ticket recognition" width="800px"/>
+</div>
 
 
 
-# Update 2019.07.25: release cnocr V1.0.0
+### English Recognition
 
-`cnocr` `v1.0.0` is released, which is more efficient for prediction. **The new version of the model is not compatible with the previous version.** So if upgrading, please download the latest model file again. See below for the details (same as before).
+Although Chinese detection and recognition models can also recognize English, **detectors and recognizers trained specifically for English texts tend to be more accurate**. For English-only application scenarios, it is recommended to use the English detection model `det_model_name='en_PP-OCRv3_det'` and the English recognition model `rec_model_name='en_PP-OCRv3'` from  [**PaddleOCR**](https://github.com/PaddlePaddle/PaddleOCR) (also called **ppocr**).
+
+```python
+from cnocr import CnOcr
+
+img_fp = './docs/examples/en_book1.jpeg'
+ocr = CnOcr(det_model_name='en_PP-OCRv3_det', rec_model_name='en_PP-OCRv3')
+out = ocr.ocr(img_fp)
+
+print(out)
+```
+
+Recognition results:
+
+<div align="center">
+  <img src="./docs/predict-outputs/en_book1.jpeg-result.jpg" alt="Recognition of English texts" width="600px"/>
+</div>
 
 
+### Recognition of typographically screenshot images
 
-Main changes are：
+For **typographically simple typographic text images**, such as screenshot images, scanned images, etc., you can use `det_model_name='naive_det'`, which is equivalent to not using a text detection model, but using simple rules for branching.
 
--  **The new crnn model supports prediction for variable-width image files, so is more efficient for prediction.**
--  Support fine-tuning the existing model with specific data.
--  Fix bugs，such as `train accuracy` always `0`.
--  Depended package `mxnet` is upgraded from `1.3.1`  to `1.4.1`.
+> **Note**
+>
+> `det_model_name='naive_det'` is equivalent to CnOCR versions before `V2.2` (`V2.0.*`, `V2.1.*`).
 
+The biggest advantage of using `det_model_name='naive_det'` is that the speech is **fast** and the disadvantage is that it is picky about images. How do you determine if you should use the detection model `'naive_det'`? The easiest way is to take your application image and try the effect, if it works well, use it, if not, don't.
 
+```python
+from cnocr import CnOcr
 
-# cnocr
+img_fp = './docs/examples/multi-line_cn1.png'
+ocr = CnOcr(det_model_name='naive_det') 
+out = ocr.ocr(img_fp)
 
-A python package for Chinese OCR with available trained models.
-So it can be used directly after installed.
+print(out)
+```
 
-The accuracy of the current crnn model is about `98.8%`.
+Recognition results:
 
-The project originates from our own ([爱因互动 Ein+](https://einplus.cn)) internal needs.
-Thanks for the internal supports.
+<div align="center">
 
-## Changes
+| 图片                                                                      | OCR结果                                                                                                                         |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| ![docs/examples/multi-line_cn1.png](./docs/examples/multi-line_cn1.png) | 网络支付并无本质的区别，因为<br />每一个手机号码和邮件地址背后<br />都会对应着一个账户--这个账<br />户可以是信用卡账户、借记卡账<br />户，也包括邮局汇款、手机代<br />收、电话代收、预付费卡和点卡<br />等多种形式。 |
 
-Most of the codes are adapted from [crnn-mxnet-chinese-text-recognition](https://github.com/diaomin/crnn-mxnet-chinese-text-recognition).
-Much thanks to the author.
+</div>
 
-Some changes are:
+### Vertical text recognition
 
-* use raw MXNet CTC Loss instead of WarpCTC Loss. No more complicated installation.
-* public pre-trained model for anyone. No more a-few-days training.
-* add online `predict` function and script. Easy to use.
+Chinese recognition model `rec_model_name='ch_PP-OCRv3'` from **ppocr**  is used for recognition.
 
-## Installation
+```python
+from cnocr import CnOcr
+
+img_fp = './docs/examples/shupai.png'
+ocr = CnOcr(rec_model_name='ch_PP-OCRv3')
+out = ocr.ocr(img_fp)
+
+print(out)
+```
+
+Recognition results:
+
+<div align="center">
+  <img src="./docs/predict-outputs/shupai.png-result.jpg" alt="vertical text recognition" width="800px"/>
+</div>
+
+### Traditional Chinese Recognition
+
+Use the traditional Chinese recognition model from ppocr `rec_model_name='english_cht_PP-OCRv3'` for recognition.
+
+```python
+from cnocr import CnOcr
+
+img_fp = './docs/examples/fanti.jpg'
+ocr = CnOcr(rec_model_name='chinese_cht_PP-OCRv3')  # use the traditional Chinese recognition model
+out = ocr.ocr(img_fp)
+
+print(out)
+```
+
+When using this model, please note the following issues:
+
+* The recognition accuracy is average and not very good.
+
+* The recognition of punctuation, English and numbers is not good except for traditional Chinese characters.
+
+* This model does not support the recognition of vertical text.
+
+<div align="center">
+  <img src="./docs/predict-outputs/fanti.jpg-result.jpg" alt="traditional Chinese recognition" width="700px"/>
+</div>
+
+### Single line text image recognition
+
+If it is clear that the image to be recognized is a single line text image (as shown below), you can use the class function `CnOcr.ocr_for_single_line()` for recognition. This saves the time of text detection and will be more than twice as fast.
+
+<div align="center">
+  <img src="./docs/examples/helloworld.jpg" alt="single line text image recognition" width="300px"/>
+</div>
+
+The code is as follows:
+
+```python
+from cnocr import CnOcr
+
+img_fp = './docs/examples/helloworld.jpg'
+ocr = CnOcr()
+out = ocr.ocr_for_single_line(img_fp)
+print(out)
+```
+
+### More Applications
+
+* **Recognition of Vaccine App Screenshot**
+<div align="center">
+  <img src="./docs/predict-outputs/jiankangbao.jpeg-result.jpg" alt="Recognition of Vaccine App Screenshot" width="500px"/>
+</div>
+
+* **Recognition of ID Card**
+<div align="center">
+  <img src="./docs/predict-outputs/aobama.webp-result.jpg" alt="Recognition of ID Card" width="700px"/>
+</div>
+
+* **Recognition of Restaurant Ticket**
+<div align="center">
+  <img src="./docs/predict-outputs/fapiao.jpeg-result.jpg" alt="Recognition of Restaurant Ticket" width="500px"/>
+</div>
+  
+
+## Install
+
+Well, one line of command is enough if it goes well.
 
 ```bash
 pip install cnocr
 ```
 
-> Please use Python3 (3.4, 3.5, 3.6 should work). Python2 is not tested.
-
-## Usage
-
-The first time cnocr is used, the model files will be downloaded automatically from 
-[Dropbox](https://www.dropbox.com/s/7w8l3mk4pvkt34w/cnocr-models-v1.0.0.zip?dl=0) to `~/.cnocr`. 
-
-The zip file will be extracted and you can find the resulting model files in `~/.cnocr/models` by default.
-In case the automatic download can't perform well, you can download the zip file manually 
-from [Baidu NetDisk](https://pan.baidu.com/s/1DWV3H2UWmzOU6d48UbTYVw) with extraction code `ss81`, and put the zip file to `~/.cnocr`. The code will do else.
-
-
-
-### Predict
-
-Three functions are provided for prediction.
-
-
-
-#### 1. `CnOcr.ocr(img_fp)`
-
-The function `cnOcr.ocr (img_fp)` can recognize texts in an image containing multiple lines of text (or single lines).
-
-
-
-**Function Description**
-
-- input parameter `img_fp`: image file path; or color image `mx.nd.NDArray` or `np.ndarray`, with shape `(height, width, 3)`, and the channels should be RGB formatted.
-- return: `List(List(Char))`,  such as:  `[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`.
-  
-
-
-
-**Use Case**
-
-
-```python
-from cnocr import CnOcr
-ocr = CnOcr()
-res = ocr.ocr('examples/multi-line_cn1.png')
-print("Predicted Chars:", res)
-```
-
-or:
-
-```python
-import mxnet as mx
-from cnocr import CnOcr
-ocr = CnOcr()
-img_fp = 'examples/multi-line_cn1.png'
-img = mx.image.imread(img_fp, 1)
-res = ocr.ocr(img)
-print("Predicted Chars:", res)
-```
-
-The previous codes can recognize texts in the image file [examples/multi-line_cn1.png](./examples/multi-line_cn1.png):
-
-![examples/multi-line_cn1.png](./examples/multi-line_cn1.png)
-
-The OCR results shoule be:
+If the installation is slow, you can specify a domestic installation source, such as using the Douban source: 
 
 ```bash
-Predicted Chars: [['网', '络', '支', '付', '并', '无', '本', '质', '的', '区', '别', '，', '因', '为'],
-                  ['每', '一', '个', '手', '机', '号', '码', '和', '邮', '件', '地', '址', '背', '后'],
-                  ['都', '会', '对', '应', '着', '一', '个', '账', '户', '一', '―', '这', '个', '账'],
-                  ['户', '可', '以', '是', '信', '用', '卡', '账', '户', '、', '借', '记', '卡', '账'],
-                  ['户', '，', '也', '包', '括', '邮', '局', '汇', '款', '、', '手', '机', '代'],
-                  ['收', '、', '电', '话', '代', '收', '、', '预', '付', '费', '卡', '和', '点', '卡'],
-                  ['等', '多', '种', '形', '式', '。']]
+pip install cnocr -i https://pypi.doubanio.com/simple
 ```
 
-#### 2. `CnOcr.ocr_for_single_line(img_fp)`
+> **Note** 
+>
+> Please use **Python3** (3.6 and later should work), I haven't tested if it's okay under Python2.
 
-If you know that the image you're predicting contains only one line of text, function `CnOcr.ocr_for_single_line(img_fp)` can be used instead。Compared with `CnOcr.ocr()`, the result of `CnOcr.ocr_for_single_line()` is more reliable because the process of splitting lines is not required. 
+More instructions can be found in the [installation documentation](https://cnocr.readthedocs.io/zh/latest/install/) (in Chinese).
 
-
-
-**Function Description**
-
-- input parameter `img_fp`: image file path; or color image `mx.nd.NDArray` or `np.ndarray`, with shape `[height, width]` or `[height, width, channel]`.  The optional channel should be `1` (gray image) or `3` (color image).
-- return: `List(Char)`,  such as:  `['你', '好']`.
-
+> **Warning** 
+>
+> If you have never installed `PyTorch`, `OpenCV` python packages on your computer, you may encounter problems with the first installation, but they are usually common problems that can be solved by Baidu/Google.
 
 
-**Use Case**：
+## Pre-trained Models
 
-```python
-from cnocr import CnOcr
-ocr = CnOcr()
-res = ocr.ocr_for_single_line('examples/rand_cn1.png')
-print("Predicted Chars:", res)
-```
+### Pre-trained Detection Models
 
-or:
-
-```python
-import mxnet as mx
-from cnocr import CnOcr
-ocr = CnOcr()
-img_fp = 'examples/rand_cn1.png'
-img = mx.image.imread(img_fp, 1)
-res = ocr.ocr_for_single_line(img)
-print("Predicted Chars:", res)
-```
-
-
-The previous codes can recognize texts in the image file  [examples/rand_cn1.png](./examples/rand_cn1.png)：
-
-![examples/rand_cn1.png](./examples/rand_cn1.png)
-
-The OCR results shoule be:
-
-```bash
-Predicted Chars: ['笠', '淡', '嘿', '骅', '谧', '鼎', '臭', '姚', '歼', '蠢', '驼', '耳', '裔', '挝', '涯', '狗', '蒽', '子', '犷'] 
-```
-
-#### 3. `CnOcr.ocr_for_single_lines(img_list)`
-
-Function `CnOcr.ocr_for_single_lines(img_list)` can predict a number of single-line-text image arrays batchly. Actually `CnOcr.ocr(img_fp)` and `CnOcr.ocr_for_single_line(img_fp)` both invoke `CnOcr.ocr_for_single_lines(img_list)` internally.
+| `det_model_name`                                             | PyTorch Version | ONNX Version | Model original source | Model File Size | Supported Language                       | Whether to support vertical text detection |
+| ------------------------------------------------------------ | ------------ | --------- | ------------ | ------------ | ------------------------------ | -------------------- |
+| **en_PP-OCRv3_det**                                          | X            | √         | ppocr        | 2.3 M        | **Englise**、Numbers   | √                    |
+| db_shufflenet_v2                                             | √            | X         | cnocr        | 18 M         | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
+| **db_shufflenet_v2_small**                                   | √            | X         | cnocr        | 12 M         | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
+| [db_shufflenet_v2_tiny](https://mp.weixin.qq.com/s/fHPNoGyo72EFApVhEgR6Nw) | √            | X         | cnocr        | 7.5 M        | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
+| db_mobilenet_v3                                              | √            | X         | cnocr        | 16 M         | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
+| db_mobilenet_v3_small                                        | √            | X         | cnocr        | 7.9 M        | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
+| db_resnet34                                                  | √            | X         | cnocr        | 86 M         | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
+| db_resnet18                                                  | √            | X         | cnocr        | 47 M         | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
+| ch_PP-OCRv3_det                                              | X            | √         | ppocr        | 2.3 M        | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
+| ch_PP-OCRv2_det                                              | X            | √         | ppocr        | 2.2 M        | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
 
 
 
-**Function Description**
+### Pre-trained Recognition Models
 
-- input parameter `img_list`: list of images, in which each element should be a line image array,  with type `mx.nd.NDArray` or `np.ndarray`.  Each element should be a tensor with values ranging from `0` to` 255`, and with shape `[height, width]` or `[height, width, channel]`.  The optional channel should be `1` (gray image) or `3` (color image).
-- return: `List(List(Char))`,  such as:  `[['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]`.
-
-
-
-**Use Case**：
-
-```python
-import mxnet as mx
-from cnocr import CnOcr
-ocr = CnOcr()
-img_fp = 'examples/multi-line_cn1.png'
-img = mx.image.imread(img_fp, 1).asnumpy()
-line_imgs = line_split(img, blank=True)
-line_img_list = [line_img for line_img, _ in line_imgs]
-res = ocr.ocr_for_single_lines(line_img_list)
-print("Predicted Chars:", res)
-```
-
-More use cases can be found at [tests/test_cnocr.py](./tests/test_cnocr.py).
+| `rec_model_name`          | PyTorch Version | ONNX Version | Model original source | Model File Size | Supported Language                       | Whether to support vertical text recognition |
+| ------------------------- | ------------ | --------- | ------------ | ------------ | ------------------------ | -------------------- |
+| **en_PP-OCRv3**           | X            | √         | ppocr        | 8.5 M        | **Englise**、Numbers | √                    |
+| **en_number_mobile_v2.0** | X            | √         | ppocr        | 1.8 M        | **Englise**、Numbers | √                    |
+| **chinese_cht_PP-OCRv3**  | X            | √         | ppocr        | 11 M         | **Traditional Chinese**, English, Numbers | X     |
+| densenet_lite_114-fc      | √            | √         | cnocr        | 4.9 M        | Simplified Chinese, English, Numbers | X                    |
+| densenet_lite_124-fc      | √            | √         | cnocr        | 5.1 M        | Simplified Chinese, English, Numbers | X                    |
+| densenet_lite_134-fc      | √            | √         | cnocr        | 5.4 M        | Simplified Chinese, English, Numbers | X                    |
+| **densenet_lite_136-fc**  | √            | √         | cnocr        | 5.9 M        | Simplified Chinese, English, Numbers | X                    |
+| densenet_lite_134-gru     | √            | X         | cnocr        | 11 M         | Simplified Chinese, English, Numbers | X                    |
+| densenet_lite_136-gru     | √            | X         | cnocr        | 12 M         | Simplified Chinese, English, Numbers | X                    |
+| ch_PP-OCRv3               | X            | √         | ppocr        | 10 M         | Simplified Chinese, English, Numbers | √                    |
+| ch_ppocr_mobile_v2.0      | X            | √         | ppocr        | 4.2 M        | Simplified Chinese, English, Numbers | √                    |
 
 
-### Using  the Script
+## Future work
 
-```bash
-python scripts/cnocr_predict.py --file examples/multi-line_cn1.png
-```
-
-
-
-### (No NECESSARY) Train
-
-You can use the package without any train. But if you really really want to train your own models, follow this:
-
-```bash
-python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr
-```
-
+* [x] Support for images containing multiple lines of text (`Done`)
+* [x] crnn model support for variable length prediction, improving flexibility (since `V1.0.0`)
+* [x] Refine test cases (`Doing`)
+* [x] Fix bugs (The code is still messy.) (`Doing`)
+* [x] Support `space` recognition (since `V1.1.0`)
+* [x] Try new models like DenseNet to further improve recognition accuracy (since `V1.1.0`)
+* [x] Optimize the training set to remove unreasonable samples; based on this, retrain each model
+* [x] Change from MXNet to PyTorch architecture (since `V2.0.0`)
+* [x] Train more efficient models based on PyTorch
+* [x] Support text recognition in column format  (since `V2.1.2`)
+* [x] Integration with [CnStd](https://github.com/breezedeus/cnstd) (since `V2.2`)
+* [ ] Support more application scenarios, such as formula recognition, table recognition, layout analysis, etc.
 
 
-Fine-tuning the model with specific data from existing models is also supported. Please refer to the following command:
+## A cup of coffee for the author
 
-```bash
-python scripts/cnocr_train.py --cpu 2 --num_proc 4 --loss ctc --dataset cn_ocr --load_epoch 20
-```
+It is not easy to maintain and evolve the project, so if it is helpful to you, please consider to [offer the author a cup of coffee 🥤](https://cnocr.readthedocs.io/zh/latest/buymeacoffee/).
 
+---
 
-
-More references can be found at  [scripts/run_cnocr_train.sh](./scripts/run_cnocr_train.sh).
-
-
-
-## Future Work
-
-* [x] support multi-line-characters recognition (`Done`)
-* [x] crnn model supports prediction for variable-width image files (`Done`)
-* [x] Add Unit Tests  (`Doing`)
-* [x]  Bugfixes  (`Doing`)
-* [ ] Support space recognition (Tried, but not successful for now )
-* [ ] Try other models such as DenseNet, ResNet
+Official code base: [https://github.com/breezedeus/cnocr](https://github.com/breezedeus/cnocr). Please cite it properly.
