@@ -235,7 +235,7 @@ More instructions can be found in the [installation documentation](https://cnocr
 
 | `det_model_name`                                             | PyTorch Version | ONNX Version | Model original source | Model File Size | Supported Language                       | Whether to support vertical text detection |
 | ------------------------------------------------------------ | ------------ | --------- | ------------ | ------------ | ------------------------------ | -------------------- |
-| **en_PP-OCRv3_det**                                          | X            | √         | ppocr        | 2.3 M        | **Englise**、Numbers   | √                    |
+| **en_PP-OCRv3_det**                                          | X            | √         | ppocr        | 2.3 M        | **English**、Numbers  | √                    |
 | db_shufflenet_v2                                             | √            | X         | cnocr        | 18 M         | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
 | **db_shufflenet_v2_small**                                   | √            | X         | cnocr        | 12 M         | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
 | [db_shufflenet_v2_tiny](https://mp.weixin.qq.com/s/fHPNoGyo72EFApVhEgR6Nw) | √            | X         | cnocr        | 7.5 M        | Simplified Chinese, Traditional Chinese, English, Numbers | √                    |
@@ -252,8 +252,8 @@ More instructions can be found in the [installation documentation](https://cnocr
 
 | `rec_model_name`          | PyTorch Version | ONNX Version | Model original source | Model File Size | Supported Language                       | Whether to support vertical text recognition |
 | ------------------------- | ------------ | --------- | ------------ | ------------ | ------------------------ | -------------------- |
-| **en_PP-OCRv3**           | X            | √         | ppocr        | 8.5 M        | **Englise**、Numbers | √                    |
-| **en_number_mobile_v2.0** | X            | √         | ppocr        | 1.8 M        | **Englise**、Numbers | √                    |
+| **en_PP-OCRv3**           | X            | √         | ppocr        | 8.5 M        | **English**、Numbers | √                    |
+| **en_number_mobile_v2.0** | X            | √         | ppocr        | 1.8 M        | **English**、Numbers | √                    |
 | **chinese_cht_PP-OCRv3**  | X            | √         | ppocr        | 11 M         | **Traditional Chinese**, English, Numbers | X     |
 | densenet_lite_114-fc      | √            | √         | cnocr        | 4.9 M        | Simplified Chinese, English, Numbers | X                    |
 | densenet_lite_124-fc      | √            | √         | cnocr        | 5.1 M        | Simplified Chinese, English, Numbers | X                    |
