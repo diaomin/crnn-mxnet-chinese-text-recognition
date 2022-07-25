@@ -12,12 +12,12 @@
 [![Twitter](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fbreezedeus)](https://twitter.com/breezedeus)
 
 <figure markdown>
-[📖使用](usage.md) |
-[🛠️安装](install.md) |
-[🧳可用模型](models.md) |
-[🕹模型训练](train.md) |
-[🛀🏻在线Demo](demo.md) |
-[💬交流群](contact.md)
+[📖 使用](usage.md) |
+[🛠️ 安装](install.md) |
+[🧳 可用模型](models.md) |
+[🕹 模型训练](train.md) |
+[🛀🏻 在线Demo](demo.md) |
+[💬 交流群](contact.md)
 </figure>
 
 
@@ -217,7 +217,7 @@ print(out)
 
 * [自己训练模型](train.md)
 * [OCR技术介绍（PPT+视频）](std_ocr.md)
-* [给作者打气](buymeacoffee.md)
+* [给作者加油](buymeacoffee.md)
 * [FAQ](faq.md)
 * [RELEASE文档](RELEASE.md)
 

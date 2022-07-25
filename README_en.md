@@ -11,12 +11,12 @@
 ![last-commit](https://img.shields.io/github/last-commit/breezedeus/cnocr)
 [![Twitter](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fbreezedeus)](https://twitter.com/breezedeus)
 
-[📖Doc](https://cnocr.readthedocs.io/zh/latest/) |
-[🛠️Install](https://cnocr.readthedocs.io/zh/latest/install/) |
-[🧳Models](https://cnocr.readthedocs.io/zh/latest/models/) |
-[🕹Training](https://cnocr.readthedocs.io/zh/latest/train/) |
-[🛀🏻Online Demo](https://share.streamlit.io/breezedeus/cnstd/st-deploy/cnstd/app.py) |
-[💬Contact](https://cnocr.readthedocs.io/zh/latest/contact/)
+[📖 Doc](https://cnocr.readthedocs.io/zh/latest/) |
+[🛠️ Install](https://cnocr.readthedocs.io/zh/latest/install/) |
+[🧳 Models](https://cnocr.readthedocs.io/zh/latest/models/) |
+[🕹 Training](https://cnocr.readthedocs.io/zh/latest/train/) |
+[🛀🏻 Online Demo](https://share.streamlit.io/breezedeus/cnstd/st-deploy/cnstd/app.py) |
+[💬 Contact](https://cnocr.readthedocs.io/zh/latest/contact/)
 
 </div>
 
@@ -34,7 +34,7 @@
   <img src="https://huggingface.co/datasets/breezedeus/cnocr-wx-qr-code/resolve/main/wx-qr-code.JPG" alt="WeChat Group" width="300px"/>
 </div>
 
-The authors also maintain **Planet of Knowledge** [**CnOCR/CnSTD Private Group**](https://t.zsxq.com/FEYZRJQ), welcome to join. The **Planet of Knowledge Private Group** will release some CnOCR/CnSTD related private materials one after another, including **more detailed training tutorials**, **unpublic models**, answers to problems encountered during usage, etc. This group also releases the latest research materials related to OCR/STD. In addition, **the author in the private group provides free training services for unique data twice a month**.
+The author also maintains **Planet of Knowledge** [**CnOCR/CnSTD Private Group**](https://t.zsxq.com/FEYZRJQ), welcome to join. The **Planet of Knowledge Private Group** will release some CnOCR/CnSTD related private materials one after another, including **more detailed training tutorials**, **unpublic models**, answers to problems encountered during usage, etc. This group also releases the latest research materials related to OCR/STD. In addition, **the author in the private group provides free training services for unique data twice a month**.
 
 ## Documentation
 

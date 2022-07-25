@@ -11,12 +11,12 @@
 ![last-commit](https://img.shields.io/github/last-commit/breezedeus/cnocr)
 [![Twitter](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fbreezedeus)](https://twitter.com/breezedeus)
 
-[📖文档](https://cnocr.readthedocs.io/zh/latest/) |
-[🛠️安装](https://cnocr.readthedocs.io/zh/latest/install/) |
-[🧳可用模型](https://cnocr.readthedocs.io/zh/latest/models/) |
-[🕹模型训练](https://cnocr.readthedocs.io/zh/latest/train/) |
-[🛀🏻在线Demo](https://share.streamlit.io/breezedeus/cnstd/st-deploy/cnstd/app.py) |
-[💬交流群](https://cnocr.readthedocs.io/zh/latest/contact/)
+[📖 文档](https://cnocr.readthedocs.io/zh/latest/) |
+[🛠️ 安装](https://cnocr.readthedocs.io/zh/latest/install/) |
+[🧳 可用模型](https://cnocr.readthedocs.io/zh/latest/models/) |
+[🕹 模型训练](https://cnocr.readthedocs.io/zh/latest/train/) |
+[🛀🏻 在线Demo](https://share.streamlit.io/breezedeus/cnstd/st-deploy/cnstd/app.py) |
+[💬 交流群](https://cnocr.readthedocs.io/zh/latest/contact/)
 
 </div>
 
@@ -286,6 +286,8 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 * [x] 打通与 [CnStd](https://github.com/breezedeus/cnstd) 的无缝衔接（since `V2.2`）
 * [ ] 支持更多的应用场景，如公式识别、表格识别、版面分析等
 
+
+
 ## 给作者来杯咖啡
 
 开源不易，如果此项目对您有帮助，可以考虑 [给作者加点油🥤，鼓鼓气💪🏻](https://cnocr.readthedocs.io/zh/latest/buymeacoffee/) 。
@@ -293,3 +295,4 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 ---
 
 官方代码库：[https://github.com/breezedeus/cnocr](https://github.com/breezedeus/cnocr)。
+
