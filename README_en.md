@@ -7,7 +7,7 @@
 [![PyPI version](https://badge.fury.io/py/cnocr.svg)](https://badge.fury.io/py/cnocr)
 [![forks](https://img.shields.io/github/forks/breezedeus/cnocr)](https://github.com/breezedeus/cnocr)
 [![stars](https://img.shields.io/github/stars/breezedeus/cnocr)](https://github.com/breezedeus/cnocr)
-![last-releast](https://img.shields.io/github/release-date/breezedeus/cnocr)
+![last-release](https://img.shields.io/github/release-date/breezedeus/cnocr)
 ![last-commit](https://img.shields.io/github/last-commit/breezedeus/cnocr)
 [![Twitter](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fbreezedeus)](https://twitter.com/breezedeus)
 
@@ -34,7 +34,7 @@
   <img src="https://huggingface.co/datasets/breezedeus/cnocr-wx-qr-code/resolve/main/wx-qr-code.JPG" alt="WeChat Group" width="300px"/>
 </div>
 
-The author also maintains **Planet of Knowledge** [**CnOCR/CnSTD Private Group**](https://t.zsxq.com/FEYZRJQ), welcome to join. The **Planet of Knowledge Private Group** will release some CnOCR/CnSTD related private materials one after another, including **more detailed training tutorials**, **unpublic models**, answers to problems encountered during usage, etc. This group also releases the latest research materials related to OCR/STD. In addition, **the author in the private group provides free training services for unique data twice a month**.
+The author also maintains **Planet of Knowledge** [**CnOCR/CnSTD Private Group**](https://t.zsxq.com/FEYZRJQ), welcome to join. The **Planet of Knowledge Private Group** will release some CnOCR/CnSTD related private materials one after another, including **more detailed training tutorials**, **non-public models**, answers to problems encountered during usage, etc. This group also releases the latest research materials related to OCR/STD. In addition, **the author in the private group provides free training services for unique data twice a month**.
 
 ## Documentation
 
@@ -283,7 +283,7 @@ More instructions can be found in the [installation documentation](https://cnocr
 
 ## A cup of coffee for the author
 
-It is not easy to maintain and evolve the project, so if it is helpful to you, please consider to [offer the author a cup of coffee 🥤](https://cnocr.readthedocs.io/zh/latest/buymeacoffee/).
+It is not easy to maintain and evolve the project, so if it is helpful to you, please consider [offering the author a cup of coffee 🥤](https://cnocr.readthedocs.io/zh/latest/buymeacoffee/).
 
 ---
 
