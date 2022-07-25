@@ -38,12 +38,11 @@ from cnocr.utils import (
     check_model_name,
     save_img,
     read_img,
+    draw_ocr_results,
 )
 from cnocr.data_utils.aug import (
     NormalizeAug,
-    RandomPaddingAug,
     RandomStretchAug,
-    RandomCrop,
 )
 from cnocr.dataset import OcrDataModule
 from cnocr.trainer import PlTrainer, resave_model
@@ -68,10 +67,10 @@ def cli():
 @cli.command('train')
 @click.option(
     '-m',
-    '--model-name',
+    '--rec-model-name',
     type=str,
     default=DEFAULT_MODEL_NAME,
-    help='模型名称。默认值为 `%s`' % DEFAULT_MODEL_NAME,
+    help='识别模型名称。默认值为 `%s`' % DEFAULT_MODEL_NAME,
 )
 @click.option(
     '-i',
@@ -84,28 +83,32 @@ def cli():
     '--train-config-fp',
     type=str,
     required=True,
-    help='训练使用的json配置文件，参考 `docs/examples/train_config.json`',
+    help='识别模型训练使用的json配置文件，参考 `docs/examples/train_config.json`',
 )
 @click.option(
     '-r',
     '--resume-from-checkpoint',
     type=str,
     default=None,
-    help='恢复此前中断的训练状态，继续训练。所以文件中应该包含训练状态。默认为 `None`',
+    help='恢复此前中断的训练状态，继续训练识别模型。所以文件中应该包含训练状态。默认为 `None`',
 )
 @click.option(
     '-p',
     '--pretrained-model-fp',
     type=str,
     default=None,
-    help='导入的训练好的模型，作为模型初始值。'
+    help='导入的训练好的识别模型，作为模型初始值。'
     '优先级低于"--resume-from-checkpoint"，当传入"--resume-from-checkpoint"时，此传入失效。默认为 `None`',
 )
 def train(
-    model_name, index_dir, train_config_fp, resume_from_checkpoint, pretrained_model_fp
+    rec_model_name,
+    index_dir,
+    train_config_fp,
+    resume_from_checkpoint,
+    pretrained_model_fp,
 ):
-    """训练模型"""
-    check_model_name(model_name)
+    """训练识别模型"""
+    check_model_name(rec_model_name)
     train_transform = T.Compose(
         [
             RandomStretchAug(min_ratio=0.5, max_ratio=1.5),
@@ -149,9 +152,9 @@ def train(
     # return
 
     trainer = PlTrainer(
-        train_config, ckpt_fn=['cnocr', 'v%s' % MODEL_VERSION, model_name]
+        train_config, ckpt_fn=['cnocr', 'v%s' % MODEL_VERSION, rec_model_name]
     )
-    model = gen_model(model_name, data_mod.vocab)
+    model = gen_model(rec_model_name, data_mod.vocab)
     logger.info(model)
 
     if pretrained_model_fp is not None:
@@ -172,24 +175,37 @@ def visualize_example(example, fp_prefix):
 @cli.command('predict')
 @click.option(
     '-m',
-    '--model-name',
+    '--rec-model-name',
     type=str,
     default=DEFAULT_MODEL_NAME,
-    help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
+    help='识别模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
 @click.option(
     '-b',
-    '--model-backend',
+    '--rec-model-backend',
     type=click.Choice(['pytorch', 'onnx']),
     default='onnx',
-    help='模型类型。默认值为 `onnx`',
+    help='识别模型类型。默认值为 `onnx`',
+)
+@click.option(
+    '-d',
+    '--det-model-name',
+    type=str,
+    default='ch_PP-OCRv3_det',
+    help='检测模型名称。默认值为 ch_PP-OCRv3_det',
+)
+@click.option(
+    '--det-model-backend',
+    type=click.Choice(['pytorch', 'onnx']),
+    default='onnx',
+    help='检测模型类型。默认值为 `onnx`',
 )
 @click.option(
     '-p',
     '--pretrained-model-fp',
     type=str,
     default=None,
-    help='使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
+    help='识别模型使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
 )
 @click.option(
     "-c",
@@ -205,20 +221,33 @@ def visualize_example(example, fp_prefix):
     is_flag=True,
     help="是否输入图片只包含单行文字。对包含单行文字的图片，不做按行切分；否则会先对图片按行分割后再进行识别",
 )
+@click.option(
+    "--draw-results-dir", default=None, help="画出的检测与识别效果图所存放的目录；取值为 `None` 表示不画图",
+)
+@click.option(
+    "--draw-font-path", default='./docs/fonts/simfang.ttf', help="画出检测与识别效果图时使用的字体文件",
+)
 def predict(
-    model_name,
-    model_backend,
+    rec_model_name,
+    rec_model_backend,
+    det_model_name,
+    det_model_backend,
     pretrained_model_fp,
     context,
     img_file_or_dir,
     single_line,
+    draw_results_dir,
+    draw_font_path,
 ):
     """模型预测"""
     ocr = CnOcr(
-        model_name=model_name,
-        model_backend=model_backend,
-        model_fp=pretrained_model_fp,
+        rec_model_name=rec_model_name,
+        rec_model_backend=rec_model_backend,
+        det_model_name=det_model_name,
+        det_model_backend=det_model_backend,
+        rec_model_fp=pretrained_model_fp,
         context=context,
+        # det_more_configs={'rotated_bbox': False},
     )
     ocr_func = ocr.ocr_for_single_line if single_line else ocr.ocr
     fp_list = []
@@ -231,37 +260,59 @@ def predict(
     for fp in fp_list:
         start_time = time.time()
         logger.info('\n' + '=' * 10 + fp + '=' * 10)
-        res = ocr_func(fp)
+        res = ocr_func(
+            fp,
+            # resized_shape=2280,
+            # box_score_thresh=0.14,
+            # min_box_size=20,
+        )
         logger.info('time cost: %f' % (time.time() - start_time))
         logger.info(res)
         if single_line:
             res = [res]
-        for line_res in res:
-            preds, prob = line_res
-            logger.info('\npred: %s, with probability %f' % (''.join(preds), prob))
+
+        if not single_line and draw_results_dir is not None:
+            if not os.path.isfile(draw_font_path):
+                logger.error(
+                    'can not find the font file {}, so stop drawing ocr results'.format(
+                        draw_font_path
+                    )
+                )
+            else:
+                os.makedirs(draw_results_dir, exist_ok=True)
+                out_draw_fp = os.path.join(
+                    draw_results_dir, os.path.basename(fp) + '-result.jpg'
+                )
+                draw_ocr_results(
+                    fp, res, out_draw_fp=out_draw_fp, font_path=draw_font_path
+                )
+
+        # for line_res in res:
+        #     preds, prob = line_res['text'], line_res['score']
+        #     logger.info('\npred: %s, with score %f' % (''.join(preds), prob))
 
 
 @cli.command('evaluate')
 @click.option(
     '-m',
-    '--model-name',
+    '--rec-model-name',
     type=str,
     default=DEFAULT_MODEL_NAME,
-    help='模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
+    help='识别模型名称。默认值为 %s' % DEFAULT_MODEL_NAME,
 )
 @click.option(
     '-b',
-    '--model-backend',
+    '--rec-model-backend',
     type=click.Choice(['pytorch', 'onnx']),
     default='onnx',
-    help='模型类型。默认值为 `onnx`',
+    help='识别模型类型。默认值为 `onnx`',
 )
 @click.option(
     '-p',
     '--pretrained-model-fp',
     type=str,
     default=None,
-    help='使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
+    help='识别模型使用训练好的模型。默认为 `None`，表示使用系统自带的预训练模型',
 )
 @click.option(
     "-c",
@@ -290,8 +341,8 @@ def predict(
     "-v", "--verbose", is_flag=True, help="whether to print details to screen",
 )
 def evaluate(
-    model_name,
-    model_backend,
+    rec_model_name,
+    rec_model_backend,
     pretrained_model_fp,
     context,
     eval_index_fp,
@@ -300,7 +351,7 @@ def evaluate(
     output_dir,
     verbose,
 ):
-    """评估模型效果"""
+    """评估模型效果。检测模型使用 `det_model_name='naive_det'` 。"""
     try:
         import Levenshtein
     except Exception as e:
@@ -310,9 +361,10 @@ def evaluate(
         )
         return
     ocr = CnOcr(
-        model_name=model_name,
-        model_backend=model_backend,
-        model_fp=pretrained_model_fp,
+        rec_model_name=rec_model_name,
+        rec_model_backend=rec_model_backend,
+        rec_model_fp=pretrained_model_fp,
+        det_model_name='naive_det',
         context=context,
     )
 
@@ -416,12 +468,12 @@ def compare_preds_to_reals(batch_preds, batch_reals, batch_img_fns):
 
 
 @cli.command('resave')
-@click.option('-i', '--input-model-fp', type=str, required=True, help='输入的模型文件路径')
-@click.option('-o', '--output-model-fp', type=str, required=True, help='输出的模型文件路径')
+@click.option('-i', '--input-model-fp', type=str, required=True, help='输入的识别模型文件路径')
+@click.option('-o', '--output-model-fp', type=str, required=True, help='输出的识别模型文件路径')
 def resave_model_file(
     input_model_fp, output_model_fp,
 ):
-    """训练好的模型会存储训练状态，使用此命令去掉预测时无关的数据，降低模型大小"""
+    """训练好的识别模型会存储训练状态，使用此命令去掉预测时无关的数据，降低模型大小"""
     resave_model(input_model_fp, output_model_fp, map_location='cpu')
 
 
@@ -462,29 +514,29 @@ def export_to_onnx(model_name, output_model_fp, input_model_fp=None):
 @cli.command('export-onnx')
 @click.option(
     '-m',
-    '--model-name',
+    '--rec-model-name',
     type=str,
     default=DEFAULT_MODEL_NAME,
-    help='模型名称。默认值为 `%s`' % DEFAULT_MODEL_NAME,
+    help='识别模型名称。默认值为 `%s`' % DEFAULT_MODEL_NAME,
 )
 @click.option(
     '-i',
     '--input-model-fp',
     type=str,
     default=None,
-    help='输入的模型文件路径。 默认为 `None`，表示使用系统自带的预训练模型',
+    help='输入的识别模型文件路径。 默认为 `None`，表示使用系统自带的预训练模型',
 )
 @click.option(
-    '-o', '--output-model-fp', type=str, required=True, help='输出的模型文件路径（.onnx）'
+    '-o', '--output-model-fp', type=str, required=True, help='输出的识别模型文件路径（.onnx）'
 )
 def export_onnx_model(
-    model_name, input_model_fp, output_model_fp,
+    rec_model_name, input_model_fp, output_model_fp,
 ):
-    """把训练好的模型导出为 ONNX 格式。
+    """把训练好的识别模型导出为 ONNX 格式。
     当前无法导出 `*-gru` 模型， 具体说明见：https://discuss.pytorch.org/t/exporting-gru-rnn-to-onnx/27244 ，
     后续版本会修复此问题。
     """
-    export_to_onnx(model_name, output_model_fp, input_model_fp)
+    export_to_onnx(rec_model_name, output_model_fp, input_model_fp)
 
 
 if __name__ == "__main__":

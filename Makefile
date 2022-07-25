@@ -33,7 +33,7 @@ doc:
 package:
 	python setup.py sdist bdist_wheel
 
-VERSION = 2.1.2.1
+VERSION = 2.2
 upload:
 	python -m twine upload  dist/cnocr-$(VERSION)* --verbose
 

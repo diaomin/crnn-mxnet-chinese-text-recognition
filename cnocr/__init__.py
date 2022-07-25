@@ -17,7 +17,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from .consts import MODEL_VERSION, AVAILABLE_MODELS, NUMBERS, ENG_LETTERS
+from cnstd.consts import AVAILABLE_MODELS as DET_AVAILABLE_MODELS
+from cnstd.utils import pil_to_numpy
+
+from .consts import (
+    MODEL_VERSION,
+    AVAILABLE_MODELS as REC_AVAILABLE_MODELS,
+    NUMBERS,
+    ENG_LETTERS,
+)
+from .utils import read_img
 from .cn_ocr import CnOcr
 from .recognizer import gen_model
 from .line_split import line_split

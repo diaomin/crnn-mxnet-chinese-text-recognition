@@ -16,6 +16,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+from __future__ import division, absolute_import, print_function
 
 import hashlib
 import os
@@ -176,7 +177,7 @@ def download(url, path=None, overwrite=False, sha1_hash=None):
         if not os.path.exists(dirname):
             os.makedirs(dirname)
 
-        print('Downloading %s from %s...' % (fname, url))
+        logger.info('Downloading %s from %s...' % (fname, url))
         r = requests.get(url, stream=True)
         if r.status_code != 200:
             raise RuntimeError("Failed downloading url %s" % url)
@@ -414,3 +415,29 @@ def mask_by_candidates(
     masked = np.ma.masked_array(data=logits, mask=~candidates, fill_value=-100.0)
     logits = masked.filled()
     return logits
+
+
+def draw_ocr_results(image_fp: Union[str, Path, Image.Image], ocr_outs, out_draw_fp, font_path):
+    # Credits: adapted from https://github.com/PaddlePaddle/PaddleOCR
+    import cv2
+    from .ppocr.utility import draw_ocr_box_txt
+
+    if isinstance(image_fp, (str, Path)):
+        img = Image.open(image_fp).convert('RGB')
+    else:
+        img = image_fp
+
+    txts = []
+    scores = []
+    boxes = []
+    for _out in ocr_outs:
+        txts.append(_out['text'])
+        scores.append(_out['score'])
+        boxes.append(_out['position'])
+
+    draw_img = draw_ocr_box_txt(
+        img, boxes, txts, scores, drop_score=0.0, font_path=font_path
+    )
+
+    cv2.imwrite(out_draw_fp, draw_img[:, :, ::-1])
+    logger.info("The visualized image saved in {}".format(out_draw_fp))
