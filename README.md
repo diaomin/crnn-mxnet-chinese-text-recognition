@@ -15,7 +15,7 @@
 [🛠️ 安装](https://cnocr.readthedocs.io/zh/latest/install/) |
 [🧳 可用模型](https://cnocr.readthedocs.io/zh/latest/models/) |
 [🕹 模型训练](https://cnocr.readthedocs.io/zh/latest/train/) |
-[🛀🏻 在线Demo](https://share.streamlit.io/breezedeus/cnstd/st-deploy/cnstd/app.py) |
+[🛀🏻 在线Demo](https://huggingface.co/spaces/breezedeus/cnocr) |
 [💬 交流群](https://cnocr.readthedocs.io/zh/latest/contact/)
 
 </div>
