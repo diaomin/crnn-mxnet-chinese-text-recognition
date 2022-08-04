@@ -41,6 +41,8 @@ def plot_for_debugging(rotated_img, one_out, box_score_thresh, crop_ncols, prefi
     rotated_img = rotated_img.copy()
     crops = [info['cropped_img'] for info in one_out]
     print('%d boxes are found' % len(crops))
+    if len(crops) < 1:
+        return
     ncols = crop_ncols
     nrows = math.ceil(len(crops) / ncols)
     fig, ax = plt.subplots(nrows=nrows, ncols=ncols)
@@ -78,6 +80,9 @@ def get_ocr_model(det_model_name, rec_model_name, det_more_configs):
 
 
 def visualize_naive_result(img, det_model_name, std_out, box_score_thresh):
+    if len(std_out) < 1:
+        st.warning(f'未检测到文本！')
+        return
     img = pil_to_numpy(img).transpose((1, 2, 0)).astype(np.uint8)
 
     plot_for_debugging(img, std_out, box_score_thresh, 2, './streamlit-app')
@@ -96,6 +101,8 @@ def visualize_naive_result(img, det_model_name, std_out, box_score_thresh):
 
 def _visualize_ocr(ocr_outs):
     st.empty()
+    if len(ocr_outs) < 1:
+        return
     ocr_res = OrderedDict({'文本': []})
     ocr_res['得分'] = []
     for out in ocr_outs:
