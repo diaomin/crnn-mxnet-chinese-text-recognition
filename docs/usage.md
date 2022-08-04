@@ -5,7 +5,7 @@
 首次使用 **CnOCR** 时，系统会**自动下载** zip 格式的模型压缩文件，并存于 `~/.cnocr`目录（Windows下默认路径为 `C:\Users\<username>\AppData\Roaming\cnocr`）。
 下载后的zip文件代码会自动对其解压，然后把解压后的模型相关目录放于`~/.cnocr/2.2`目录中。
 
-如果系统无法自动成功下载zip文件，则需要手动从 **[cnstd-cnocr-models](https://huggingface.co/breezedeus/cnstd-cnocr-models/tree/main)** 下载此zip文件并把它放于 `~/.cnocr/2.2`目录。如果下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1N6HoYearUzU0U8NTL3K35A) 下载， 提取码为 ` gcig`。
+如果系统无法自动成功下载zip文件，则需要手动从 **[cnstd-cnocr-models](https://huggingface.co/breezedeus/cnstd-cnocr-models/tree/main)** 下载此zip文件并把它放于 `~/.cnocr/2.2`目录。如果下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1wvIjbjw95akE-h_o1HQd9w?pwd=nocr) 下载， 提取码为 ` nocr`。
 
 放置好 zip 文件后，后面的事代码就会自动执行了。
 

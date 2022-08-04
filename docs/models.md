@@ -1,6 +1,6 @@
 # 可用的模型
 
-直接使用的模型都放在 [**cnstd-cnocr-models**](https://huggingface.co/breezedeus/cnstd-cnocr-models) 项目中，可免费下载使用。具体方法可参考 [使用方法](usage.md) 。
+直接使用的模型都放在 [**cnstd-cnocr-models**](https://huggingface.co/breezedeus/cnstd-cnocr-models) 项目中，可免费下载使用。如果下载太慢，也可以从 [百度云盘](https://pan.baidu.com/s/1wvIjbjw95akE-h_o1HQd9w?pwd=nocr) 下载， 提取码为 ` nocr`。具体方法可参考 [使用方法](usage.md) 。
 
 模型分为两大类，1）来自 **[CnSTD](https://github.com/breezedeus/cnstd)** 的**检测模型**；2）来自 CnOCR 的**识别模型**。
 
