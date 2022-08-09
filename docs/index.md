@@ -28,8 +28,7 @@
 
 可以使用 [**在线 Demo**](demo.md) 查看效果。
 
-CnOcr的目标是**使用简单**。
-
+CnOCR的目标是**使用简单**。
 
 ## 安装简单
 
@@ -42,6 +41,16 @@ pip install cnocr
 更多说明可见 [安装文档](install.md)。
 
 > **注**：如果电脑中从未安装过 `PyTorch`，`OpenCV` python包，初次安装可能会遇到问题，但一般都是常见问题，可以自行百度/Google解决。
+
+
+
+### Docker Image
+
+可以从 [Docker Hub](https://hub.docker.com/r/breezedeus/cnocr/tags) 直接拉取已安装好 CnOCR 的镜像使用。
+
+```bash
+> docker pull breezedeus/cnocr:v2.2
+```
 
 
 
