@@ -1,5 +1,7 @@
 # 安装
 
+## pip 安装
+
 嗯，顺利的话一行命令即可。
 
 ```bash
@@ -28,9 +30,19 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 
 
 
+## Docker Image
+
+可以从 [Docker Hub](https://hub.docker.com/r/breezedeus/cnocr/tags) 直接拉取已安装好 CnOCR 的镜像使用。
+
+```bash
+> docker pull breezedeus/cnocr:v2.2
+```
 
 
-### GPU 环境使用 ONNX 模型
+
+
+
+## GPU 环境使用 ONNX 模型
 
 默认情况下安装的 **ONNX** 包是 **`onnxruntime`**，它只能在 `CPU` 上运行。如果需要在 `GPU` 环境使用 **ONNX** 模型，需要卸载此包，然后安装包 **`onnxruntime-gpu`** 。
 
