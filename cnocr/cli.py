@@ -387,7 +387,7 @@ def evaluate(
         outs = ocr.ocr_for_single_lines(imgs, batch_size=1)
         total_time_cost += time.time() - start_time
 
-        preds = [out[0] for out in outs]
+        preds = [out['text'] for out in outs]
         for bad_info in compare_preds_to_reals(preds, reals, img_fps):
             if verbose:
                 logger.info('\t'.join(bad_info))
