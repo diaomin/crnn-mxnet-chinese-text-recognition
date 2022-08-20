@@ -39,7 +39,7 @@ upload:
 
 # 开启 OCR HTTP 服务
 serve:
-	cnocr serve -p 8000 --reload
+	cnocr serve -p 8501 --reload
 
 # 开启监控截屏文件夹的守护进程
 daemon:

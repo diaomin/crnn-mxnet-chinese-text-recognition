@@ -18,7 +18,7 @@
 # under the License.
 
 # 也可以下调用命令在命令行调用开启的OCR服务：
-# > curl -F image=@docs/examples/huochepiao.jpeg http://0.0.0.0:8000/ocr
+# > curl -F image=@docs/examples/huochepiao.jpeg http://0.0.0.0:8501/ocr
 
 import os
 import time
@@ -32,7 +32,7 @@ from cnocr.utils import set_logger
 logger = set_logger(log_level='DEBUG')
 
 
-SERVICE_URL = os.getenv("CNOCR_SERVICE", 'http://0.0.0.0:8000/ocr')
+SERVICE_URL = os.getenv("CNOCR_SERVICE", 'http://0.0.0.0:8501/ocr')
 SCREENSHOT_DIR = os.getenv(
     "SCREENSHOT_DIR", '/Users/king/Pictures/screenshot_from_xnip'
 )

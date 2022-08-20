@@ -26,6 +26,28 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 
 
 
+### 包含API接口安装
+
+CnOCR **V2.2.1** 加入了基于 FastAPI 的HTTP服务。开启服务需要安装几个额外的包，可以使用以下命令安装：
+
+```bash
+pip install cnocr[serve]
+```
+
+
+
+安装完成后，可以通过以下命令启动HTTP服务（**`-p`** 后面的数字是**端口**，可以根据需要自行调整）：
+
+```bash
+cnocr serve -p 8501
+```
+
+
+
+服务的调用方式请参考 [首页/HTTP服务](index.md) 。
+
+
+
 如遇到安装问题，欢迎在 [Github](https://github.com/breezedeus/cnocr)、 知识星球[**CnOCR/CnSTD私享群**](https://t.zsxq.com/FEYZRJQ) 或者 微信交流群反馈给作者 [breezedeus](https://github.com/breezedeus) 。
 
 
