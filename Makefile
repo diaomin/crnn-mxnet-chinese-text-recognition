@@ -20,7 +20,7 @@ evaluate:
 predict:
 	cnocr predict -m $(MODEL_NAME) -i docs/examples/rand_cn1.png
 
-
+# build and serve mkdocs
 doc:
 #	pip install mkdocs
 #	pip install mkdocs-macros-plugin
@@ -33,9 +33,17 @@ doc:
 package:
 	python setup.py sdist bdist_wheel
 
-VERSION = 2.2
+VERSION = 2.2.1
 upload:
 	python -m twine upload  dist/cnocr-$(VERSION)* --verbose
 
+# 开启 OCR HTTP 服务
+serve:
+	cnocr serve -p 8000 --reload
 
-.PHONY: train evaluate predict doc package upload
+# 开启监控截屏文件夹的守护进程
+daemon:
+	python scripts/screenshot_daemon.py
+
+
+.PHONY: train evaluate predict doc package upload serve daemon
