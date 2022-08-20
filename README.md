@@ -275,6 +275,8 @@ cnocr serve -p 8501
 使用如下方式调用服务：
 
 ```python
+import requests
+
 image_fp = 'docs/examples/huochepiao.jpeg'
 r = requests.post(
     'http://0.0.0.0:8501/ocr', files={'image': (image_fp, open(image_fp, 'rb'), 'image/png')},
