@@ -50,6 +50,7 @@ required = [
 ]
 extras_require = {
     "dev": ["pip-tools", "pytest", "python-Levenshtein"],
+    "serve": ["uvicorn[standard]", "fastapi", "python-multipart", "pydantic"],
 }
 
 entry_points = """

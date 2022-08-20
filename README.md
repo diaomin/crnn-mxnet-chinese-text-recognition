@@ -236,6 +236,67 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 
 
 
+
+
+## HTTP服务
+
+CnOCR **V2.2.1** 加入了基于 FastAPI 的HTTP服务。开启服务需要安装几个额外的包，可以使用以下命令安装：
+
+```bash
+pip install cnocr[serve]
+```
+
+
+
+安装完成后，可以通过以下命令启动HTTP服务（**`-p`** 后面的数字是**端口**，可以根据需要自行调整）：
+
+```bash
+cnocr serve -p 8501
+```
+
+
+
+服务开启后，可以使用以下方式调用服务。
+
+
+
+### 命令行
+
+比如待识别文件为 `docs/examples/huochepiao.jpeg`，如下使用 curl 调用服务：
+
+```bash
+> curl -F image=@docs/examples/huochepiao.jpeg http://0.0.0.0:8501/ocr
+```
+
+
+
+### Python
+
+使用如下方式调用服务：
+
+```python
+image_fp = 'docs/examples/huochepiao.jpeg'
+r = requests.post(
+    'http://0.0.0.0:8501/ocr', files={'image': (image_fp, open(image_fp, 'rb'), 'image/png')},
+)
+ocr_out = r.json()['results']
+print(ocr_out)
+```
+
+
+
+具体也可参考文件 [scripts/screenshot_daemon_with_server.py](scripts/screenshot_daemon_with_server.py) 。 
+
+
+
+### 其他语言
+
+请参照 curl 的调用方式自行实现。
+
+
+
+
+
 ## 可使用的模型
 
 ### 可使用的检测模型

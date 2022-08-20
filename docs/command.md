@@ -67,7 +67,7 @@ Options:
 例如可以使用以下命令评估 `data/test/dev.tsv` 中指定的所有样本：
 
 ```bash
-cnocr evaluate -i data/test/dev.tsv --image-folder data/images 
+cnocr evaluate -i data/test/dev.tsv --img-folder data/images 
 ```
 
 具体使用也可参考文件 [Makefile](https://github.com/breezedeus/cnocr/blob/master/Makefile) 。

@@ -26,6 +26,8 @@ import json
 import glob
 from operator import itemgetter
 from pathlib import Path
+from multiprocessing import Process
+import subprocess
 
 import click
 from torchvision import transforms as T
@@ -387,7 +389,7 @@ def evaluate(
         outs = ocr.ocr_for_single_lines(imgs, batch_size=1)
         total_time_cost += time.time() - start_time
 
-        preds = [out[0] for out in outs]
+        preds = [out['text'] for out in outs]
         for bad_info in compare_preds_to_reals(preds, reals, img_fps):
             if verbose:
                 logger.info('\t'.join(bad_info))
@@ -537,6 +539,33 @@ def export_onnx_model(
     后续版本会修复此问题。
     """
     export_to_onnx(rec_model_name, output_model_fp, input_model_fp)
+
+
+@cli.command('serve')
+@click.option(
+    '-p', '--port', type=int, default=8501, help='server port',
+)
+@click.option(
+    '--reload',
+    is_flag=True,
+    help='whether to reload the server when the codes have been changed',
+)
+def serve(port, reload):
+    """开启HTTP服务。"""
+
+    path = os.path.realpath(os.path.dirname(__file__))
+    api = Process(
+        target=start_server, kwargs={'path': path, 'port': port, 'reload': reload}
+    )
+    api.start()
+    api.join()
+
+
+def start_server(path, port, reload):
+    cmd = ['uvicorn', 'serve:app', '--port', str(port)]
+    if reload:
+        cmd.append('--reload')
+    subprocess.call(cmd, cwd=path)
 
 
 if __name__ == "__main__":

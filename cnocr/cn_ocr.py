@@ -154,6 +154,7 @@ class CnOcr(object):
         rec_more_configs = rec_more_configs or dict()
         self.rec_model = rec_cls(
             model_name=rec_model_name,
+            model_backend=rec_model_backend,
             cand_alphabet=cand_alphabet,
             context=context,
             model_fp=rec_model_fp,

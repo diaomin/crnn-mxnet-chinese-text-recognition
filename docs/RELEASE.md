@@ -1,5 +1,15 @@
 # Release Notes
 
+### Update 2022.08.21: 发布 cnocr V2.2.1
+
+主要变更：
+
+* 修复了一些bug。
+* 加入了基于 FastAPI 的HTTP服务，使用命令 `cnocr serve` 启动HTTP服务，具体见 [安装说明](install.md)。
+* 加入了一些工具脚本，如对截屏图片进行OCR，具体见[cnocr/scripts](https://github.com/breezedeus/CnOCR/tree/master/scripts)。
+
+
+
 ### Update 2022.07.25: 发布 cnocr V2.2
 
 主要变更：
