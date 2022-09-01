@@ -157,8 +157,10 @@ torch==1.9.0
     #   pytorch-lightning
     #   torchmetrics
     #   torchvision
-torchmetrics==0.5.0
-    # via pytorch-lightning
+torchmetrics==0.9.3
+    # via
+    #   -r requirements.in
+    #   pytorch-lightning
 torchvision==0.10.0
     # via
     #   -r requirements.in

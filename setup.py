@@ -43,11 +43,11 @@ required = [
     "torchvision>=0.9.0",
     'numpy',
     "pytorch-lightning>=1.6.0",
+    "torchmetrics",
     "pillow>=5.3.0",
     "onnx",
     "onnxruntime",
     "cnstd>=1.2",
-    "torchmetrics",
 ]
 extras_require = {
     "dev": ["pip-tools", "pytest", "python-Levenshtein"],
