@@ -1,5 +1,5 @@
 # coding: utf-8
-# Copyright (C) 2021, [Breezedeus](https://github.com/breezedeus).
+# Copyright (C) 2022, [Breezedeus](https://github.com/breezedeus).
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -18,7 +18,6 @@
 # under the License.
 
 import logging
-from copy import deepcopy
 from pathlib import Path
 from typing import Any, Optional, Union, List
 
@@ -29,7 +28,9 @@ from torch import nn
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
+import torchmetrics
 
+from .classification import ImageClassifier
 from .lr_scheduler import get_lr_scheduler
 
 
@@ -63,29 +64,62 @@ def get_optimizer(name: str, model, learning_rate, weight_decay):
     return optimizer
 
 
-class Accuracy(object):
+class CompleteMatchMetric(object):
+    def __init__(self, **kwargs):
+        self.total_cnt = 0
+        self.match_cnt = 0
+
+    def __call__(self, preds, target):
+        assert len(preds) == len(target)
+        cur_match_cnt = sum([p == r for p, r in zip(preds, target)])
+        cur_total_cnt = len(preds)
+        self.total_cnt += cur_total_cnt
+        self.match_cnt += cur_match_cnt
+        return cur_match_cnt / (1e-6 + cur_total_cnt)
+
+    def compute(self):
+        return self.match_cnt / (1e-6 + self.total_cnt)
+
+
+METRIC_MAPPING = {
+    'accuracy': torchmetrics.Accuracy,
+    'precision': torchmetrics.Precision,
+    'recall': torchmetrics.Recall,
+    'complete_match': CompleteMatchMetric,
+}
+try:
+    METRIC_MAPPING['f1'] = torchmetrics.F1Score
+    METRIC_MAPPING['cer'] = torchmetrics.CharErrorRate
+except:
+    pass
+
+
+class Metrics(object):
+    def __init__(self, configs=None):
+        configs = configs or {'accuracy': {}}
+        self._metrics = dict()
+        for name, _config in configs.items():
+            if name not in METRIC_MAPPING:
+                logger.warning(f'metric {name} is not supported and will be ignored')
+            self._metrics[name] = METRIC_MAPPING[name](**_config)
+        if len(self._metrics) < 1:
+            raise RuntimeError('no available metric is set, please check you `train_config.json`')
+
     @classmethod
-    def complete_match(cls, labels: List[List[str]], preds: List[List[str]]):
-        assert len(labels) == len(preds)
-        total_num = len(labels)
-        hit_num = 0
-        for label, pred in zip(labels, preds):
-            if label == pred:
-                hit_num += 1
+    def from_config(cls, configs):
+        return cls(configs)
 
-        return hit_num / (total_num + 1e-6)
+    def compute(self):
+        results = dict()
+        for name, _metric in self._metrics.items():
+            results[name] = float(_metric.compute())
+        return results
 
-    @classmethod
-    def label_match(cls, labels: List[List[str]], preds: List[List[str]]):
-        assert len(labels) == len(preds)
-        total_num = 0
-        hit_num = 0
-        for label, pred in zip(labels, preds):
-            total_num += max(len(label), len(pred))
-            min_len = min(len(label), len(pred))
-            hit_num += sum([l == p for l, p in zip(label[:min_len], pred[:min_len])])
-
-        return hit_num / (total_num + 1e-6)
+    def add_batch(self, references, predictions):
+        results = dict()
+        for name, _metric in self._metrics.items():
+            results[name] = float(_metric(preds=predictions, target=references))
+        return results
 
 
 class WrapperLightningModule(pl.LightningModule):
@@ -100,52 +134,99 @@ class WrapperLightningModule(pl.LightningModule):
             config.get('weight_decay', 0),
         )
 
+        self.train_metrics = self.get_metrics()
+        self.val_metrics = self.get_metrics()
+
     def forward(self, x):
         return self.model(x)
 
-    def training_step(self, batch, batch_idx):
-        if hasattr(self.model, 'set_current_epoch'):
-            self.model.set_current_epoch(self.current_epoch)
+    def get_metrics(self):
+        return Metrics.from_config(self.config['metrics'])
+
+    def _postprocess_preds(self, preds):
+        if isinstance(self.model, ImageClassifier):
+            return preds.detach().cpu()
         else:
-            setattr(self.model, 'current_epoch', self.current_epoch)
-        res = self.model.calculate_loss(batch)
+            preds, _ = zip(*preds)
+            return preds
+
+    def training_step(self, batch, batch_idx):
+        # if hasattr(self.model, 'set_current_epoch'):
+        #     self.model.set_current_epoch(self.current_epoch)
+        # else:
+        #     setattr(self.model, 'current_epoch', self.current_epoch)
+        res = self.model.calculate_loss(
+            batch, return_model_output=True, return_preds=True
+        )
 
         # update lr scheduler
         sch = self.lr_schedulers()
         sch.step()
 
         losses = res['loss']
-        self.log(
-            'train_loss',
-            losses.item(),
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
+        preds = self._postprocess_preds(res['preds'])
+        reals = res['target']
+        if isinstance(reals, torch.Tensor):
+            reals = reals.detach().cpu()
+        train_metrics = self.train_metrics.add_batch(references=reals, predictions=preds)
+        train_metrics['loss'] = losses.item()
+        train_metrics = {
+            f'train-{k}-step': v for k, v in train_metrics.items() if not np.isnan(v)
+        }
+        self.log_dict(
+            train_metrics, on_step=True, on_epoch=False, prog_bar=True, logger=True,
         )
         return losses
 
+    def training_epoch_end(self, outputs) -> None:
+        train_metrics = self.train_metrics.compute()
+        train_metrics = {
+            f'train-{k}-epoch': v for k, v in train_metrics.items() if not np.isnan(v)
+        }
+        train_metrics['train-loss-epoch'] = np.mean(
+            [out['loss'].item() for out in outputs]
+        )
+        self.log_dict(
+            train_metrics, on_step=False, on_epoch=True, prog_bar=True, logger=True,
+        )
+        self.train_metrics = self.get_metrics()
+
     def validation_step(self, batch, batch_idx):
-        if hasattr(self.model, 'validation_step'):
-            return self.model.validation_step(batch, batch_idx, self)
+        # if hasattr(self.model, 'validation_step'):
+        #     return self.model.validation_step(batch, batch_idx, self)
 
         res = self.model.calculate_loss(
             batch, return_model_output=True, return_preds=True
         )
         losses = res['loss']
-        preds, _ = zip(*res['preds'])
-        val_metrics = {'val_loss': losses.item()}
 
-        labels_list = batch[2]
-        val_metrics['complete_match'] = Accuracy.complete_match(labels_list, preds)
-        val_metrics['label_match'] = Accuracy.label_match(labels_list, preds)
+        preds = self._postprocess_preds(res['preds'])
+        reals = res['target']
+        if isinstance(reals, torch.Tensor):
+            reals = reals.detach().cpu()
+        val_metrics = self.val_metrics.add_batch(references=reals, predictions=preds)
+        val_metrics['loss'] = losses.item()
+        # val_metrics['accuracy'] = sum([p == r for p, r in zip(preds, reals)]) / (len(reals) + 1e-6)
 
         # 过滤掉NaN的指标。有些指标在某些batch数据上会出现结果NaN，比如batch只有正样本或负样本时，AUC=NaN
-        val_metrics = {k: v for k, v in val_metrics.items() if not np.isnan(v)}
+        val_metrics = {
+            f'val-{k}-step': v for k, v in val_metrics.items() if not np.isnan(v)
+        }
         self.log_dict(
-            val_metrics, on_step=True, on_epoch=True, prog_bar=True, logger=True,
+            val_metrics, on_step=True, on_epoch=False, prog_bar=True, logger=True,
         )
         return losses
+
+    def validation_epoch_end(self, outputs) -> None:
+        val_metrics = self.val_metrics.compute()
+        val_metrics = {
+            f'val-{k}-epoch': v for k, v in val_metrics.items() if not np.isnan(v)
+        }
+        val_metrics['val-loss-epoch'] = np.mean([out.item() for out in outputs])
+        self.log_dict(
+            val_metrics, on_step=False, on_epoch=True, prog_bar=True, logger=True,
+        )
+        self.val_metrics = self.get_metrics()
 
     def configure_optimizers(self):
         return [self._optimizer], [get_lr_scheduler(self.config, self._optimizer)]
@@ -180,11 +261,12 @@ class PlTrainer(object):
         self.pl_trainer = pl.Trainer(
             limit_train_batches=self.config.get('limit_train_batches', 1.0),
             limit_val_batches=self.config.get('limit_val_batches', 1.0),
-            gpus=self.config.get('gpus'),
+            accelerator=self.config.get('accelerator', 'auto'),
+            devices=self.config.get('devices'),
             max_epochs=self.config.get('epochs', 20),
             precision=self.config.get('precision', 32),
+            log_every_n_steps=self.config.get('log_every_n_steps', 10),
             callbacks=callbacks,
-            stochastic_weight_avg=False,
         )
 
     def fit(
@@ -215,6 +297,11 @@ class PlTrainer(object):
             len(train_dataloader)
             if train_dataloader is not None
             else len(datamodule.train_dataloader())
+        )
+        steps_per_epoch += (
+            len(val_dataloaders)
+            if val_dataloaders is not None
+            else len(datamodule.val_dataloader())
         )
         self.config['steps_per_epoch'] = steps_per_epoch
         if resume_from_checkpoint is not None:

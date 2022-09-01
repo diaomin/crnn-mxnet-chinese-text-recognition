@@ -78,15 +78,16 @@ class OcrDataModule(pt.LightningDataModule):
         num_workers: int = 0,
         pin_memory: bool = False,
     ):
-        super().__init__(
-            train_transforms=train_transforms, val_transforms=val_transforms
-        )
+        super().__init__()
         self.vocab, self.letter2id = read_charset(vocab_fp)
         self.index_dir = Path(index_dir)
         self.img_folder = img_folder
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.pin_memory = pin_memory
+
+        self.train_transforms = train_transforms
+        self.val_transforms = val_transforms
 
         self.train = OcrDataset(
             self.index_dir / 'train.tsv', self.img_folder, mode='train'

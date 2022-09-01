@@ -219,6 +219,7 @@ class OcrModel(nn.Module):
         if target is not None:
             out['loss'] = self._compute_loss(logits, target, input_lengths)
 
+        out['target'] = target
         return dict(out)
 
     def _decode(self, features_seq, input_lengths):
