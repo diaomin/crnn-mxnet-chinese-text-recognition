@@ -57,6 +57,7 @@ extras_require = {
 entry_points = """
 [console_scripts]
 cnocr = cnocr.cli:cli
+cnocr-clf = cnocr.clf_cli:cli
 """
 
 setup(

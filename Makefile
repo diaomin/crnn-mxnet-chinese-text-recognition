@@ -45,5 +45,7 @@ serve:
 daemon:
 	python scripts/screenshot_daemon.py
 
+docker-build:
+	docker build -t breezedeus/cnocr:v$(VERSION) .
 
 .PHONY: train evaluate predict doc package upload serve daemon
