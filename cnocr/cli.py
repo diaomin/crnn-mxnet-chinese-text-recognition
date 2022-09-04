@@ -20,6 +20,7 @@
 from __future__ import absolute_import, division, print_function
 import os
 import logging
+import string
 import time
 from collections import Counter
 import json
@@ -543,6 +544,9 @@ def export_onnx_model(
 
 @cli.command('serve')
 @click.option(
+    '-H', '--host', type=str, default='127.0.0.1', help='server host',
+)
+@click.option(
     '-p', '--port', type=int, default=8501, help='server port',
 )
 @click.option(
@@ -550,19 +554,19 @@ def export_onnx_model(
     is_flag=True,
     help='whether to reload the server when the codes have been changed',
 )
-def serve(port, reload):
+def serve(host, port, reload):
     """开启HTTP服务。"""
 
     path = os.path.realpath(os.path.dirname(__file__))
     api = Process(
-        target=start_server, kwargs={'path': path, 'port': port, 'reload': reload}
+        target=start_server, kwargs={'path': path, 'host': host, 'port': port, 'reload': reload}
     )
     api.start()
     api.join()
 
 
-def start_server(path, port, reload):
-    cmd = ['uvicorn', 'serve:app', '--port', str(port)]
+def start_server(path, host, port, reload):
+    cmd = ['uvicorn', 'serve:app', '--host', host, '--port', str(port)]
     if reload:
         cmd.append('--reload')
     subprocess.call(cmd, cwd=path)
