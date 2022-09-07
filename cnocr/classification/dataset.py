@@ -95,10 +95,20 @@ def collate_fn(img_labels: List[Tuple[str, str]], transformers: Callable = None)
         labels = None
     else:
         img_list, labels = zip(*img_labels)
-        labels = torch.tensor(labels)
 
     if transformers is not None:
-        img_list = [transformers(img) for img in img_list]
+        new_img_list = []
+        new_labels = []
+        for idx, img in enumerate(img_list):
+            try:
+                new_img_list.append(transformers(img))
+                if labels is not None:
+                    new_labels.append(labels[idx])
+            except:
+                continue
+        img_list = new_img_list
+        if labels is not None:
+            labels = torch.tensor(new_labels)
     imgs = torch.stack(img_list)
     return imgs, labels
 
