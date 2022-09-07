@@ -20,7 +20,6 @@
 from __future__ import absolute_import, division, print_function
 import os
 import logging
-import string
 import time
 from collections import Counter
 import json
@@ -544,7 +543,7 @@ def export_onnx_model(
 
 @cli.command('serve')
 @click.option(
-    '-H', '--host', type=str, default='127.0.0.1', help='server host',
+    '-H', '--host', type=str, default='0.0.0.0', help='server host',
 )
 @click.option(
     '-p', '--port', type=int, default=8501, help='server port',
