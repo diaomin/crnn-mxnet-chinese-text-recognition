@@ -2,7 +2,8 @@
     "vocab_fp": "cnocr/label_cn.txt",
     "img_folder": "data/output_normal",
 
-    "gpus": [0],
+    "devices": 1,
+    "accelerator": "gpu",
     "epochs": 40,
     "batch_size": 100,
     "num_workers": 12,
