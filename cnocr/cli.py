@@ -558,7 +558,8 @@ def serve(host, port, reload):
 
     path = os.path.realpath(os.path.dirname(__file__))
     api = Process(
-        target=start_server, kwargs={'path': path, 'host': host, 'port': port, 'reload': reload}
+        target=start_server,
+        kwargs={'path': path, 'host': host, 'port': port, 'reload': reload},
     )
     api.start()
     api.join()
