@@ -1,4 +1,4 @@
-# 脚本使用
+# 脚本工具
 
 **cnocr** 包含了几个命令行工具，安装 **cnocr** 后即可使用。
 
@@ -110,7 +110,7 @@ Options:
 
 ## 模型API服务
 
-CnOCR **V2.2.1** 加入了基于 FastAPI 的HTTP服务。开启服务需要安装几个额外的包，可以使用以下命令安装：
+CnOCR 自 **V2.2.1** 开始加入了基于 FastAPI 的HTTP服务。开启服务需要安装几个额外的包，可以使用以下命令安装：
 
 ```bash
 > pip install cnocr[serve]
@@ -127,11 +127,10 @@ Usage: cnocr serve [OPTIONS]
   开启HTTP服务。
 
 Options:
+  -H, --host TEXT     server host. Default: "0.0.0.0"
   -p, --port INTEGER  server port. Default: 8501
-  --host TEXT         server host. Default: "0.0.0.0"
   --reload            whether to reload the server when the codes have been
                       changed
-
   -h, --help          Show this message and exit.
 ```
 

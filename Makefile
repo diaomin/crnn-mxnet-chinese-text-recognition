@@ -33,13 +33,13 @@ doc:
 package:
 	python setup.py sdist bdist_wheel
 
-VERSION = 2.2.1
+VERSION = 2.2.2
 upload:
 	python -m twine upload  dist/cnocr-$(VERSION)* --verbose
 
 # 开启 OCR HTTP 服务
 serve:
-	cnocr serve -p 8501 --reload
+	cnocr serve -H 0.0.0.0 -p 8501 --reload
 
 # 开启监控截屏文件夹的守护进程
 daemon:

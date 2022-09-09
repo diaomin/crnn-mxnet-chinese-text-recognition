@@ -28,7 +28,7 @@ pip install cnocr -i https://pypi.doubanio.com/simple
 
 ### 包含API接口安装
 
-CnOCR **V2.2.1** 加入了基于 FastAPI 的HTTP服务。开启服务需要安装几个额外的包，可以使用以下命令安装：
+CnOCR 自 **V2.2.1** 开始加入了基于 FastAPI 的HTTP服务。开启服务需要安装几个额外的包，可以使用以下命令安装：
 
 ```bash
 pip install cnocr[serve]
@@ -57,8 +57,28 @@ cnocr serve -p 8501
 可以从 [Docker Hub](https://hub.docker.com/r/breezedeus/cnocr/tags) 直接拉取已安装好 CnOCR 的镜像使用。
 
 ```bash
-> docker pull breezedeus/cnocr:v2.2
+> docker pull breezedeus/cnocr:v2.2.2
 ```
+
+
+
+利用以下命令启动容器：
+
+```bash
+> docker run -it -p 8501:8501 breezedeus/cnocr:v2.2.2 bash
+```
+
+
+
+容器启动后会**自动启动HTTP服务**，在容器外可以直接调用相应的服务：
+
+```bash
+> curl -F image=@docs/examples/huochepiao.jpeg http://0.0.0.0:8501/ocr
+```
+
+
+
+更详细的调用方式见 [HTTP服务](index.md) 。
 
 
 
