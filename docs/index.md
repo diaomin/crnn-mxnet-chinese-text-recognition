@@ -224,7 +224,7 @@ print(out)
 
 ## HTTP服务
 
-CnOCR **V2.2.1** 加入了基于 FastAPI 的HTTP服务。开启服务需要安装几个额外的包，可以使用以下命令安装：
+CnOCR 自 **V2.2.1** 开始加入了基于 **FastAPI** 的HTTP服务。开启服务需要安装几个额外的包，可以使用以下命令安装：
 
 ```bash
 pip install cnocr[serve]
@@ -278,6 +278,28 @@ print(ocr_out)
 ### 其他语言
 
 请参照 curl 的调用方式自行实现。
+
+
+
+### Flask 服务
+
+我们也提供了 **Flask** Server 的实现，见 [scripts/flask-serve.py](https://github.com/breezedeus/CnOCR/blob/master/scripts/flask-serve.py) 。下载此文件，然后安装 flask 后即可启动。
+
+
+
+安装 Flask：
+
+```bash
+> pip install flask
+```
+
+
+
+启动服务：
+
+```bash
+> FLASK_APP=scripts/flask-serve.py flask run
+```
 
 
 

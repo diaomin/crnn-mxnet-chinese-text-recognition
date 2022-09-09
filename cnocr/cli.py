@@ -543,10 +543,10 @@ def export_onnx_model(
 
 @cli.command('serve')
 @click.option(
-    '-H', '--host', type=str, default='0.0.0.0', help='server host',
+    '-H', '--host', type=str, default='0.0.0.0', help='server host. Default: "0.0.0.0"',
 )
 @click.option(
-    '-p', '--port', type=int, default=8501, help='server port',
+    '-p', '--port', type=int, default=8501, help='server port. Default: 8501',
 )
 @click.option(
     '--reload',
@@ -558,7 +558,8 @@ def serve(host, port, reload):
 
     path = os.path.realpath(os.path.dirname(__file__))
     api = Process(
-        target=start_server, kwargs={'path': path, 'host': host, 'port': port, 'reload': reload}
+        target=start_server,
+        kwargs={'path': path, 'host': host, 'port': port, 'reload': reload},
     )
     api.start()
     api.join()

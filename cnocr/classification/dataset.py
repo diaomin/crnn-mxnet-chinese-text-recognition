@@ -1,5 +1,5 @@
 # coding: utf-8
-# Copyright (C) 2021, [Breezedeus](https://github.com/breezedeus).
+# Copyright (C) 2022, [Breezedeus](https://github.com/breezedeus).
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,6 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import os
+import logging
 from pathlib import Path
 from typing import Optional, Union, List, Tuple, Callable
 
@@ -24,12 +26,44 @@ import pytorch_lightning as pt
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from .utils import read_charset, read_tsv_file, read_img, resize_img, pad_img_seq
+from ..utils import read_img
 
 
-class OcrDataset(Dataset):
-    def __init__(self, index_fp, img_folder=None, mode='train'):
+logger = logging.getLogger(__name__)
+
+
+def read_tsv_file(fp, sep='\t', img_folder=None, mode='eval'):
+    """
+    format of each line:
+        <label>\t<ulr>
+    """
+    img_fp_list, labels_list = [], []
+    num_fields = 2 if mode != 'test' else 1
+    with open(fp) as f:
+        for line in f:
+            fields = line.strip('\n').split(sep)
+            assert len(fields) == num_fields
+            img_fp = (
+                os.path.join(img_folder, fields[-1])
+                if img_folder is not None
+                else fields[-1]
+            )
+            img_fp_list.append(img_fp)
+
+            if mode != 'test':
+                labels = fields[0]
+                labels_list.append(labels)
+
+    return (img_fp_list, labels_list) if mode != 'test' else (img_fp_list, None)
+
+
+class ImageDataset(Dataset):
+    def __init__(self, categories, index_fp, img_folder=None, mode='train'):
         super().__init__()
+
+        self.categories = categories
+        self.category_dict = {_name: idx for idx, _name in enumerate(self.categories)}
+
         self.img_fp_list, self.labels_list = read_tsv_file(
             index_fp, '\t', img_folder, mode
         )
@@ -40,12 +74,16 @@ class OcrDataset(Dataset):
 
     def __getitem__(self, item):
         img_fp = self.img_fp_list[item]
-        img = read_img(img_fp).transpose((2, 0, 1))  # res: [1, H, W]
-        img = resize_img(img)
+        try:
+            img = torch.tensor(
+                read_img(img_fp, gray=False).transpose((2, 0, 1))
+            )  # res: [3, H, W]
+        except:
+            logger.error(f'unsupported file {img_fp}')
+            breakpoint()
 
         if self.mode != 'test':
-            labels = self.labels_list[item]
-            # label_ids = [self.letter2id[l] for l in labels]
+            labels = self.category_dict[self.labels_list[item]]
 
         return (img, labels) if self.mode != 'test' else (img,)
 
@@ -54,23 +92,32 @@ def collate_fn(img_labels: List[Tuple[str, str]], transformers: Callable = None)
     test_mode = len(img_labels[0]) == 1
     if test_mode:
         img_list = zip(*img_labels)
-        labels_list, label_lengths = None, None
+        labels = None
     else:
-        img_list, labels_list = zip(*img_labels)
-        label_lengths = torch.tensor([len(labels) for labels in labels_list])
+        img_list, labels = zip(*img_labels)
 
     if transformers is not None:
-        img_list = [transformers(img) for img in img_list]
-    img_lengths = torch.tensor([img.size(2) for img in img_list])
-    imgs = pad_img_seq(img_list)
-    return imgs, img_lengths, labels_list, label_lengths
+        new_img_list = []
+        new_labels = []
+        for idx, img in enumerate(img_list):
+            try:
+                new_img_list.append(transformers(img))
+                if labels is not None:
+                    new_labels.append(labels[idx])
+            except:
+                continue
+        img_list = new_img_list
+        if labels is not None:
+            labels = torch.tensor(new_labels)
+    imgs = torch.stack(img_list)
+    return imgs, labels
 
 
-class OcrDataModule(pt.LightningDataModule):
+class ImageDataModule(pt.LightningDataModule):
     def __init__(
         self,
+        categories: Union[list, tuple],
         index_dir: Union[str, Path],
-        vocab_fp: Union[str, Path],
         img_folder: Union[str, Path, None] = None,
         train_transforms=None,
         val_transforms=None,
@@ -79,7 +126,6 @@ class OcrDataModule(pt.LightningDataModule):
         pin_memory: bool = False,
     ):
         super().__init__()
-        self.vocab, self.letter2id = read_charset(vocab_fp)
         self.index_dir = Path(index_dir)
         self.img_folder = img_folder
         self.batch_size = batch_size
@@ -89,10 +135,12 @@ class OcrDataModule(pt.LightningDataModule):
         self.train_transforms = train_transforms
         self.val_transforms = val_transforms
 
-        self.train = OcrDataset(
-            self.index_dir / 'train.tsv', self.img_folder, mode='train'
+        self.train = ImageDataset(
+            categories, self.index_dir / 'train.tsv', self.img_folder, mode='train'
         )
-        self.val = OcrDataset(self.index_dir / 'dev.tsv', self.img_folder, mode='train')
+        self.val = ImageDataset(
+            categories, self.index_dir / 'dev.tsv', self.img_folder, mode='train'
+        )
 
     @property
     def vocab_size(self):

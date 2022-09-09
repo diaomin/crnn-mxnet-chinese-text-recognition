@@ -42,7 +42,8 @@ required = [
     "torch>=1.8.0",
     "torchvision>=0.9.0",
     'numpy',
-    "pytorch-lightning",
+    "pytorch-lightning>=1.6.0",
+    "torchmetrics",
     "pillow>=5.3.0",
     "onnx",
     "onnxruntime",
@@ -56,6 +57,7 @@ extras_require = {
 entry_points = """
 [console_scripts]
 cnocr = cnocr.cli:cli
+cnocr-clf = cnocr.clf_cli:cli
 """
 
 setup(

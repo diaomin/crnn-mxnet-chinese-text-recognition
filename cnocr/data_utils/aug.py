@@ -1,5 +1,5 @@
 # coding: utf-8
-# Copyright (C) 2021, [Breezedeus](https://github.com/breezedeus).
+# Copyright (C) 2022, [Breezedeus](https://github.com/breezedeus).
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -22,9 +22,12 @@ from typing import Tuple
 
 import torch
 import torchvision.transforms.functional as F
+try:
+    from torchvision.transforms.functional import get_image_size
+except:
+    from torchvision.transforms.functional import _get_image_size as get_image_size
 
 from ..utils import normalize_img_array
-
 
 class FgBgFlipAug(object):
     """前景色背景色对调。
@@ -97,7 +100,7 @@ class RandomCrop(torch.nn.Module):
             )
             h = ori_h - h_top - h_bot
             w = ori_w - w_left - w_right
-            if h < ori_h * 0.5 or w < ori_w * 0.9:
+            if h < ori_h * 0.5 or w < ori_w * 0.5:
                 continue
 
             return h_top, w_left, h, w
@@ -110,7 +113,7 @@ class RandomCrop(torch.nn.Module):
         Returns:
             PIL Image or Tensor: Randomly cropped and resized image.
         """
-        ori_w, ori_h = F._get_image_size(img)
+        ori_w, ori_h = get_image_size(img)
         i, j, h, w = self.get_params(ori_w, ori_h)
         return F.resized_crop(img, i, j, h, w, (ori_h, ori_w), self.interpolation)
 

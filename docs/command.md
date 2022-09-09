@@ -1,4 +1,4 @@
-# 脚本使用
+# 脚本工具
 
 **cnocr** 包含了几个命令行工具，安装 **cnocr** 后即可使用。
 
@@ -33,7 +33,7 @@ Options:
 例如可以使用以下命令对图片 `docs/examples/rand_cn1.png` 进行文字识别：
 
 ```bash
-cnstd predict -i docs/examples/rand_cn1.png -s
+> cnstd predict -i docs/examples/rand_cn1.png -s
 ```
 
 具体使用也可参考文件 [Makefile](https://github.com/breezedeus/cnocr/blob/master/Makefile) 。
@@ -67,7 +67,7 @@ Options:
 例如可以使用以下命令评估 `data/test/dev.tsv` 中指定的所有样本：
 
 ```bash
-cnocr evaluate -i data/test/dev.tsv --img-folder data/images 
+> cnocr evaluate -i data/test/dev.tsv --img-folder data/images 
 ```
 
 具体使用也可参考文件 [Makefile](https://github.com/breezedeus/cnocr/blob/master/Makefile) 。
@@ -101,12 +101,52 @@ Options:
 例如可以使用以下命令进行训练：
 
 ```bash
-cnocr train -m densenet_lite_136-fc --index-dir data/test --train-config-fp docs/examples/train_config.json
+> cnocr train -m densenet_lite_136-fc --index-dir data/test --train-config-fp docs/examples/train_config.json
 ```
 
 训练数据的格式见文件夹 [data/test](https://github.com/breezedeus/cnocr/blob/master/data/test) 中的 [train.tsv](https://github.com/breezedeus/cnocr/blob/master/data/test/train.tsv) 和 [dev.tsv](https://github.com/breezedeus/cnocr/blob/master/data/test/dev.tsv) 文件。
 
 具体使用也可参考文件 [Makefile](https://github.com/breezedeus/cnocr/blob/master/Makefile) 。
+
+## 模型API服务
+
+CnOCR 自 **V2.2.1** 开始加入了基于 FastAPI 的HTTP服务。开启服务需要安装几个额外的包，可以使用以下命令安装：
+
+```bash
+> pip install cnocr[serve]
+```
+
+
+
+使用命令 **`cnocr serve`**  启动API服务，以下是使用说明：
+
+```bash
+> cnocr serve -h
+Usage: cnocr serve [OPTIONS]
+
+  开启HTTP服务。
+
+Options:
+  -H, --host TEXT     server host. Default: "0.0.0.0"
+  -p, --port INTEGER  server port. Default: 8501
+  --reload            whether to reload the server when the codes have been
+                      changed
+  -h, --help          Show this message and exit.
+```
+
+
+
+例如使用以下命令启动服务：
+
+```bash
+> cnocr serve -p 8501
+```
+
+
+
+服务调用方式参考 [HTTP服务](index.md) 。
+
+
 
 ## 模型转存
 

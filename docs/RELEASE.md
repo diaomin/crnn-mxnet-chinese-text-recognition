@@ -1,5 +1,19 @@
 # Release Notes
 
+
+
+### Update 2022.09.09: 发布 cnocr V2.2.2
+
+主要变更：
+
+* 修复HTTP服务存在的问题，感谢 [@Sugobet](https://github.com/Sugobet) 。
+
+* 增加图片分类模型，以及配套的训练和预测脚本，具体见 [图片分类工具](clf_command.md)。
+
+* 适配了新版的pytorch_lightning接口，训练中引入`torchmetrics`计算各种指标。
+
+  
+
 ### Update 2022.08.21: 发布 cnocr V2.2.1
 
 主要变更：

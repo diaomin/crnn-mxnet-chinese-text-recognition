@@ -2,7 +2,8 @@
     "vocab_fp": "cnocr/label_cn.txt",
     "img_folder": "data/output_normal",
 
-    "gpus": [0],
+    "devices": 1,
+    "accelerator": "gpu",
     "epochs": 40,
     "batch_size": 100,
     "num_workers": 12,
@@ -10,6 +11,10 @@
     "optimizer": "adam",
     "learning_rate": 3e-3,
     "weight_decay": 0,
+    "metrics": {
+        "complete_match": {},
+        "cer": {}
+    },
     "lr_scheduler": {
         "name": "cos_warmup",
         "min_lr_mult_factor": 0.01,

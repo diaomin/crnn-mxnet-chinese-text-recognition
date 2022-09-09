@@ -107,6 +107,7 @@ class PPRecognizer(Recognizer):
             )  # download the .zip file and unzip
 
         self._model_fp = model_fp
+        logger.info('use model: %s' % self._model_fp)
 
     def resize_norm_img(self, img, max_wh_ratio):
         """

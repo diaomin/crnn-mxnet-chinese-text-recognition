@@ -1,0 +1,30 @@
+{
+    "devices": 1,
+    "accelerator": "cpu",
+    "epochs": 100,
+    "batch_size": 16,
+    "num_workers": 0,
+    "pin_memory": false,
+    "optimizer": "adam",
+    "learning_rate": 1e-4,
+    "weight_decay": 0,
+    "metrics": {
+        "accuracy": {},
+        "precision": {"average": "micro"},
+        "recall": {"average": "micro"}
+    },
+    "lr_scheduler": {
+        "name": "cos_warmup",
+        "min_lr_mult_factor": 0.01,
+        "warmup_epochs": 10
+    },
+    "transform": {
+        "fgbgflip_prob": 0.4
+    },
+    "precision": 32,
+    "limit_train_batches": 3,
+    "limit_val_batches": 2,
+    "log_every_n_steps": 2,
+    "pl_checkpoint_monitor": "val-accuracy-epoch",
+    "pl_checkpoint_mode": "max"
+}
