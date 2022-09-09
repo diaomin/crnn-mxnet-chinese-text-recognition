@@ -86,6 +86,7 @@ METRIC_MAPPING = {
     'precision': torchmetrics.Precision,
     'recall': torchmetrics.Recall,
     'complete_match': CompleteMatchMetric,
+    'cer': torchmetrics.CharErrorRate,
 }
 try:
     METRIC_MAPPING['f1'] = torchmetrics.F1Score
@@ -103,7 +104,9 @@ class Metrics(object):
                 logger.warning(f'metric {name} is not supported and will be ignored')
             self._metrics[name] = METRIC_MAPPING[name](**_config)
         if len(self._metrics) < 1:
-            raise RuntimeError('no available metric is set, please check you `train_config.json`')
+            raise RuntimeError(
+                'no available metric is set, please check you `train_config.json`'
+            )
 
     @classmethod
     def from_config(cls, configs):
@@ -148,13 +151,18 @@ class WrapperLightningModule(pl.LightningModule):
             return preds.detach().cpu()
         else:
             preds, _ = zip(*preds)
+            # (['a', 'b', 'c'], ['d', 'e', 'f']) -> ['abc', 'def']
+            preds = [''.join(_one) for _one in preds]
             return preds
 
+    def _postprocess_target(self, target):
+        if isinstance(self.model, ImageClassifier):
+            return target.detach().cpu()
+        else:
+            # (['a', 'b', 'c'], ['d', 'e', 'f']) -> ['abc', 'def']
+            return [''.join(_one) for _one in target]
+
     def training_step(self, batch, batch_idx):
-        # if hasattr(self.model, 'set_current_epoch'):
-        #     self.model.set_current_epoch(self.current_epoch)
-        # else:
-        #     setattr(self.model, 'current_epoch', self.current_epoch)
         res = self.model.calculate_loss(
             batch, return_model_output=True, return_preds=True
         )
@@ -165,10 +173,10 @@ class WrapperLightningModule(pl.LightningModule):
 
         losses = res['loss']
         preds = self._postprocess_preds(res['preds'])
-        reals = res['target']
-        if isinstance(reals, torch.Tensor):
-            reals = reals.detach().cpu()
-        train_metrics = self.train_metrics.add_batch(references=reals, predictions=preds)
+        reals = self._postprocess_target(res['target'])
+        train_metrics = self.train_metrics.add_batch(
+            references=reals, predictions=preds
+        )
         train_metrics['loss'] = losses.item()
         train_metrics = {
             f'train-{k}-step': v for k, v in train_metrics.items() if not np.isnan(v)

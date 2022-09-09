@@ -12,7 +12,8 @@
     "learning_rate": 1e-3,
     "weight_decay": 0,
     "metrics": {
-        "complete_match": {}
+        "complete_match": {},
+        "cer": {}
     },
     "lr_scheduler": {
         "name": "cos_warmup",

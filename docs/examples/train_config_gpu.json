@@ -11,6 +11,10 @@
     "optimizer": "adam",
     "learning_rate": 3e-3,
     "weight_decay": 0,
+    "metrics": {
+        "complete_match": {},
+        "cer": {}
+    },
     "lr_scheduler": {
         "name": "cos_warmup",
         "min_lr_mult_factor": 0.01,
