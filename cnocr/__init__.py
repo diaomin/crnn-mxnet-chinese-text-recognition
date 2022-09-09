@@ -30,3 +30,4 @@ from .utils import read_img
 from .cn_ocr import CnOcr
 from .recognizer import gen_model
 from .line_split import line_split
+from .classification import ImageClassifier
