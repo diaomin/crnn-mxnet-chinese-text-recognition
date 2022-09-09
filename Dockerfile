@@ -13,7 +13,8 @@ RUN add-apt-repository ppa:deadsnakes/ppa \
     && rm -f /usr/bin/pip && ln -s /usr/bin/pip3 /usr/bin/pip
 RUN apt-get update && apt-get install -y python3-opencv libglib2.0-0 libsm6 libxext6 libxrender-dev
 
-RUN pip install -U pip && pip install torch==1.11.0 && pip install -U cnocr[serve]
+RUN pip install -U pip && pip install torch==1.11.0 \
+    && pip install -U cnocr[serve]==2.2.2 --extra-index-url https://pypi.org/simple
 CMD ["cnocr", "serve", "-H", "0.0.0.0", "-p", "8501"]
 
 EXPOSE 8501
