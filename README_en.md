@@ -46,6 +46,10 @@ Starting from **V2.2**, **CnOCR** internally uses the text detection engine **[C
 
 Here are some examples of usages for different scenarios.
 
+## Start On Cloud IDE
+
+[https://idegithub.com/breezedeus/CnOCR](https://idegithub.com/breezedeus/CnOCR)
+
 ## Usages for Different Scenarios
 
 ### Common image recognition

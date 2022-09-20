@@ -47,6 +47,10 @@
 
 以下是一些不同场景的调用示例。
 
+## 在 Cloud IDE 中预览
+
+[https://idegithub.com/breezedeus/CnOCR](https://idegithub.com/breezedeus/CnOCR)
+
 ## 不同场景的调用示例
 
 ### 常见的图片识别
