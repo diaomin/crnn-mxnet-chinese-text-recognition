@@ -32,6 +32,7 @@
 <br>
 <strong>请勿将此项目用于文字审查！</strong>
 <br>
+---
 </div>
 
 [**CnOCR**](https://github.com/breezedeus/cnocr) 是 **Python 3** 下的**文字识别**（**Optical Character Recognition**，简称**OCR**）工具包，支持**简体中文**、**繁体中文**（部分模型）、**英文**和**数字**的常见字符识别，支持竖排文字的识别。自带了**20+个** [训练好的模型](https://cnocr.readthedocs.io/zh/latest/models/)，适用于不同应用场景，安装后即可直接使用。同时，CnOCR也提供简单的[训练命令](https://cnocr.readthedocs.io/zh/latest/train/)供使用者训练自己的模型。欢迎扫码加小助手为好友，备注 `ocr`，小助手会定期统一邀请大家入群：
