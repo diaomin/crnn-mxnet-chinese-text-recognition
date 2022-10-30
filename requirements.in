@@ -2,8 +2,8 @@
 
 click
 tqdm
-torch>=1.8.0
-torchvision>=0.9.0
+torch>=1.8.0,<1.13
+torchvision>=0.9.0,<0.14
 numpy
 pytorch-lightning>=1.6.0
 torchmetrics>=0.9.0
