@@ -2,7 +2,7 @@ autoOpen: true
 apps:
   - port: 8501
     command: streamlit run cnocr/app.py
-    root: /ide/workspace/CnOCR
+    root: ./
     name: CnOCR
     description: CnOCR
     autoOpen: true
