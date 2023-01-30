@@ -2,6 +2,7 @@
   <img src="./docs/figs/cnocr-logo.jpg" width="250px"/>
   <div>&nbsp;</div>
 
+[![Downloads](https://static.pepy.tech/personalized-badge/cnocr?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://cnocr.readthedocs.io/zh/latest/)
 [![license](https://img.shields.io/github/license/breezedeus/cnocr)](./LICENSE)
 [![Docs](https://readthedocs.org/projects/cnocr/badge/?version=latest)](https://cnocr.readthedocs.io/zh/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/cnocr.svg)](https://badge.fury.io/py/cnocr)
@@ -27,6 +28,13 @@
 </div>
 
 # CnOCR
+<div align="center">
+<strong>Tech should serve the people, not enslave them!</strong>
+<br>
+<strong>Please do NOT use this project for text censorship!</strong>
+<br>
+---
+</div>
 
 [**CnOCR**](https://github.com/breezedeus/cnocr)  is an **Optical Character Recognition (OCR)** toolkit for **Python 3**. It supports recognition of common characters in **English and numbers**, **Simplified Chinese**, **Traditional Chinese** (some models), and **vertical text** recognition. It comes with [**20+ well-trained models**](https://cnocr.readthedocs.io/zh/latest/models/) for different application scenarios and can be used directly after installation. Also, CnOCR provides simple training [commands](https://cnocr.readthedocs.io/zh/latest/train/) for users to train their own models. Welcome to join the WeChat contact group.
 
