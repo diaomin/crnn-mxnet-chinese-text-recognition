@@ -2,6 +2,7 @@
   <img src="./docs/figs/cnocr-logo.jpg" width="250px"/>
   <div>&nbsp;</div>
 
+[![Downloads](https://static.pepy.tech/personalized-badge/cnocr?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://cnocr.readthedocs.io/zh/latest/)
 [![license](https://img.shields.io/github/license/breezedeus/cnocr)](./LICENSE)
 [![Docs](https://readthedocs.org/projects/cnocr/badge/?version=latest)](https://cnocr.readthedocs.io/zh/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/cnocr.svg)](https://badge.fury.io/py/cnocr)
@@ -28,7 +29,7 @@
 
 # CnOCR
 <div align="center">
-<strong>技术应服务于人民，而非奴役人民！</strong>
+<strong>Tech should serve the people, not enslave them!</strong>
 <br>
 <strong>请勿将此项目用于文字审查！</strong>
 <br>
