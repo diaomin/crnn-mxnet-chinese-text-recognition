@@ -13,6 +13,10 @@
 </figure>
 
 
-## 二、面包多
+## 二、支付宝打赏
 
-通过**面包多** [给作者来杯咖啡 ☕️](https://dun.mianbaoduo.com/@breezedeus) 。
+通过**支付宝**给作者打赏。
+
+<figure markdown>
+![支付宝收款码](./cnocr-zfb.jpg){: style="width:280px"}
+</figure>
