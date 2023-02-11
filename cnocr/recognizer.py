@@ -347,7 +347,11 @@ class Recognizer(object):
         sorted_out = []
         while idx * batch_size < len(sorted_img_list):
             imgs = sorted_img_list[idx * batch_size : (idx + 1) * batch_size]
-            batch_out = self._predict(imgs)
+            try:
+                batch_out = self._predict(imgs)
+            except Exception as e:
+                # 对于太小的图片，如宽度小于8，会报错
+                batch_out = {'preds': [([''], 0.0)] * len(imgs)}
             sorted_out.extend(batch_out['preds'])
             idx += 1
         out = [None] * len(sorted_out)
