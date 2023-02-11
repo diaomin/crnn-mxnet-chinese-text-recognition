@@ -22,7 +22,13 @@ from functools import partial
 from typing import Any, List, Optional, Callable
 
 from torch import nn, Tensor
-from torchvision.models.mobilenetv2 import ConvBNActivation
+try:
+    from torchvision.models.mobilenetv2 import ConvBNActivation
+except:
+    # FIXME: 目前的识别模型其实没有用到mobilenetv3的，所以这个文件应该不会被真的用到
+    #   如果真用到，需要check一下新的Conv2dNormActivation是否能替代之前的ConvBNActivation
+    #   Ref: https://github.com/pytorch/vision/releases/tag/v0.14.0
+    from torchvision.ops.misc import Conv2dNormActivation as ConvBNActivation
 from torchvision.models import mobilenetv3
 from torchvision.models.mobilenetv3 import InvertedResidualConfig
 
