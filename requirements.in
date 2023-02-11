@@ -1,14 +1,14 @@
---index-url https://pypi.doubanio.com/simple --extra-index-url https://pypi.org/simple
+--index-url https://pypi.tuna.tsinghua.edu.cn/simple
+--extra-index-url https://pypi.doubanio.com/simple --extra-index-url https://pypi.org/simple
 
 click
 tqdm
-torch>=1.8.0,<1.13
-torchvision>=0.9.0,<0.14
+torch>=1.8.0,<2.0
+torchvision>=0.9.0
 numpy
 pytorch-lightning>=1.6.0
 torchmetrics>=0.9.0
 pillow>=5.3.0
-#python-Levenshtein
 onnx
 onnxruntime
 cnstd>=1.2

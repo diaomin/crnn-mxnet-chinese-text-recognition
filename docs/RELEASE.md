@@ -1,6 +1,20 @@
 # Release Notes
 
 
+### Update 2023.02.11: 发布 cnocr V2.2.2.2
+
+主要变更：
+
+* 修复了识别很窄图片时异常的问题。
+* 修复了对 torchvision 0.14 的兼容问题。
+
+
+### Update 2022.10.30: 发布 cnocr V2.2.2.1
+
+主要变更：
+
+* 修复了与新版 torch 和 torchvision 不兼容的问题。
+
 
 ### Update 2022.09.09: 发布 cnocr V2.2.2
 
